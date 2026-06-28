@@ -371,22 +371,22 @@ export function LandingPage() {
                   whileTap={{ scale: [1, 1.012, 1.006] }}
                   transition={{ duration: 0.34, ease: [0.16, 1, 0.3, 1] }}
                   className={cn(
-                    "roadmap-item liquid-glass group grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-2xl border p-3 text-left backdrop-blur-2xl transition-colors duration-300",
+                    "roadmap-item liquid-glass group grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-2xl border p-3 text-left backdrop-blur-2xl transition-all duration-500",
                     selectedRoadmap === index
                       ? "border-black/20 bg-black text-white"
-                      : "border-white/55 bg-white/54 text-black/78 hover:border-white/80 hover:bg-white/86 hover:text-black",
+                      : "border-white/55 bg-white/40 text-black/78 hover:border-black/20 hover:bg-black hover:text-white",
                   )}
                 >
-                  <span className={cn("grid size-9 place-items-center rounded-full text-xs font-black transition-colors duration-300", selectedRoadmap === index ? "bg-white text-black" : "bg-white/64 text-black/70 group-hover:bg-black group-hover:text-white")}>
+                  <span className={cn("grid size-9 place-items-center rounded-full text-xs font-black transition-colors duration-500", selectedRoadmap === index ? "bg-white text-black" : "bg-white/64 text-black/70 group-hover:bg-white group-hover:text-black")}>
                     {index + 1}
                   </span>
                   <span>
                     <span className="block text-sm font-black">{item.label}</span>
-                    <span className={cn("mt-1 block text-xs font-semibold transition-colors duration-300", selectedRoadmap === index ? "text-white/62" : "text-black/48 group-hover:text-black/58")}>
+                    <span className={cn("mt-1 block text-xs font-semibold transition-colors duration-500", selectedRoadmap === index ? "text-white/62" : "text-black/48 group-hover:text-white/62")}>
                       {item.title}
                     </span>
                   </span>
-                  <span className={cn("text-xs font-black uppercase transition-colors duration-300", selectedRoadmap === index ? "text-white" : "text-black/50 group-hover:text-black")}>
+                  <span className={cn("text-xs font-black uppercase transition-colors duration-500", selectedRoadmap === index ? "text-white" : "text-black/50 group-hover:text-white")}>
                     {item.metric}
                   </span>
                 </motion.button>
@@ -478,11 +478,35 @@ function HomePortalIntro({ onStart }: { onStart: () => void }) {
             </motion.div>
 
             <motion.div
+              initial={{ opacity: 0, y: 18, scale: 0.98, filter: "blur(8px)" }}
+              whileInView={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+              viewport={{ once: true, margin: "-80px" }}
+              transition={{ duration: 0.78, delay: 0.05, ease: [0.16, 1, 0.3, 1] }}
+              className="hidden min-h-[250px] grid-rows-3 gap-2 md:col-span-3 md:grid"
+            >
+              {[
+                ["Запрос", "задача и бюджет"],
+                ["Подбор", "понятные карточки"],
+                ["Память", "история в профиле"],
+              ].map(([label, text], index) => (
+                <motion.div
+                  key={label}
+                  animate={{ opacity: [0.68, 1, 0.68], y: [0, -4, 0] }}
+                  transition={{ duration: 5.4, delay: index * 0.55, repeat: Infinity, ease: [0.16, 1, 0.3, 1] }}
+                  className="liquid-glass flex items-center justify-between rounded-[var(--radius-md)] border border-white/60 bg-white/34 px-4 py-3 text-black/72 shadow-[var(--shadow-card)] backdrop-blur-2xl"
+                >
+                  <span className="text-xs font-black uppercase text-black/42">{label}</span>
+                  <span className="text-sm font-black">{text}</span>
+                </motion.div>
+              ))}
+            </motion.div>
+
+            <motion.div
               initial={{ opacity: 0, x: 18, scale: 0.985 }}
               whileInView={{ opacity: 1, x: 0, scale: 1 }}
               viewport={{ once: true, margin: "-80px" }}
               transition={{ duration: 0.72, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
-              className="liquid-glass relative min-h-[250px] overflow-hidden rounded-[var(--radius-lg)] border border-white/65 bg-white/46 p-5 shadow-[var(--shadow-glass)] backdrop-blur-2xl md:col-span-4 md:col-start-9 md:p-6"
+              className="liquid-glass relative min-h-[230px] overflow-hidden rounded-[var(--radius-lg)] border border-white/65 bg-white/42 p-5 shadow-[var(--shadow-glass)] backdrop-blur-2xl md:col-span-4 md:p-6"
             >
               <p className="text-xs font-black uppercase text-[var(--color-text-soft)]">Live сценарий</p>
               <h3 className="mt-3 max-w-sm text-[clamp(1.55rem,2.3vw,2.15rem)] font-black leading-tight">Подбор собирается на глазах</h3>
@@ -509,14 +533,6 @@ function HomePortalIntro({ onStart }: { onStart: () => void }) {
               ))}
             </div>
           </div>
-          <motion.div
-            aria-hidden
-            animate={{ opacity: [0.24, 0.48, 0.24], x: [0, 18, 0] }}
-            transition={{ duration: 8, repeat: Infinity, ease: [0.16, 1, 0.3, 1] }}
-            className="liquid-glass pointer-events-none absolute bottom-8 left-[44%] hidden rounded-full border border-white/55 bg-white/34 px-5 py-3 text-sm font-black text-black/62 backdrop-blur-2xl md:block"
-          >
-            Запрос → подбор → объяснение → сохранение
-          </motion.div>
         </PortalPanel>
       </BeautyPortalGrid>
     </section>
@@ -563,13 +579,21 @@ function SplashScreen({ onComplete }: { onComplete: () => void }) {
 
   return (
     <motion.div
-      exit={{ opacity: 0 }}
+      initial={{ opacity: 1 }}
+      exit={{ opacity: 0, filter: "blur(10px)" }}
       className={cn(
         "fixed inset-0 z-[100] flex items-end justify-start bg-white p-6 transition-opacity duration-700 md:p-10",
         exiting && "opacity-0",
       )}
     >
-      <span className="text-7xl font-black leading-none tabular-nums md:text-9xl">{count}</span>
+      <motion.span
+        initial={{ y: 18, opacity: 0, scale: 0.96 }}
+        animate={{ y: 0, opacity: 1, scale: 1 }}
+        transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
+        className="text-7xl font-black leading-none tabular-nums md:text-9xl"
+      >
+        {count}
+      </motion.span>
     </motion.div>
   );
 }
