@@ -42,29 +42,6 @@ type RecommendationResponse = {
   products: Product[];
 };
 
-const featureBars = [
-  {
-    label: "AI-подбор ухода",
-    action: "Подобрать уход по запросу",
-    title: "Умный подбор ухода",
-    text: "Опишите кожу, бюджет и задачу. Красавица соберет понятную подборку и объяснит, зачем нужен каждый шаг.",
-    cta: "Начать подбор",
-  },
-  {
-    label: "Beauty-профиль",
-    action: "Сохранить контекст кожи",
-    title: "Будущий beauty-профиль",
-    text: "Здесь будут храниться история подборов, параметры кожи, избранные средства и реакции, чтобы рекомендации становились точнее.",
-    cta: "Посмотреть профиль",
-  },
-  {
-    label: "Рейтинг сообщества",
-    action: "Сравнить средства",
-    title: "Рейтинг доверия",
-    text: "Оценки пользователей помогут понять, какие средства чаще подходят людям с похожими запросами и ограничениями.",
-    cta: "Оценить подборку",
-  },
-];
 const suggestions = [
   "Подбери уход для жирной кожи до 1500 рублей",
   "Нужна мягкая база для чувствительной кожи",
@@ -163,7 +140,6 @@ export function LandingPage() {
   const [votes, setVotes] = useState<Record<string, "up" | "down">>({});
   const [selectedRoadmap, setSelectedRoadmap] = useState(0);
   const [suggestionIndex, setSuggestionIndex] = useState(0);
-  const [activeModal, setActiveModal] = useState<(typeof featureBars)[number] | null>(null);
   const [result, setResult] = useState<RecommendationResponse>({
     summary: "Beauty OS готова собрать подборку. Опишите кожу, бюджет и желаемый эффект.",
     products: sampleProducts,
@@ -245,27 +221,10 @@ export function LandingPage() {
       <AnimatePresence>{showSplash ? <SplashScreen onComplete={() => setShowSplash(false)} /> : null}</AnimatePresence>
       <Header onTry={() => focusAi()} />
 
-      <section id="home" className="grid min-h-screen gap-2 px-3 pb-2 pt-24 md:grid-rows-[auto_1fr] md:px-5">
-        <div className="grid gap-2 md:grid-cols-3">
-          {featureBars.map((item, index) => (
-            <FeaturePill key={item.label} delay={index * 0.08}>
-              <button
-                type="button"
-                onClick={() => setActiveModal(item)}
-                className="relative z-10 flex h-full w-full items-center justify-center px-4 text-center transition duration-200 hover:scale-[1.02]"
-              >
-                <span>
-                  <span className="block text-xl font-black md:text-3xl">{item.label}</span>
-                  <span className="mt-1 hidden text-xs font-bold text-black/45 md:block">{item.action}</span>
-                </span>
-              </button>
-            </FeaturePill>
-          ))}
-        </div>
-
+      <section id="home" className="grid min-h-screen gap-2 px-3 pb-2 pt-20 md:px-5">
         <PortalTile className="relative min-h-[720px] overflow-hidden md:min-h-0" delay={0.25} hero>
-          <div className="absolute left-5 top-5 z-10 max-w-[260px] text-sm font-semibold leading-5 md:left-8 md:top-8">
-            Спокойный помощник для осознанного выбора ухода, бюджета и понятных рекомендаций.
+          <div className="liquid-glass absolute left-5 top-5 z-10 max-w-[330px] rounded-3xl border border-white/55 bg-white/38 px-5 py-4 text-sm font-semibold leading-5 text-black/70 backdrop-blur-2xl md:left-8 md:top-8">
+            Уход, который ощущается личным: Красавица бережно собирает рекомендации под кожу, бюджет и ваш ритм.
           </div>
           <div className="absolute bottom-48 left-4 z-10 md:bottom-24 md:left-8">
             <h1 className="max-w-5xl text-[clamp(3.9rem,10.4vw,9.8rem)] font-black leading-[0.9] tracking-tight">
@@ -397,11 +356,11 @@ export function LandingPage() {
           variants={reveal}
           className="liquid-glass relative overflow-hidden rounded-[var(--radius-xl)] bg-[url('/beauty-products-portal.png')] bg-cover bg-center bg-no-repeat p-2"
         >
-          <div className="absolute inset-0 bg-black/34" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_10%,rgba(255,255,255,.38),transparent_32%),linear-gradient(135deg,rgba(255,255,255,.18),rgba(255,255,255,.06))]" />
-          <div className="relative z-10 flex min-h-[480px] flex-col justify-between rounded-[var(--radius-lg)] border border-white/24 bg-white/18 p-5 text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,.08)] backdrop-blur-2xl md:p-6">
+          <div className="absolute inset-0 bg-white/58" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_10%,rgba(255,255,255,.72),transparent_32%),linear-gradient(135deg,rgba(255,255,255,.56),rgba(255,255,255,.22))]" />
+          <div className="relative z-10 flex min-h-[480px] flex-col justify-between rounded-[var(--radius-lg)] border border-white/55 bg-white/42 p-5 text-black shadow-[inset_0_0_0_1px_rgba(255,255,255,.16)] backdrop-blur-2xl md:p-6">
             <div>
-              <p className="text-xs font-black uppercase text-white/62">Roadmap</p>
+              <p className="text-xs font-black uppercase text-black/45">Roadmap</p>
               <h3 className="mt-3 text-[clamp(2.5rem,4.7vw,4.4rem)] font-black leading-[0.9]">
                 Что будет
                 <br />
@@ -411,30 +370,33 @@ export function LandingPage() {
 
             <div className="my-5 grid gap-2">
               {roadmap.map((item, index) => (
-                <button
+                <motion.button
                   key={item.label}
                   type="button"
                   onClick={() => setSelectedRoadmap(index)}
+                  whileHover={{ y: -2, scale: 0.992 }}
+                  whileTap={{ y: -2, scale: 0.992 }}
+                  transition={{ duration: 0.58, ease: [0.16, 1, 0.3, 1] }}
                   className={cn(
-                    "liquid-glass group grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-2xl border p-3 text-left backdrop-blur-xl transition duration-200 hover:scale-[1.01]",
+                    "roadmap-item liquid-glass group grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-2xl border p-3 text-left backdrop-blur-2xl transition duration-500",
                     selectedRoadmap === index
-                      ? "border-white bg-white text-black"
-                      : "border-white/15 bg-white/12 text-white hover:bg-white/20",
+                      ? "border-white/80 bg-white/88 text-black"
+                      : "border-white/55 bg-white/48 text-black/78 hover:bg-white/72",
                   )}
                 >
-                  <span className={cn("grid size-9 place-items-center rounded-full text-xs font-black", selectedRoadmap === index ? "bg-black text-white" : "bg-white/15 text-white")}>
+                  <span className={cn("grid size-9 place-items-center rounded-full text-xs font-black", selectedRoadmap === index ? "bg-black text-white" : "bg-white/58 text-black/70")}>
                     {index + 1}
                   </span>
                   <span>
                     <span className="block text-sm font-black">{item.label}</span>
-                    <span className={cn("mt-1 block text-xs font-semibold", selectedRoadmap === index ? "text-black/55" : "text-white/55")}>
+                    <span className={cn("mt-1 block text-xs font-semibold", selectedRoadmap === index ? "text-black/55" : "text-black/48")}>
                       {item.title}
                     </span>
                   </span>
-                  <span className={cn("text-xs font-black uppercase", selectedRoadmap === index ? "text-black" : "text-white/65")}>
+                  <span className={cn("text-xs font-black uppercase", selectedRoadmap === index ? "text-black" : "text-black/50")}>
                     {item.metric}
                   </span>
-                </button>
+                </motion.button>
               ))}
             </div>
 
@@ -466,18 +428,6 @@ export function LandingPage() {
       </section>
 
       <Footer />
-      <SoftModal
-        item={activeModal}
-        onClose={() => setActiveModal(null)}
-        onPrimary={(item) => {
-          setActiveModal(null);
-          if (item.label === "Beauty-профиль") {
-            window.location.href = "/profile";
-            return;
-          }
-          focusAi(item.action);
-        }}
-      />
     </main>
   );
 }
@@ -498,12 +448,12 @@ function HomePortalIntro({ onStart }: { onStart: () => void }) {
 
   return (
     <section className="px-3 pb-2 pt-2 md:px-5">
-      <BeautyPortalGrid className="min-h-0 max-w-none">
+      <BeautyPortalGrid className="min-h-0 max-w-none items-stretch">
         <PortalPanel className="md:col-span-5">
-          <div className="flex min-h-[380px] flex-col justify-between">
+          <div className="flex min-h-[300px] flex-col justify-between">
             <div>
               <p className="text-xs font-black uppercase text-[var(--color-text-soft)]">Подбор ухода</p>
-              <h2 className="mt-4 max-w-2xl text-[clamp(2.7rem,5.1vw,5.4rem)] font-black leading-[0.92] tracking-tight">
+              <h2 className="mt-4 max-w-2xl text-[clamp(2.5rem,4.7vw,5rem)] font-black leading-[0.92] tracking-tight">
                 Подбор ухода без хаоса
               </h2>
             </div>
@@ -519,38 +469,38 @@ function HomePortalIntro({ onStart }: { onStart: () => void }) {
           </div>
         </PortalPanel>
         <PortalPanel className="md:col-span-4 md:row-span-2" image="/beauty-products-portal.png">
-          <div className="flex h-full min-h-[380px] items-end">
+          <div className="flex h-full min-h-[500px] items-end">
             <div className="liquid-glass rounded-[var(--radius-lg)] border border-white/60 bg-white/46 p-4 backdrop-blur-2xl">
               <p className="text-xs font-black uppercase text-[var(--color-text-soft)]">Beauty-портал</p>
               <p className="mt-2 text-xl font-black leading-tight">Запрос, подбор, объяснение и сохранение.</p>
             </div>
           </div>
         </PortalPanel>
-        <PortalPanel className="md:col-span-3 md:row-span-2">
-          <div className="relative flex h-full min-h-[380px] flex-col justify-between overflow-hidden">
+        <PortalPanel className="md:col-span-3">
+          <div className="relative flex h-full min-h-[300px] flex-col justify-between overflow-hidden">
             <div>
               <p className="text-xs font-black uppercase text-[var(--color-text-soft)]">Live сценарий</p>
-              <h3 className="mt-3 text-3xl font-black leading-tight">Подбор собирается на глазах</h3>
+              <h3 className="mt-3 text-[clamp(1.6rem,2.5vw,2.3rem)] font-black leading-tight">Подбор собирается на глазах</h3>
             </div>
-            <div className="relative min-h-[220px]">
+            <div className="relative min-h-[150px]">
               {floating.map(([label, value], index) => (
                 <motion.div
                   key={label}
-                  initial={{ opacity: 0, y: 22, scale: 0.96, filter: "blur(8px)" }}
-                  animate={{ opacity: [0, 1, 1, 0], y: [22, 0, 0, -10], scale: [0.96, 1, 1, 0.98], filter: ["blur(8px)", "blur(0px)", "blur(0px)", "blur(6px)"] }}
-                  transition={{ duration: 6.4, delay: index * 1.2, repeat: Infinity, ease: [0.16, 1, 0.3, 1] }}
-                  className="liquid-glass absolute left-0 right-0 rounded-[var(--radius-lg)] border border-white/60 bg-white/54 p-4 shadow-[var(--shadow-card)] backdrop-blur-2xl"
-                  style={{ top: `${index * 42}px` }}
+                  initial={{ opacity: 0, y: 18, scale: 0.97, filter: "blur(10px)" }}
+                  animate={{ opacity: [0, 1, 1, 0], y: [18, 0, 0, -8], scale: [0.97, 1, 1, 0.985], filter: ["blur(10px)", "blur(0px)", "blur(0px)", "blur(8px)"] }}
+                  transition={{ duration: 9.6, delay: index * 2.2, repeat: Infinity, ease: [0.16, 1, 0.3, 1] }}
+                  className="live-chip liquid-glass absolute left-0 right-0 rounded-[var(--radius-md)] border border-white/65 bg-white/56 p-3 shadow-[var(--shadow-card)] backdrop-blur-2xl"
+                  style={{ top: `${index * 30}px` }}
                 >
                   <p className="text-xs font-black uppercase text-[var(--color-text-soft)]">{label}</p>
-                  <p className="mt-1 text-xl font-black">{value}</p>
+                  <p className="mt-1 text-lg font-black">{value}</p>
                 </motion.div>
               ))}
             </div>
           </div>
         </PortalPanel>
         {steps.map(([title, text], index) => (
-          <PortalPanel key={title} className="md:col-span-3">
+          <PortalPanel key={title} className="step-panel min-h-[160px] md:col-span-3">
             <StepCard index={index + 1} title={title} text={text} />
           </PortalPanel>
         ))}
@@ -561,74 +511,19 @@ function HomePortalIntro({ onStart }: { onStart: () => void }) {
 
 function StepCard({ index, title, text }: { index: number; title: string; text: string }) {
   return (
-    <div className="liquid-glass rounded-[var(--radius-md)] border border-[var(--color-border)] bg-white/50 p-4 backdrop-blur-xl">
+    <motion.div
+      initial={{ opacity: 0, y: 18, scale: 0.98 }}
+      whileInView={{ opacity: 1, y: 0, scale: 1 }}
+      viewport={{ once: true, margin: "-80px" }}
+      whileHover={{ y: -6, scale: 1.018 }}
+      whileTap={{ scale: 0.982 }}
+      transition={{ duration: 0.62, ease: [0.16, 1, 0.3, 1], delay: index * 0.04 }}
+      className="liquid-glass h-full rounded-[var(--radius-md)] border border-white/60 bg-white/42 p-4 shadow-[var(--shadow-card)] backdrop-blur-2xl"
+    >
       <p className="text-xs font-black text-[var(--color-text-soft)]">0{index}</p>
       <h3 className="mt-2 text-xl font-black leading-tight">{title}</h3>
       <p className="mt-2 text-sm font-semibold leading-6 text-[var(--color-text-muted)]">{text}</p>
-    </div>
-  );
-}
-
-function SoftModal({
-  item,
-  onClose,
-  onPrimary,
-}: {
-  item: (typeof featureBars)[number] | null;
-  onClose: () => void;
-  onPrimary: (item: (typeof featureBars)[number]) => void;
-}) {
-  useEffect(() => {
-    if (!item) {
-      return;
-    }
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        onClose();
-      }
-    };
-    document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.body.style.overflow = "";
-      window.removeEventListener("keydown", onKeyDown);
-    };
-  }, [item, onClose]);
-
-  return (
-    <AnimatePresence>
-      {item ? (
-        <motion.div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/18 p-3 backdrop-blur-md md:items-center md:p-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-          <button type="button" aria-label="Закрыть окно" className="absolute inset-0" onClick={onClose} />
-          <motion.div
-            role="dialog"
-            aria-modal="true"
-            aria-label={item.title}
-            initial={{ opacity: 0, y: 26, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 18, scale: 0.98 }}
-            transition={{ duration: 0.34, ease: [0.16, 1, 0.3, 1] }}
-            className="relative w-full max-w-2xl rounded-[32px] border border-white/60 bg-[rgba(255,253,251,.82)] p-6 shadow-[var(--shadow-glass)] backdrop-blur-2xl md:p-8"
-          >
-            <button type="button" aria-label="Закрыть" onClick={onClose} className="absolute right-4 top-4 grid size-11 place-items-center rounded-full border border-[var(--color-border)] bg-white/60 text-xl font-black">
-              <X className="size-5" />
-            </button>
-            <p className="text-sm font-black uppercase text-[var(--color-text-soft)]">{item.label}</p>
-            <h2 className="mt-4 max-w-xl text-[clamp(2.4rem,6vw,4.8rem)] font-black leading-[0.94] tracking-tight">{item.title}</h2>
-            <p className="mt-5 max-w-xl text-base font-semibold leading-8 text-[var(--color-text-muted)]">{item.text}</p>
-            <div className="mt-8 flex flex-col gap-2 sm:flex-row">
-              <Button type="button" onClick={() => onPrimary(item)} className="h-13 px-6">
-                {item.cta}
-              </Button>
-              <LinkButton href="https://t.me/krasavitsa_ai_bot" tone="secondary" className="h-13 px-6">
-                <MessageCircle className="size-5" />
-                Telegram
-              </LinkButton>
-            </div>
-          </motion.div>
-        </motion.div>
-      ) : null}
-    </AnimatePresence>
+    </motion.div>
   );
 }
 
@@ -728,26 +623,6 @@ function Header({ onTry }: { onTry: () => void }) {
         </aside>
       </div>
     </>
-  );
-}
-
-function FeaturePill({ children, delay = 0 }: { children: ReactNode; delay?: number }) {
-  return (
-    <motion.div
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: "-80px" }}
-      variants={reveal}
-      transition={{ duration: 0.62, delay }}
-      whileHover={{ y: -4, scale: 1.012 }}
-      whileTap={{ scale: 0.992 }}
-      className="feature-pill group relative h-16 overflow-hidden rounded-2xl border border-black/5 bg-white/55 shadow-[inset_0_1px_0_rgba(255,255,255,.8),0_18px_60px_rgba(29,29,31,.05)] backdrop-blur-2xl md:h-20"
-    >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(255,255,255,.95),transparent_36%),linear-gradient(120deg,rgba(255,255,255,.74),rgba(246,242,244,.42),rgba(255,255,255,.7))]" />
-      <div className="absolute left-6 top-1/2 h-12 w-24 -translate-y-1/2 rounded-full bg-[#FBC9D6]/25 blur-2xl" />
-      <div className="absolute right-6 top-1/2 h-10 w-20 -translate-y-1/2 rounded-full bg-white/70 blur-xl" />
-      {children}
-    </motion.div>
   );
 }
 
@@ -897,11 +772,19 @@ function VoteButton({ active, label, children, onClick }: { active: boolean; lab
 }
 
 function TelegramCard({ href, title, text }: { href: string; title: string; text: string }) {
+  const isBot = title.toLowerCase().includes("бот");
+
   return (
-    <motion.a href={href} target="_blank" rel="noreferrer" whileHover={{ y: -4, scale: 1.012 }} whileTap={{ scale: 0.986 }} className="apple-glass-card group rounded-2xl bg-white/85 p-5 backdrop-blur-xl transition duration-200 hover:bg-white">
+    <motion.a href={href} target="_blank" rel="noreferrer" whileHover={{ y: -5, scale: 1.014 }} whileTap={{ scale: 0.982 }} transition={{ duration: 0.52, ease: [0.16, 1, 0.3, 1] }} className="apple-glass-card group rounded-2xl border border-white/62 bg-white/68 p-5 shadow-[var(--shadow-card)] backdrop-blur-2xl transition duration-500 hover:bg-white/82">
       <div className="mb-8 flex items-center justify-between">
-        <MessageCircle className="size-7" />
-        <span className="grid size-11 place-items-center rounded-full border border-black transition duration-200 group-hover:bg-black group-hover:text-white">
+        <span className="grid size-11 place-items-center rounded-2xl border border-black/10 bg-white/72 shadow-[inset_0_1px_0_rgba(255,255,255,.86)] backdrop-blur-xl">
+          {isBot ? (
+            <Image src="/telegram-bot-icon.png" alt="" width={28} height={28} className="size-7 object-contain" />
+          ) : (
+            <Send className="size-6 -rotate-12 stroke-[2.4]" />
+          )}
+        </span>
+        <span className="grid size-11 place-items-center rounded-full border border-black/20 bg-white/40 transition duration-500 group-hover:bg-black group-hover:text-white">
           <ArrowRight className="size-5 -rotate-45" />
         </span>
       </div>
