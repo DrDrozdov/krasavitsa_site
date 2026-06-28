@@ -16,7 +16,7 @@ export const navLinks = [
 
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-40 border-b border-[var(--color-border)] bg-[rgba(250,247,243,.76)] px-4 py-3 backdrop-blur-2xl md:px-6">
+    <header className="liquid-glass sticky top-0 z-40 border-b border-[var(--color-border)] bg-[rgba(250,247,243,.62)] px-4 py-3 backdrop-blur-2xl md:px-6">
       <div className="mx-auto flex max-w-[1480px] flex-wrap items-center justify-between gap-3">
         <Link href="/" className="flex items-center gap-3">
           <Image src="/krasavitsa-logo.png" alt="Красавица" width={46} height={46} className="rounded-full" priority />
@@ -43,7 +43,7 @@ export function SiteHeader() {
 export function SiteFooter() {
   return (
     <footer className="px-3 pb-5 pt-2 md:px-5">
-      <div className="mx-auto max-w-[1480px] rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-glass-strong)] p-6 text-sm font-semibold text-[var(--color-text-muted)] shadow-[var(--shadow-soft)] backdrop-blur-2xl md:p-8">
+      <div className="liquid-glass mx-auto max-w-none rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-glass-strong)] p-6 text-sm font-semibold text-[var(--color-text-muted)] shadow-[var(--shadow-soft)] backdrop-blur-2xl md:p-8">
         <div className="grid gap-8 md:grid-cols-[1.1fr_0.9fr_0.9fr]">
           <div>
             <div className="flex items-center gap-3">
@@ -101,7 +101,7 @@ export function BeautyPageShell({ children }: { children: ReactNode }) {
 
 export function BeautyPortalGrid({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <section className={cn("mx-auto grid max-w-[1480px] gap-2 overflow-hidden rounded-[var(--radius-xxl)] border border-[var(--color-border)] bg-[var(--color-bg-soft)] p-2 shadow-[var(--shadow-soft)] md:grid-cols-12", className)}>
+    <section className={cn("liquid-glass mx-auto grid w-full max-w-none gap-2 overflow-hidden rounded-[var(--radius-xxl)] border border-[var(--color-border)] bg-[rgba(255,253,251,.68)] p-2 shadow-[var(--shadow-soft)] md:grid-cols-12", className)}>
       {children}
     </section>
   );
@@ -119,7 +119,7 @@ export function PortalPanel({
   priority?: boolean;
 }) {
   return (
-    <div className={cn("portal-panel relative min-h-[240px] overflow-hidden rounded-[var(--radius-lg)] border border-white/55 bg-[var(--color-glass)] p-6 backdrop-blur-2xl md:p-8", className)}>
+    <div className={cn("liquid-glass portal-panel relative min-h-[220px] overflow-hidden rounded-[var(--radius-lg)] border border-white/55 bg-[var(--color-glass)] p-5 backdrop-blur-2xl md:p-6", className)}>
       {image ? (
         <Image src={image} alt="" fill priority={priority} sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover object-center" />
       ) : null}
@@ -148,20 +148,20 @@ export function PageHero({
 }) {
   return (
     <div className="px-3 pb-2 pt-5 md:px-5">
-      <BeautyPortalGrid className="min-h-[620px]">
+      <BeautyPortalGrid className="min-h-[520px]">
         <PortalPanel className="md:col-span-7 md:row-span-2" image={image} priority>
-          <div className="flex min-h-[520px] flex-col justify-between">
+          <div className="flex min-h-[430px] flex-col justify-between">
             <div>
               <p className="text-sm font-black uppercase text-[var(--color-text-soft)]">{eyebrow}</p>
-              <h1 className="mt-5 max-w-4xl text-[clamp(3rem,7vw,7rem)] font-black leading-[0.94] tracking-tight">{title}</h1>
+              <h1 className="mt-5 max-w-4xl text-[clamp(2.7rem,5.7vw,5.8rem)] font-black leading-[0.94] tracking-tight">{title}</h1>
             </div>
-            <p className="max-w-2xl text-lg font-semibold leading-8 text-[var(--color-text-muted)]">{subtitle}</p>
+            <p className="max-w-2xl text-base font-semibold leading-7 text-[var(--color-text-muted)]">{subtitle}</p>
           </div>
         </PortalPanel>
         <PortalPanel className="md:col-span-5">
           <div className="flex h-full flex-col justify-between gap-8">
-            <p className="max-w-md text-2xl font-black leading-tight">Без хаоса, случайных советов и лишних покупок.</p>
-            <LinkButton href={ctaHref} className="h-13 w-fit px-6">
+            <p className="max-w-md text-xl font-black leading-tight">Без хаоса, случайных советов и лишних покупок.</p>
+            <LinkButton href={ctaHref} className="h-12 w-fit px-6">
               {cta}
               <ArrowRight className="size-4 -rotate-45" />
             </LinkButton>
@@ -184,21 +184,21 @@ export function PageHero({
 
 export function SectionIntro({ kicker, title, text }: { kicker: string; title: string; text: string }) {
   return (
-    <div className="mx-auto max-w-[1480px] px-3 py-10 md:px-5 md:py-14">
+    <div className="mx-auto max-w-none px-3 py-8 md:px-5 md:py-10">
       <p className="text-sm font-black uppercase text-[var(--color-text-soft)]">{kicker}</p>
-      <h2 className="mt-4 max-w-4xl text-[clamp(2.3rem,4.6vw,4.7rem)] font-black leading-[0.98] tracking-tight">{title}</h2>
-      <p className="mt-5 max-w-3xl text-lg font-semibold leading-8 text-[var(--color-text-muted)]">{text}</p>
+      <h2 className="mt-4 max-w-4xl text-[clamp(2.1rem,3.8vw,3.9rem)] font-black leading-[0.98] tracking-tight">{title}</h2>
+      <p className="mt-4 max-w-3xl text-base font-semibold leading-7 text-[var(--color-text-muted)]">{text}</p>
     </div>
   );
 }
 
 export function SoftCards({ items }: { items: Array<{ title: string; text: string }> }) {
   return (
-    <div className="mx-auto grid max-w-[1480px] gap-2 px-3 pb-2 md:grid-cols-3 md:px-5">
+    <div className="mx-auto grid max-w-none gap-2 px-3 pb-2 md:grid-cols-3 md:px-5">
       {items.map((item) => (
-        <article key={item.title} className="apple-glass-card rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-glass)] p-6 shadow-[var(--shadow-card)] backdrop-blur-2xl">
+        <article key={item.title} className="liquid-glass apple-glass-card rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-glass)] p-5 shadow-[var(--shadow-card)] backdrop-blur-2xl">
           <h3 className="text-2xl font-black leading-tight">{item.title}</h3>
-          <p className="mt-4 text-base font-semibold leading-7 text-[var(--color-text-muted)]">{item.text}</p>
+          <p className="mt-3 text-sm font-semibold leading-6 text-[var(--color-text-muted)]">{item.text}</p>
         </article>
       ))}
     </div>
@@ -208,11 +208,11 @@ export function SoftCards({ items }: { items: Array<{ title: string; text: strin
 export function TelegramCTA({ title = "Продолжить в Telegram", text = "Красавица задаст пару уточняющих вопросов и сохранит рекомендации в чате." }) {
   return (
     <div className="px-3 py-2 md:px-5">
-      <div className="mx-auto flex max-w-[1480px] flex-col justify-between gap-6 rounded-[var(--radius-xxl)] border border-[var(--color-border)] bg-[var(--color-text)] p-6 text-white shadow-[var(--shadow-soft)] md:flex-row md:items-center md:p-8">
+      <div className="liquid-glass mx-auto flex max-w-none flex-col justify-between gap-6 rounded-[var(--radius-xl)] border border-white/12 bg-[rgba(30,26,24,.9)] p-5 text-white shadow-[var(--shadow-soft)] md:flex-row md:items-center md:p-6">
         <div>
           <p className="text-sm font-black uppercase text-white/45">Telegram</p>
-          <h2 className="mt-3 text-[clamp(2.4rem,4vw,4.4rem)] font-black leading-none">{title}</h2>
-          <p className="mt-4 max-w-2xl text-base font-semibold leading-7 text-white/62">{text}</p>
+          <h2 className="mt-3 text-[clamp(2.1rem,3.4vw,3.6rem)] font-black leading-none">{title}</h2>
+          <p className="mt-4 max-w-2xl text-sm font-semibold leading-6 text-white/62">{text}</p>
         </div>
         <LinkButton href="https://t.me/krasavitsa_ai_bot" className="h-14 w-fit bg-white px-7 text-black hover:bg-white/88">
           <MessageCircle className="size-5" />

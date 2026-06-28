@@ -112,13 +112,6 @@ const sampleProducts: Product[] = [
   },
 ];
 
-const features = [
-  ["Запрос", "Помощник понимает тип кожи, бюджет, цель и ограничения."],
-  ["Подбор", "Средства собираются в понятные карточки с причиной выбора."],
-  ["Оценка", "Реакции пользователя улучшают будущие рекомендации."],
-  ["Профиль", "История формирует персональный контекст ухода."],
-];
-
 const roadmap = [
   {
     label: "Сегодня",
@@ -297,32 +290,33 @@ export function LandingPage() {
 
       <HomePortalIntro onStart={() => focusAi("Хочу подобрать уход: тип кожи, бюджет и задача")} />
 
-      <section ref={aiRef} id="ai" className="grid min-h-screen gap-2 px-3 pb-2 pt-2 md:grid-cols-[0.88fr_1.12fr] md:px-5">
+      <section ref={aiRef} id="ai" className="px-3 pb-2 pt-2 md:px-5">
+        <div className="grid gap-2 rounded-[var(--radius-xxl)] border border-[var(--color-border)] bg-[rgba(255,255,255,.54)] p-2 shadow-[var(--shadow-soft)] backdrop-blur-2xl md:grid-cols-[0.82fr_1.18fr]">
         <motion.form
           onSubmit={submitRecommendation}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-80px" }}
           variants={reveal}
-          className="relative overflow-hidden rounded-2xl bg-black p-5 text-white md:p-8"
+          className="liquid-glass relative overflow-hidden rounded-[var(--radius-lg)] border border-white/20 bg-[rgba(30,26,24,.88)] p-5 text-white md:p-6"
         >
           <div className="absolute inset-0 opacity-50 [background:radial-gradient(circle_at_20%_10%,rgba(255,255,255,.22),transparent_36%),radial-gradient(circle_at_80%_0%,rgba(245,140,168,.30),transparent_34%)]" />
-          <div className="relative z-10 flex h-full min-h-[560px] flex-col justify-between gap-6">
+          <div className="relative z-10 flex min-h-[390px] flex-col justify-between gap-5">
             <div>
-              <div className="mb-6 flex items-center gap-3">
-                <Image src="/krasavitsa-logo.png" alt="Красавица" width={54} height={54} className="rounded-full bg-white" />
+              <div className="mb-5 flex items-center gap-3">
+                <Image src="/krasavitsa-logo.png" alt="Красавица" width={44} height={44} className="rounded-full bg-white" />
                 <div>
-                  <p className="text-sm font-bold uppercase text-white/60">AI-подбор</p>
-                  <h2 className="text-4xl font-black leading-none md:text-6xl">Beauty Search</h2>
+                  <p className="text-xs font-bold uppercase text-white/55">AI-подбор</p>
+                  <h2 className="text-3xl font-black leading-none md:text-5xl">Beauty Search</h2>
                 </div>
               </div>
               <textarea
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder='Например: "Подбери уход для жирной кожи до 1500 рублей"'
-                className="min-h-48 w-full resize-none rounded-2xl border border-white/15 bg-white/10 p-5 text-lg leading-7 text-white outline-none backdrop-blur-xl transition duration-200 placeholder:text-white/45 focus:border-white/60 focus:bg-white/15"
+                className="min-h-32 w-full resize-none rounded-2xl border border-white/15 bg-white/10 p-4 text-base leading-7 text-white outline-none backdrop-blur-xl transition duration-200 placeholder:text-white/45 focus:border-white/60 focus:bg-white/15"
               />
-              <div className="mt-4 flex min-h-[92px] flex-wrap content-start gap-2 md:min-h-[48px]">
+              <div className="mt-4 flex min-h-[82px] flex-wrap content-start gap-2 md:min-h-[44px]">
                 <AnimatePresence mode="popLayout">
                   {visibleSuggestions.map((item, index) => (
                     <motion.button
@@ -336,7 +330,7 @@ export function LandingPage() {
                       onClick={() => setQuery(item)}
                       whileHover={{ y: -2, scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className="apple-glass-button rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-semibold text-white/80 backdrop-blur-xl transition duration-200 hover:bg-white hover:text-black"
+                      className="apple-glass-button rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs font-semibold text-white/80 backdrop-blur-xl transition duration-200 hover:bg-white hover:text-black"
                     >
                       {item}
                     </motion.button>
@@ -346,7 +340,7 @@ export function LandingPage() {
             </div>
             <div>
               {notice ? <p className="mb-3 text-sm text-white/70">{notice}</p> : null}
-              <Button type="submit" disabled={isLoading} className="h-14 w-full bg-white text-black hover:bg-white/85 disabled:opacity-70">
+              <Button type="submit" disabled={isLoading} className="h-12 w-full bg-white text-black hover:bg-white/85 disabled:opacity-70">
                 {isLoading ? <Loader2 className="size-5 animate-spin" /> : <Send className="size-5" />}
                 Найти уход
               </Button>
@@ -360,25 +354,16 @@ export function LandingPage() {
           viewport={{ once: true, margin: "-80px" }}
           variants={reveal}
           transition={{ delay: 0.12 }}
-          className="relative overflow-hidden rounded-2xl bg-[url('/beauty-portal-hero.png')] bg-cover bg-center p-3"
+          className="relative overflow-hidden rounded-[var(--radius-lg)] bg-[url('/beauty-portal-hero.png')] bg-cover bg-center p-2"
         >
-          <div className="grid min-h-[680px] gap-2 md:grid-rows-[0.7fr_1fr]">
-            <div className="grid gap-2 md:grid-cols-3">
-              {features.slice(0, 3).map(([title, text]) => (
-                <GlassPanel key={title}>
-                  <p className="text-sm font-bold uppercase text-black/45">{title}</p>
-                  <p className="mt-4 text-xl font-black leading-tight">{text}</p>
-                </GlassPanel>
-              ))}
-            </div>
-            <div className="grid gap-2 md:grid-cols-2">
-              <GlassPanel className="bg-white/90">
+          <div className="grid min-h-[390px] gap-2 md:grid-cols-[1fr_0.72fr]">
+              <GlassPanel className="bg-white/88">
                 <div className="mb-5 flex items-center justify-between gap-4">
                   <div>
-                    <p className="text-sm font-bold uppercase text-black/45">AI-вывод</p>
-                    <p className="mt-2 text-lg font-semibold leading-7">{result.summary}</p>
+                    <p className="text-xs font-bold uppercase text-black/45">AI-вывод</p>
+                    <p className="mt-2 text-base font-semibold leading-7">{result.summary}</p>
                   </div>
-                  <Bot className="size-10 shrink-0" />
+                  <Bot className="size-8 shrink-0" />
                 </div>
                 <div className="grid gap-2">
                   {currentProducts.map((product) => (
@@ -395,128 +380,57 @@ export function LandingPage() {
                   ))}
                 </div>
               </GlassPanel>
-              <GlassPanel className="justify-between bg-black/45 text-white">
+              <GlassPanel className="justify-between bg-white/28 text-white">
                 <div>
-                  <p className="text-sm font-bold uppercase text-white/55">Live Portal</p>
-                  <h3 className="mt-4 text-[clamp(3rem,7vw,6rem)] font-black leading-[0.9]">
-                    Care
-                    <br />
-                    System
+                  <p className="text-xs font-bold uppercase text-white/65">Live Portal</p>
+                  <h3 className="mt-3 text-[clamp(2.3rem,4vw,4.2rem)] font-black leading-[0.92]">
+                    Уход рядом с запросом
                   </h3>
+                  <p className="mt-4 max-w-sm text-sm font-semibold leading-6 text-white/70">
+                    Результаты появляются сразу возле формы, без лишних пустых экранов.
+                  </p>
                 </div>
                 <div className="grid gap-2">
                   <ActionLink href="https://t.me/krasavitsa_ai_bot">Открыть Telegram-бот</ActionLink>
                   <ActionLink href="https://t.me/krasavitsa_ai">Открыть Telegram-канал</ActionLink>
                 </div>
               </GlassPanel>
-            </div>
           </div>
         </motion.div>
+        </div>
       </section>
 
       <HomeEditorialSections onStart={() => focusAi("Помоги собрать уход без случайных покупок")} />
 
-      <section id="features" className="grid min-h-screen gap-2 px-3 pb-2 pt-2 md:grid-cols-[0.95fr_1.05fr] md:px-5">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-80px" }}
-          variants={reveal}
-          className="feature-orb-panel relative overflow-hidden rounded-2xl border border-black/5 bg-white/65 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,.86),0_24px_90px_rgba(29,29,31,.06)] backdrop-blur-2xl md:p-8"
-        >
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(255,255,255,.95),transparent_30%),radial-gradient(circle_at_76%_30%,rgba(251,201,214,.34),transparent_28%),linear-gradient(135deg,rgba(255,255,255,.8),rgba(246,242,244,.46))]" />
-          <div className="absolute bottom-8 right-8 h-44 w-44 rounded-full border border-black/5 bg-white/30 backdrop-blur-xl" />
-          <div className="absolute bottom-16 right-16 h-20 w-20 rounded-full bg-[#FBC9D6]/35 blur-2xl" />
-          <div className="relative z-10 flex min-h-[560px] flex-col justify-between">
-            <div>
-              <p className="text-sm font-black uppercase text-black/42">Возможности</p>
-              <h2 className="mt-5 max-w-2xl text-[clamp(3rem,6vw,6.4rem)] font-black leading-[0.92] tracking-tight">
-                Система
-                <br />
-                решений
-              </h2>
-              <p className="mt-6 max-w-xl text-lg font-semibold leading-8 text-black/58">
-                Красавица соединяет AI-подбор, профиль кожи, историю реакций и будущий модуль парфюма в спокойный рабочий интерфейс.
-              </p>
-            </div>
-            <div className="grid gap-2 sm:grid-cols-2">
-              {["Каталог", "Профиль", "История", "Парфюм"].map((item, index) => (
-                <motion.div
-                  key={item}
-                  initial={{ opacity: 0, y: 14 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.08 + index * 0.05 }}
-                  className="apple-glass-card rounded-2xl border border-white/60 bg-white/48 px-4 py-4 text-sm font-black text-black/70 backdrop-blur-2xl"
-                >
-                  {item}
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </motion.div>
-        <div className="grid gap-2">
-          {features.map(([title, text], index) => (
-            <motion.button
-              key={title}
-              type="button"
-              onClick={() => {
-                setNotice(`${title}: модуль будет раскрыт в следующей версии.`);
-                focusAi();
-              }}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              variants={reveal}
-              transition={{ delay: index * 0.06 }}
-              whileHover={{ y: -4, scale: 1.008 }}
-              whileTap={{ scale: 0.985 }}
-              className="apple-glass-card group relative overflow-hidden rounded-2xl border border-black/5 bg-white/64 p-6 text-left shadow-[inset_0_1px_0_rgba(255,255,255,.8),0_18px_70px_rgba(29,29,31,.05)] backdrop-blur-2xl"
-            >
-              <span className="absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,.82),rgba(255,255,255,.36)_48%,rgba(246,242,244,.42))]" />
-              <span className="relative z-10 flex items-center justify-between gap-5">
-                <span>
-                  <span className="block text-3xl font-black md:text-4xl">{title}</span>
-                  <span className="mt-3 block max-w-xl text-sm font-semibold leading-6 text-black/52">{text}</span>
-                </span>
-                <span className="grid size-12 shrink-0 place-items-center rounded-full border border-black/12 bg-white/44 transition duration-200 group-hover:bg-black group-hover:text-white">
-                  <ArrowRight className="size-5 -rotate-45" />
-                </span>
-              </span>
-            </motion.button>
-          ))}
-        </div>
-      </section>
-
-      <section id="telegram" className="grid min-h-screen gap-2 px-3 pb-2 pt-2 md:grid-cols-[1fr_0.8fr] md:px-5">
+      <section id="telegram" className="grid gap-2 px-3 pb-2 pt-2 md:grid-cols-[1fr_0.9fr] md:px-5">
         <TelegramPortalPanel />
         <motion.div
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
           variants={reveal}
-          className="relative overflow-hidden rounded-2xl bg-[url('/beauty-products-portal.png')] bg-cover bg-center bg-no-repeat p-3"
+          className="liquid-glass relative overflow-hidden rounded-[var(--radius-xl)] bg-[url('/beauty-products-portal.png')] bg-cover bg-center bg-no-repeat p-2"
         >
-          <div className="absolute inset-0 bg-black/45" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_10%,rgba(255,255,255,.45),transparent_32%),linear-gradient(135deg,rgba(255,255,255,.18),rgba(255,255,255,.04))]" />
-          <div className="relative z-10 flex min-h-[560px] flex-col justify-between rounded-2xl border border-white/20 bg-white/15 p-5 text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,.08)] backdrop-blur-2xl md:p-6">
+          <div className="absolute inset-0 bg-black/34" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_10%,rgba(255,255,255,.38),transparent_32%),linear-gradient(135deg,rgba(255,255,255,.18),rgba(255,255,255,.06))]" />
+          <div className="relative z-10 flex min-h-[480px] flex-col justify-between rounded-[var(--radius-lg)] border border-white/24 bg-white/18 p-5 text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,.08)] backdrop-blur-2xl md:p-6">
             <div>
-              <p className="text-sm font-black uppercase text-white/55">Roadmap</p>
-              <h3 className="mt-4 text-[clamp(3rem,6vw,5.6rem)] font-black leading-[0.88]">
+              <p className="text-xs font-black uppercase text-white/62">Roadmap</p>
+              <h3 className="mt-3 text-[clamp(2.5rem,4.7vw,4.4rem)] font-black leading-[0.9]">
                 Что будет
                 <br />
                 дальше
               </h3>
             </div>
 
-            <div className="my-7 grid gap-2">
+            <div className="my-5 grid gap-2">
               {roadmap.map((item, index) => (
                 <button
                   key={item.label}
                   type="button"
                   onClick={() => setSelectedRoadmap(index)}
                   className={cn(
-                    "group grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-2xl border p-4 text-left backdrop-blur-xl transition duration-200 hover:scale-[1.01]",
+                    "liquid-glass group grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-2xl border p-3 text-left backdrop-blur-xl transition duration-200 hover:scale-[1.01]",
                     selectedRoadmap === index
                       ? "border-white bg-white text-black"
                       : "border-white/15 bg-white/12 text-white hover:bg-white/20",
@@ -538,11 +452,11 @@ export function LandingPage() {
               ))}
             </div>
 
-            <div className="rounded-2xl bg-white p-5 text-black">
+            <div className="liquid-glass rounded-2xl bg-white/90 p-4 text-black backdrop-blur-2xl">
               <div className="mb-4 flex items-start justify-between gap-4">
                 <div>
                   <p className="text-xs font-black uppercase text-black/45">{roadmap[selectedRoadmap].label}</p>
-                  <h4 className="mt-1 text-2xl font-black">{roadmap[selectedRoadmap].title}</h4>
+                  <h4 className="mt-1 text-xl font-black">{roadmap[selectedRoadmap].title}</h4>
                 </div>
                 <span className="rounded-full bg-black px-3 py-2 text-xs font-black uppercase text-white">
                   {roadmap[selectedRoadmap].metric}
@@ -555,7 +469,7 @@ export function LandingPage() {
                   setNotice(`${roadmap[selectedRoadmap].label}: ${roadmap[selectedRoadmap].title}`);
                   focusAi(roadmap[selectedRoadmap].action);
                 }}
-                className="mt-5 inline-flex h-11 items-center gap-2 rounded-full bg-black px-5 text-sm font-black text-white transition duration-200 hover:scale-105"
+                className="apple-glass-button mt-4 inline-flex h-10 items-center gap-2 rounded-full bg-black px-5 text-sm font-black text-white transition duration-200 hover:scale-105"
               >
                 {roadmap[selectedRoadmap].action}
                 <ArrowRight className="size-4 -rotate-45" />
@@ -592,20 +506,20 @@ function HomePortalIntro({ onStart }: { onStart: () => void }) {
 
   return (
     <section className="px-3 pb-2 pt-2 md:px-5">
-      <BeautyPortalGrid className="min-h-[640px]">
+      <BeautyPortalGrid className="min-h-0 max-w-none">
         <PortalPanel className="md:col-span-5">
-          <div className="flex min-h-[560px] flex-col justify-between">
+          <div className="flex min-h-[380px] flex-col justify-between">
             <div>
-              <p className="text-sm font-black uppercase text-[var(--color-text-soft)]">Подбор ухода</p>
-              <h2 className="mt-5 max-w-2xl text-[clamp(3rem,6.4vw,6.8rem)] font-black leading-[0.92] tracking-tight">
+              <p className="text-xs font-black uppercase text-[var(--color-text-soft)]">Подбор ухода</p>
+              <h2 className="mt-4 max-w-2xl text-[clamp(2.7rem,5.1vw,5.4rem)] font-black leading-[0.92] tracking-tight">
                 Подбор ухода без хаоса
               </h2>
             </div>
             <div>
-              <p className="max-w-xl text-lg font-semibold leading-8 text-[var(--color-text-muted)]">
+              <p className="max-w-xl text-base font-semibold leading-7 text-[var(--color-text-muted)]">
                 Красавица помогает собрать уход по задаче, а не по случайным советам из ленты. Спокойно, понятно и с уважением к бюджету.
               </p>
-              <Button onClick={onStart} className="mt-6 h-14 px-7">
+              <Button onClick={onStart} className="mt-5 h-12 px-6">
                 Начать подбор
                 <ArrowRight className="size-4 -rotate-45" />
               </Button>
@@ -613,10 +527,10 @@ function HomePortalIntro({ onStart }: { onStart: () => void }) {
           </div>
         </PortalPanel>
         <PortalPanel className="md:col-span-4 md:row-span-2" image="/beauty-products-portal.png">
-          <div className="flex h-full min-h-[560px] items-end">
-            <div className="rounded-[var(--radius-lg)] border border-white/60 bg-white/46 p-5 backdrop-blur-2xl">
-              <p className="text-sm font-black uppercase text-[var(--color-text-soft)]">Beauty-портал</p>
-              <p className="mt-3 text-2xl font-black leading-tight">Один визуальный сценарий: запрос, подбор, объяснение и сохранение.</p>
+          <div className="flex h-full min-h-[380px] items-end">
+            <div className="liquid-glass rounded-[var(--radius-lg)] border border-white/60 bg-white/46 p-4 backdrop-blur-2xl">
+              <p className="text-xs font-black uppercase text-[var(--color-text-soft)]">Beauty-портал</p>
+              <p className="mt-2 text-xl font-black leading-tight">Запрос, подбор, объяснение и сохранение.</p>
             </div>
           </div>
         </PortalPanel>
@@ -641,7 +555,7 @@ function HomePortalIntro({ onStart }: { onStart: () => void }) {
 
 function StepCard({ index, title, text }: { index: number; title: string; text: string }) {
   return (
-    <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-white/56 p-4 backdrop-blur-xl">
+    <div className="liquid-glass rounded-[var(--radius-md)] border border-[var(--color-border)] bg-white/50 p-4 backdrop-blur-xl">
       <p className="text-xs font-black text-[var(--color-text-soft)]">0{index}</p>
       <h3 className="mt-2 text-xl font-black leading-tight">{title}</h3>
       <p className="mt-2 text-sm font-semibold leading-6 text-[var(--color-text-muted)]">{text}</p>
@@ -661,18 +575,18 @@ function HomeEditorialSections({ onStart }: { onStart: () => void }) {
     <>
       <section className="px-3 pb-2 pt-2 md:px-5">
         <div className="grid gap-2 md:grid-cols-[0.9fr_1.1fr]">
-          <div className="rounded-[var(--radius-xxl)] border border-[var(--color-border)] bg-[var(--color-glass)] p-6 shadow-[var(--shadow-soft)] backdrop-blur-2xl md:p-8">
-            <p className="text-sm font-black uppercase text-[var(--color-text-soft)]">Что вас беспокоит?</p>
-            <h2 className="mt-5 text-[clamp(2.6rem,5vw,5.4rem)] font-black leading-[0.94] tracking-tight">
+          <div className="liquid-glass rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-glass)] p-5 shadow-[var(--shadow-soft)] backdrop-blur-2xl md:p-6">
+            <p className="text-xs font-black uppercase text-[var(--color-text-soft)]">Что вас беспокоит?</p>
+            <h2 className="mt-4 text-[clamp(2.2rem,4vw,4.2rem)] font-black leading-[0.96] tracking-tight">
               Выберите задачу, а не случайный тренд
             </h2>
-            <p className="mt-5 max-w-xl text-lg font-semibold leading-8 text-[var(--color-text-muted)]">
+            <p className="mt-4 max-w-xl text-sm font-semibold leading-6 text-[var(--color-text-muted)]">
               Подбор строится вокруг реального запроса: состояния кожи, бюджета, текущего ухода и ограничений.
             </p>
           </div>
           <div className="grid gap-2 sm:grid-cols-2">
             {concerns.map((item) => (
-              <button key={item} type="button" onClick={onStart} className="apple-glass-card rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-white/64 p-6 text-left text-2xl font-black shadow-[var(--shadow-card)] backdrop-blur-2xl">
+              <button key={item} type="button" onClick={onStart} className="liquid-glass apple-glass-card rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-white/54 p-5 text-left text-xl font-black shadow-[var(--shadow-card)] backdrop-blur-2xl">
                 {item}
               </button>
             ))}
@@ -686,24 +600,24 @@ function HomeEditorialSections({ onStart }: { onStart: () => void }) {
           ["Подбор парфюма", "Будущий модуль поможет выбирать аромат под настроение, повод и стиль, без холодной технической подачи."],
           ["Отзывы и доверие", "Реакции пользователей будут превращаться в рейтинг средств и помогать будущим подборкам."],
         ].map(([title, text]) => (
-          <article key={title} className="apple-glass-card rounded-[var(--radius-xxl)] border border-[var(--color-border)] bg-[var(--color-glass)] p-6 shadow-[var(--shadow-card)] backdrop-blur-2xl md:p-8">
-            <h2 className="text-[clamp(2rem,3.4vw,3.7rem)] font-black leading-[0.98] tracking-tight">{title}</h2>
-            <p className="mt-5 text-base font-semibold leading-7 text-[var(--color-text-muted)]">{text}</p>
+          <article key={title} className="liquid-glass apple-glass-card rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-glass)] p-5 shadow-[var(--shadow-card)] backdrop-blur-2xl md:p-6">
+            <h2 className="text-[clamp(1.8rem,2.7vw,3rem)] font-black leading-[1] tracking-tight">{title}</h2>
+            <p className="mt-4 text-sm font-semibold leading-6 text-[var(--color-text-muted)]">{text}</p>
           </article>
         ))}
       </section>
 
       <section className="px-3 pb-2 pt-2 md:px-5">
-        <div className="rounded-[var(--radius-xxl)] border border-[var(--color-border)] bg-[var(--color-text)] p-6 text-white shadow-[var(--shadow-soft)] md:p-8">
+        <div className="liquid-glass rounded-[var(--radius-xl)] border border-white/12 bg-[rgba(30,26,24,.9)] p-5 text-white shadow-[var(--shadow-soft)] md:p-6">
           <div className="grid gap-8 md:grid-cols-[0.9fr_1.1fr] md:items-end">
             <div>
-              <p className="text-sm font-black uppercase text-white/45">FAQ</p>
-              <h2 className="mt-4 text-[clamp(2.5rem,5vw,5.5rem)] font-black leading-[0.94]">Перед первым подбором</h2>
+              <p className="text-xs font-black uppercase text-white/45">FAQ</p>
+              <h2 className="mt-3 text-[clamp(2.2rem,4vw,4.4rem)] font-black leading-[0.94]">Перед первым подбором</h2>
             </div>
             <div className="grid gap-2">
               {faq.map(([question, answer]) => (
-                <details key={question} className="rounded-[var(--radius-lg)] border border-white/12 bg-white/10 p-5 backdrop-blur-xl">
-                  <summary className="cursor-pointer text-xl font-black">{question}</summary>
+                <details key={question} className="rounded-[var(--radius-lg)] border border-white/12 bg-white/10 p-4 backdrop-blur-xl">
+                  <summary className="cursor-pointer text-base font-black">{question}</summary>
                   <p className="mt-3 text-sm font-semibold leading-6 text-white/62">{answer}</p>
                 </details>
               ))}
@@ -713,12 +627,12 @@ function HomeEditorialSections({ onStart }: { onStart: () => void }) {
       </section>
 
       <section className="px-3 pb-2 pt-2 md:px-5">
-        <div className="flex flex-col justify-between gap-6 rounded-[var(--radius-xxl)] border border-[var(--color-border)] bg-[var(--color-glass-strong)] p-6 shadow-[var(--shadow-soft)] backdrop-blur-2xl md:flex-row md:items-center md:p-8">
+        <div className="liquid-glass flex flex-col justify-between gap-5 rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-glass-strong)] p-5 shadow-[var(--shadow-soft)] backdrop-blur-2xl md:flex-row md:items-center md:p-6">
           <div>
-            <p className="text-sm font-black uppercase text-[var(--color-text-soft)]">Финальный шаг</p>
-            <h2 className="mt-3 text-[clamp(2.4rem,4.4vw,4.8rem)] font-black leading-none">Собрать уход сейчас</h2>
+            <p className="text-xs font-black uppercase text-[var(--color-text-soft)]">Финальный шаг</p>
+            <h2 className="mt-2 text-[clamp(2.1rem,3.5vw,3.8rem)] font-black leading-none">Собрать уход сейчас</h2>
           </div>
-          <Button onClick={onStart} className="h-14 w-fit px-7">
+          <Button onClick={onStart} className="h-12 w-fit px-6">
             Начать подбор
           </Button>
         </div>
@@ -916,7 +830,7 @@ function TelegramPortalPanel() {
       whileInView="visible"
       viewport={{ once: true, margin: "-80px" }}
       variants={reveal}
-      className="relative min-h-[560px] overflow-hidden rounded-2xl bg-[#FCFAFB]"
+      className="liquid-glass relative min-h-[480px] overflow-hidden rounded-[var(--radius-xl)] bg-[#FCFAFB]"
     >
       <div className="absolute inset-0">
         <Image
@@ -930,16 +844,16 @@ function TelegramPortalPanel() {
       <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,.96),rgba(255,255,255,.78)_42%,rgba(255,255,255,.28)),radial-gradient(circle_at_15%_15%,rgba(255,255,255,.9),transparent_34%)]" />
       <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-white/80 to-transparent" />
 
-      <div className="relative z-10 flex min-h-[560px] flex-col justify-center p-6 md:p-8">
-        <div className="max-w-3xl rounded-2xl border border-white/60 bg-white/36 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,.86),0_24px_80px_rgba(29,29,31,.08)] backdrop-blur-2xl md:p-7">
-          <p className="text-sm font-black uppercase tracking-wide text-black/45">Telegram</p>
-          <h2 className="mt-4 max-w-2xl text-[clamp(2.65rem,5.8vw,5.8rem)] font-semibold leading-[0.94] tracking-tight">
+      <div className="relative z-10 flex min-h-[480px] flex-col justify-center p-5 md:p-6">
+        <div className="liquid-glass max-w-3xl rounded-[var(--radius-lg)] border border-white/60 bg-white/44 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,.86),0_24px_80px_rgba(29,29,31,.08)] backdrop-blur-2xl md:p-6">
+          <p className="text-xs font-black uppercase tracking-wide text-black/45">Telegram</p>
+          <h2 className="mt-4 max-w-2xl text-[clamp(2.25rem,4.4vw,4.6rem)] font-semibold leading-[0.96] tracking-tight">
             Продолжайте подбор в удобном чате
           </h2>
-          <p className="mt-5 max-w-xl text-base font-semibold leading-7 text-black/55">
+          <p className="mt-4 max-w-xl text-sm font-semibold leading-6 text-black/55">
             Бот и канал остаются быстрым входом в Красавицу, а сайт становится главным интерфейсом Beauty OS.
           </p>
-          <div className="mt-8 grid gap-2 md:grid-cols-2">
+          <div className="mt-6 grid gap-2 md:grid-cols-2">
             <TelegramCard href="https://t.me/krasavitsa_ai_bot" title="Telegram-бот" text="Запустить AI-подбор в чате." />
             <TelegramCard href="https://t.me/krasavitsa_ai" title="Канал" text="Следить за обновлениями Beauty OS." />
           </div>
