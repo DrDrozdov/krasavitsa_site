@@ -374,28 +374,13 @@ export function LandingPage() {
       </section>
 
       <section id="telegram" className="grid min-h-screen gap-2 px-3 pb-2 pt-2 md:grid-cols-[1fr_0.8fr] md:px-5">
-        <PortalTile className="min-h-[560px]" delay={0}>
-          <div className="relative z-10 flex h-full flex-col justify-between p-6 md:p-8">
-            <div>
-              <p className="text-sm font-black uppercase text-black/45">Telegram</p>
-              <h2 className="mt-5 text-[clamp(4rem,10vw,9rem)] font-black leading-[0.82]">
-                Continue
-                <br />
-                in Chat
-              </h2>
-            </div>
-            <div className="grid gap-2 md:grid-cols-2">
-              <TelegramCard href="https://t.me/krasavitsa_ai_bot" title="Telegram-бот" text="Запустить AI-подбор в чате." />
-              <TelegramCard href="https://t.me/krasavitsa_ai" title="Канал" text="Следить за обновлениями Beauty OS." />
-            </div>
-          </div>
-        </PortalTile>
+        <TelegramPortalPanel />
         <motion.div
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
           variants={reveal}
-          className="relative overflow-hidden rounded-2xl bg-[url('/beauty-portal-hero.png')] bg-cover bg-center p-3"
+          className="relative overflow-hidden rounded-2xl bg-[url('/beauty-products-portal.png')] bg-cover bg-center bg-no-repeat p-3"
         >
           <div className="absolute inset-0 bg-black/45" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_10%,rgba(255,255,255,.45),transparent_32%),linear-gradient(135deg,rgba(255,255,255,.18),rgba(255,255,255,.04))]" />
@@ -576,12 +561,54 @@ function FeaturePill({ children, delay = 0 }: { children: ReactNode; delay?: num
       viewport={{ once: true, margin: "-80px" }}
       variants={reveal}
       transition={{ duration: 0.62, delay }}
-      className="relative h-16 overflow-hidden rounded-2xl border border-black/5 bg-white/55 shadow-[inset_0_1px_0_rgba(255,255,255,.8),0_18px_60px_rgba(29,29,31,.05)] backdrop-blur-2xl md:h-20"
+      whileHover={{ y: -4, scale: 1.012 }}
+      whileTap={{ scale: 0.992 }}
+      className="feature-pill group relative h-16 overflow-hidden rounded-2xl border border-black/5 bg-white/55 shadow-[inset_0_1px_0_rgba(255,255,255,.8),0_18px_60px_rgba(29,29,31,.05)] backdrop-blur-2xl md:h-20"
     >
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(255,255,255,.95),transparent_36%),linear-gradient(120deg,rgba(255,255,255,.74),rgba(246,242,244,.42),rgba(255,255,255,.7))]" />
       <div className="absolute left-6 top-1/2 h-12 w-24 -translate-y-1/2 rounded-full bg-[#FBC9D6]/25 blur-2xl" />
       <div className="absolute right-6 top-1/2 h-10 w-20 -translate-y-1/2 rounded-full bg-white/70 blur-xl" />
       {children}
+    </motion.div>
+  );
+}
+
+function TelegramPortalPanel() {
+  return (
+    <motion.div
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: "-80px" }}
+      variants={reveal}
+      className="relative min-h-[560px] overflow-hidden rounded-2xl bg-[#FCFAFB]"
+    >
+      <div className="absolute inset-0">
+        <Image
+          src="/beauty-products-portal.png"
+          alt=""
+          fill
+          sizes="(min-width: 768px) 55vw, 100vw"
+          className="object-cover object-center"
+        />
+      </div>
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,.96),rgba(255,255,255,.78)_42%,rgba(255,255,255,.28)),radial-gradient(circle_at_15%_15%,rgba(255,255,255,.9),transparent_34%)]" />
+      <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-white/80 to-transparent" />
+
+      <div className="relative z-10 flex min-h-[560px] flex-col justify-center p-6 md:p-8">
+        <div className="max-w-3xl rounded-2xl border border-white/60 bg-white/36 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,.86),0_24px_80px_rgba(29,29,31,.08)] backdrop-blur-2xl md:p-7">
+          <p className="text-sm font-black uppercase tracking-wide text-black/45">Telegram</p>
+          <h2 className="mt-4 max-w-2xl text-[clamp(2.65rem,5.8vw,5.8rem)] font-semibold leading-[0.94] tracking-tight">
+            Продолжайте подбор в удобном чате
+          </h2>
+          <p className="mt-5 max-w-xl text-base font-semibold leading-7 text-black/55">
+            Бот и канал остаются быстрым входом в Красавицу, а сайт становится главным интерфейсом Beauty OS.
+          </p>
+          <div className="mt-8 grid gap-2 md:grid-cols-2">
+            <TelegramCard href="https://t.me/krasavitsa_ai_bot" title="Telegram-бот" text="Запустить AI-подбор в чате." />
+            <TelegramCard href="https://t.me/krasavitsa_ai" title="Канал" text="Следить за обновлениями Beauty OS." />
+          </div>
+        </div>
+      </div>
     </motion.div>
   );
 }
