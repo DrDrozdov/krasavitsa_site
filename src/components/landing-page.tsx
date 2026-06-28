@@ -214,16 +214,16 @@ export function LandingPage() {
       <AnimatePresence>{showSplash ? <SplashScreen onComplete={() => setShowSplash(false)} /> : null}</AnimatePresence>
       <Header onTry={() => focusAi()} />
 
-      <section id="home" className="grid min-h-screen gap-2 px-3 pb-2 pt-20 md:px-5">
-        <PortalTile className="relative min-h-[720px] overflow-hidden md:min-h-0" delay={0.25} hero>
+      <section id="home" className="grid min-h-[86svh] gap-2 px-3 pb-2 pt-18 md:min-h-screen md:px-5 md:pt-20">
+        <PortalTile className="relative min-h-[620px] overflow-hidden md:min-h-0" delay={0.25} hero>
           <div className="liquid-glass absolute left-5 top-5 z-10 max-w-[330px] rounded-3xl border border-white/55 bg-white/38 px-5 py-4 text-sm font-semibold leading-5 text-black/70 backdrop-blur-2xl md:left-8 md:top-8">
             Уход, который ощущается личным: Красавица бережно собирает рекомендации под кожу, бюджет и ваш ритм.
           </div>
-          <div className="absolute bottom-48 left-4 z-10 md:bottom-24 md:left-8">
-            <h1 className="max-w-5xl text-[clamp(3.9rem,10.4vw,9.8rem)] font-black leading-[0.9] tracking-tight">
+          <div className="absolute bottom-40 left-4 z-10 md:bottom-24 md:left-8">
+            <h1 className="max-w-5xl text-[clamp(3.55rem,10.4vw,9.8rem)] font-black leading-[0.9] tracking-tight">
               Красавица
             </h1>
-            <p className="mt-9 text-xl font-normal uppercase leading-none text-black/25 md:text-3xl">
+            <p className="mt-6 text-xl font-normal uppercase leading-none text-black/22 md:mt-9 md:text-3xl">
               Beauty OS
             </p>
           </div>
@@ -450,13 +450,13 @@ function HomePortalIntro({ onStart }: { onStart: () => void }) {
     <section className="px-3 pb-2 pt-2 md:px-5">
       <BeautyPortalGrid className="min-h-0 max-w-none">
         <PortalPanel className="md:col-span-12" image="/beauty-products-portal.png">
-          <div className="grid min-h-[560px] gap-2 md:grid-cols-12 md:grid-rows-[auto_auto]">
+          <div className="grid min-h-[540px] gap-2 md:grid-cols-12 md:grid-rows-[auto_auto]">
             <motion.div
               initial={{ opacity: 0, y: 18, scale: 0.985 }}
               whileInView={{ opacity: 1, y: 0, scale: 1 }}
               viewport={{ once: true, margin: "-80px" }}
               transition={{ duration: 0.72, ease: [0.16, 1, 0.3, 1] }}
-              className="liquid-glass flex min-h-[280px] flex-col justify-between rounded-[var(--radius-lg)] border border-white/65 bg-white/50 p-5 shadow-[var(--shadow-glass)] backdrop-blur-2xl md:col-span-5 md:p-6"
+              className="liquid-glass flex min-h-[270px] flex-col justify-between rounded-[var(--radius-lg)] border border-white/60 bg-white/36 p-5 shadow-[var(--shadow-glass)] backdrop-blur-2xl md:col-span-7 md:p-6"
             >
               <div>
                 <p className="text-xs font-black uppercase text-[var(--color-text-soft)]">Подбор ухода</p>
@@ -476,35 +476,11 @@ function HomePortalIntro({ onStart }: { onStart: () => void }) {
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, y: 18, scale: 0.98, filter: "blur(8px)" }}
-              whileInView={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
-              viewport={{ once: true, margin: "-80px" }}
-              transition={{ duration: 0.78, delay: 0.05, ease: [0.16, 1, 0.3, 1] }}
-              className="hidden min-h-[250px] grid-rows-3 gap-2 md:col-span-3 md:grid"
-            >
-              {[
-                ["Запрос", "задача и бюджет"],
-                ["Подбор", "понятные карточки"],
-                ["Память", "история в профиле"],
-              ].map(([label, text], index) => (
-                <motion.div
-                  key={label}
-                  animate={{ opacity: [0.68, 1, 0.68], y: [0, -4, 0] }}
-                  transition={{ duration: 5.4, delay: index * 0.55, repeat: Infinity, ease: [0.16, 1, 0.3, 1] }}
-                  className="liquid-glass flex items-center justify-between rounded-[var(--radius-md)] border border-white/60 bg-white/34 px-4 py-3 text-black/72 shadow-[var(--shadow-card)] backdrop-blur-2xl"
-                >
-                  <span className="text-xs font-black uppercase text-black/42">{label}</span>
-                  <span className="text-sm font-black">{text}</span>
-                </motion.div>
-              ))}
-            </motion.div>
-
-            <motion.div
               initial={{ opacity: 0, x: 18, scale: 0.985 }}
               whileInView={{ opacity: 1, x: 0, scale: 1 }}
               viewport={{ once: true, margin: "-80px" }}
               transition={{ duration: 0.72, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
-              className="liquid-glass relative min-h-[230px] overflow-hidden rounded-[var(--radius-lg)] border border-white/65 bg-white/42 p-5 shadow-[var(--shadow-glass)] backdrop-blur-2xl md:col-span-4 md:p-6"
+              className="liquid-glass relative min-h-[240px] overflow-hidden rounded-[var(--radius-lg)] border border-white/60 bg-white/32 p-5 shadow-[var(--shadow-glass)] backdrop-blur-2xl md:col-span-5 md:p-6"
             >
               <p className="text-xs font-black uppercase text-[var(--color-text-soft)]">Live сценарий</p>
               <h3 className="mt-3 max-w-sm text-[clamp(1.55rem,2.3vw,2.15rem)] font-black leading-tight">Подбор собирается на глазах</h3>
@@ -616,7 +592,7 @@ function Header({ onTry }: { onTry: () => void }) {
 
   return (
     <>
-      <header className="fixed left-0 right-0 top-0 z-50 flex items-center justify-between bg-white/80 px-4 py-2 backdrop-blur-md md:px-6 md:py-3">
+      <header className="fixed left-0 right-0 top-0 z-50 flex items-center justify-between bg-white/54 px-4 py-2 backdrop-blur-2xl md:px-6 md:py-3">
         <a href="#home" className="flex items-center gap-3" onClick={() => setOpen(false)}>
           <Image src="/krasavitsa-logo.png" alt="Красавица" width={48} height={48} className="rounded-full" priority />
           <span className="flex flex-col">
@@ -634,14 +610,14 @@ function Header({ onTry }: { onTry: () => void }) {
             Попробовать AI
           </button>
         </nav>
-        <button type="button" aria-label="Открыть меню" onClick={() => setOpen((value) => !value)} className="relative grid size-11 place-items-center rounded-full border border-black md:hidden">
+        <button type="button" aria-label="Открыть меню" onClick={() => setOpen((value) => !value)} className="relative grid size-12 place-items-center rounded-full border border-white/20 bg-black text-white shadow-[0_14px_34px_rgba(0,0,0,.18)] md:hidden">
           {open ? <X className="size-6" /> : <Menu className="size-6" />}
         </button>
       </header>
 
       <div className={cn("fixed inset-0 z-40 transition md:hidden", open ? "pointer-events-auto" : "pointer-events-none")}>
-        <button type="button" aria-label="Закрыть меню" onClick={() => setOpen(false)} className={cn("absolute inset-0 bg-black/20 backdrop-blur-sm transition duration-300", open ? "opacity-100" : "opacity-0")} />
-        <aside className={cn("absolute right-0 top-0 flex h-full w-[85%] max-w-sm flex-col justify-center gap-2 bg-white px-8 shadow-2xl transition duration-500", open ? "translate-x-0" : "translate-x-full")}>
+        <button type="button" aria-label="Закрыть меню" onClick={() => setOpen(false)} className={cn("absolute inset-0 bg-black/28 backdrop-blur-md transition duration-300", open ? "opacity-100" : "opacity-0")} />
+        <aside className={cn("liquid-glass absolute right-0 top-0 flex h-full w-[86%] max-w-sm flex-col justify-center gap-3 border-l border-white/20 bg-[rgba(30,26,24,.72)] px-8 text-white shadow-2xl backdrop-blur-2xl transition duration-500", open ? "translate-x-0" : "translate-x-full")}>
           {links.map(([label, href], index) => (
             <a
               key={href}
@@ -653,7 +629,7 @@ function Header({ onTry }: { onTry: () => void }) {
               {label}
             </a>
           ))}
-          <button type="button" onClick={() => { setOpen(false); onTry(); }} className="mt-8 rounded-full bg-black px-6 py-4 text-sm font-bold text-white">
+          <button type="button" onClick={() => { setOpen(false); onTry(); }} className="mt-8 rounded-full bg-white px-6 py-4 text-sm font-bold text-black">
             Попробовать AI
           </button>
         </aside>
