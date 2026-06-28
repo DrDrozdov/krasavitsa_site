@@ -26,7 +26,13 @@ type Product = {
   category: string;
   reason: string;
   rating: number;
-  marketplace: string;
+  marketplace?: string;
+  marketplaces?: MarketplaceLink[];
+};
+
+type MarketplaceLink = {
+  label: string;
+  href: string;
 };
 
 type RecommendationResponse = {
@@ -44,7 +50,31 @@ const suggestions = [
   "Подбери уход для жирной кожи до 1500 рублей",
   "Нужна мягкая база для чувствительной кожи",
   "Собери вечерний уход против сухости до 3000 рублей",
+  "Сыворотка для сухой кожи до 1000 рублей",
+  "Крем для чувствительной кожи без отдушек",
+  "Умывание для комбинированной кожи до 1200 рублей",
+  "SPF для города без жирного блеска",
+  "База против покраснений на каждый день",
+  "Легкий ночной уход после ретинола",
+  "Подборка корейского ухода до 2500 рублей",
+  "Тонер для восстановления барьера",
+  "Уход после кислот без раздражения",
 ];
+
+function buildMarketplaceLinks(name: string, provided?: MarketplaceLink[], fallback?: string): MarketplaceLink[] {
+  const query = encodeURIComponent(name);
+  const links: MarketplaceLink[] = [
+    { label: "Я.Маркет", href: `https://market.yandex.ru/search?text=${query}` },
+    { label: "Ozon", href: `https://www.ozon.ru/search/?text=${query}` },
+    { label: "WB", href: `https://www.wildberries.ru/catalog/0/search.aspx?search=${query}` },
+    { label: "ЗЯ", href: `https://goldapple.ru/search?q=${query}` },
+    { label: "Лэтуаль", href: `https://www.letu.ru/search?q=${query}` },
+  ];
+
+  const validProvided = provided?.filter((item) => item.label && item.href) ?? [];
+  const merged = fallback ? [{ label: "Магазин", href: fallback }, ...validProvided, ...links] : [...validProvided, ...links];
+  return merged.filter((item, index, array) => array.findIndex((candidate) => candidate.href === item.href) === index).slice(0, 5);
+}
 
 const sampleProducts: Product[] = [
   {
@@ -52,14 +82,14 @@ const sampleProducts: Product[] = [
     category: "Крем",
     reason: "Легкий финиш, поддержка барьера и комфорт без перегруза.",
     rating: 4.8,
-    marketplace: "https://market.yandex.ru/",
+    marketplaces: buildMarketplaceLinks("Round Lab Birch Juice Moisturizing Cream"),
   },
   {
     name: "Beauty of Joseon Green Plum Cleanser",
     category: "Очищение",
     reason: "Мягкая ежедневная база для ухода утром и вечером.",
     rating: 4.7,
-    marketplace: "https://www.ozon.ru/",
+    marketplaces: buildMarketplaceLinks("Beauty of Joseon Green Plum Cleanser"),
   },
 ];
 
@@ -120,6 +150,7 @@ export function LandingPage() {
   const [notice, setNotice] = useState("");
   const [votes, setVotes] = useState<Record<string, "up" | "down">>({});
   const [selectedRoadmap, setSelectedRoadmap] = useState(0);
+  const [suggestionIndex, setSuggestionIndex] = useState(0);
   const [result, setResult] = useState<RecommendationResponse>({
     summary: "Beauty OS готова собрать подборку. Опишите кожу, бюджет и желаемый эффект.",
     products: sampleProducts,
@@ -130,6 +161,18 @@ export function LandingPage() {
     () => (result.products?.length ? result.products : sampleProducts),
     [result],
   );
+  const visibleSuggestions = useMemo(
+    () => [0, 1, 2].map((offset) => suggestions[(suggestionIndex + offset) % suggestions.length]),
+    [suggestionIndex],
+  );
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setSuggestionIndex((current) => (current + 1) % suggestions.length);
+    }, 4200);
+
+    return () => window.clearInterval(interval);
+  }, []);
 
   function focusAi(prefill?: string) {
     if (prefill) {
@@ -156,7 +199,14 @@ export function LandingPage() {
       };
 
       if (responseText) {
-        data = JSON.parse(responseText);
+        try {
+          data = JSON.parse(responseText);
+        } catch {
+          data = {
+            summary: "Сервис вернул ответ в неподходящем формате. Показываю безопасную демо-подборку.",
+            products: sampleProducts,
+          };
+        }
       }
 
       if (!response.ok) {
@@ -251,16 +301,25 @@ export function LandingPage() {
                 className="min-h-48 w-full resize-none rounded-2xl border border-white/15 bg-white/10 p-5 text-lg leading-7 text-white outline-none backdrop-blur-xl transition duration-200 placeholder:text-white/45 focus:border-white/60 focus:bg-white/15"
               />
               <div className="mt-4 flex flex-wrap gap-2">
-                {suggestions.map((item) => (
-                  <button
-                    key={item}
-                    type="button"
-                    onClick={() => setQuery(item)}
-                    className="rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-semibold text-white/80 backdrop-blur-xl transition duration-200 hover:bg-white hover:text-black"
-                  >
-                    {item}
-                  </button>
-                ))}
+                <AnimatePresence mode="popLayout">
+                  {visibleSuggestions.map((item, index) => (
+                    <motion.button
+                      key={item}
+                      layout
+                      initial={{ opacity: 0, y: 10, scale: 0.97 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                      transition={{ duration: 0.34, delay: index * 0.04 }}
+                      type="button"
+                      onClick={() => setQuery(item)}
+                      whileHover={{ y: -2, scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="apple-glass-button rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-semibold text-white/80 backdrop-blur-xl transition duration-200 hover:bg-white hover:text-black"
+                    >
+                      {item}
+                    </motion.button>
+                  ))}
+                </AnimatePresence>
               </div>
             </div>
             <div>
@@ -333,17 +392,44 @@ export function LandingPage() {
         </motion.div>
       </section>
 
-      <section id="features" className="grid min-h-screen gap-2 px-3 pb-2 pt-2 md:grid-cols-2 md:px-5">
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={reveal} className="rounded-2xl bg-stone-50 p-6 md:p-8">
-          <p className="text-sm font-black uppercase text-black/45">Возможности</p>
-          <h2 className="mt-5 text-[clamp(3.6rem,8vw,7rem)] font-black leading-[0.9]">
-            Beauty
-            <br />
-            Engine
-          </h2>
-          <p className="mt-6 max-w-xl text-lg font-semibold leading-8 text-black/60">
-            Платформа готова к каталогу средств, личному кабинету, истории рекомендаций и модулю парфюма.
-          </p>
+      <section id="features" className="grid min-h-screen gap-2 px-3 pb-2 pt-2 md:grid-cols-[0.95fr_1.05fr] md:px-5">
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-80px" }}
+          variants={reveal}
+          className="feature-orb-panel relative overflow-hidden rounded-2xl border border-black/5 bg-white/65 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,.86),0_24px_90px_rgba(29,29,31,.06)] backdrop-blur-2xl md:p-8"
+        >
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(255,255,255,.95),transparent_30%),radial-gradient(circle_at_76%_30%,rgba(251,201,214,.34),transparent_28%),linear-gradient(135deg,rgba(255,255,255,.8),rgba(246,242,244,.46))]" />
+          <div className="absolute bottom-8 right-8 h-44 w-44 rounded-full border border-black/5 bg-white/30 backdrop-blur-xl" />
+          <div className="absolute bottom-16 right-16 h-20 w-20 rounded-full bg-[#FBC9D6]/35 blur-2xl" />
+          <div className="relative z-10 flex min-h-[560px] flex-col justify-between">
+            <div>
+              <p className="text-sm font-black uppercase text-black/42">Возможности</p>
+              <h2 className="mt-5 max-w-2xl text-[clamp(3rem,6vw,6.4rem)] font-black leading-[0.92] tracking-tight">
+                Система
+                <br />
+                решений
+              </h2>
+              <p className="mt-6 max-w-xl text-lg font-semibold leading-8 text-black/58">
+                Красавица соединяет AI-подбор, профиль кожи, историю реакций и будущий модуль парфюма в спокойный рабочий интерфейс.
+              </p>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {["Каталог", "Профиль", "История", "Парфюм"].map((item, index) => (
+                <motion.div
+                  key={item}
+                  initial={{ opacity: 0, y: 14 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.08 + index * 0.05 }}
+                  className="apple-glass-card rounded-2xl border border-white/60 bg-white/48 px-4 py-4 text-sm font-black text-black/70 backdrop-blur-2xl"
+                >
+                  {item}
+                </motion.div>
+              ))}
+            </div>
+          </div>
         </motion.div>
         <div className="grid gap-2">
           {features.map(([title, text], index) => (
@@ -359,14 +445,19 @@ export function LandingPage() {
               viewport={{ once: true }}
               variants={reveal}
               transition={{ delay: index * 0.06 }}
-              className="group flex items-center justify-between rounded-2xl bg-black p-6 text-left text-white transition duration-200 hover:scale-[1.01] hover:bg-neutral-900"
+              whileHover={{ y: -4, scale: 1.008 }}
+              whileTap={{ scale: 0.985 }}
+              className="apple-glass-card group relative overflow-hidden rounded-2xl border border-black/5 bg-white/64 p-6 text-left shadow-[inset_0_1px_0_rgba(255,255,255,.8),0_18px_70px_rgba(29,29,31,.05)] backdrop-blur-2xl"
             >
-              <span>
-                <span className="block text-3xl font-black">{title}</span>
-                <span className="mt-2 block text-sm font-semibold text-white/60">{text}</span>
-              </span>
-              <span className="grid size-12 place-items-center rounded-full border border-white/40 transition duration-200 group-hover:bg-white group-hover:text-black">
-                <ArrowRight className="size-5 -rotate-45" />
+              <span className="absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,.82),rgba(255,255,255,.36)_48%,rgba(246,242,244,.42))]" />
+              <span className="relative z-10 flex items-center justify-between gap-5">
+                <span>
+                  <span className="block text-3xl font-black md:text-4xl">{title}</span>
+                  <span className="mt-3 block max-w-xl text-sm font-semibold leading-6 text-black/52">{text}</span>
+                </span>
+                <span className="grid size-12 shrink-0 place-items-center rounded-full border border-black/12 bg-white/44 transition duration-200 group-hover:bg-black group-hover:text-white">
+                  <ArrowRight className="size-5 -rotate-45" />
+                </span>
               </span>
             </motion.button>
           ))}
@@ -649,15 +740,25 @@ function PortalTile({ children, className, delay = 0, hero = false }: { children
 
 function GlassPanel({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div className={cn("flex flex-col rounded-2xl bg-white/75 p-5 shadow-[inset_0_0_0_1px_rgba(255,255,255,.55)] backdrop-blur-2xl", className)}>
+    <motion.div
+      whileHover={{ y: -3, scale: 1.004 }}
+      whileTap={{ scale: 0.992 }}
+      className={cn("apple-glass-card flex flex-col rounded-2xl bg-white/75 p-5 shadow-[inset_0_0_0_1px_rgba(255,255,255,.55)] backdrop-blur-2xl", className)}
+    >
       {children}
-    </div>
+    </motion.div>
   );
 }
 
 function ProductCard({ product, vote, onVote, onCopy }: { product: Product; vote?: "up" | "down"; onVote: (vote: "up" | "down") => void; onCopy: () => void }) {
+  const marketplaceLinks = buildMarketplaceLinks(product.name, product.marketplaces, product.marketplace);
+
   return (
-    <article className="rounded-2xl border border-black/10 bg-white/85 p-4 backdrop-blur-xl">
+    <motion.article
+      whileHover={{ y: -3, scale: 1.006 }}
+      whileTap={{ scale: 0.99 }}
+      className="apple-glass-card rounded-2xl border border-black/10 bg-white/85 p-4 backdrop-blur-xl"
+    >
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-xs font-black uppercase text-black/45">{product.category}</p>
@@ -670,12 +771,24 @@ function ProductCard({ product, vote, onVote, onCopy }: { product: Product; vote
         </span>
       </div>
       <div className="mt-4 flex flex-wrap gap-2">
-        <a href={product.marketplace} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center gap-2 rounded-full bg-black px-4 text-sm font-bold text-white transition duration-200 hover:scale-105">
-          Купить <ExternalLink className="size-4" />
-        </a>
+        {marketplaceLinks.map((link, index) => (
+          <a
+            key={link.href}
+            href={link.href}
+            target="_blank"
+            rel="noreferrer"
+            className={cn(
+              "inline-flex h-9 items-center gap-2 rounded-full px-4 text-sm font-bold transition duration-200 hover:scale-105",
+              index === 0 ? "bg-black text-white" : "border border-black/15 bg-white/60 text-black hover:bg-black hover:text-white",
+            )}
+          >
+            {link.label}
+            <ExternalLink className="size-4" />
+          </a>
+        ))}
         <button type="button" onClick={onCopy} className="inline-flex h-9 items-center gap-2 rounded-full border border-black/15 px-4 text-sm font-bold transition duration-200 hover:bg-black hover:text-white">
           <Copy className="size-4" />
-          Copy
+          Название
         </button>
         <VoteButton active={vote === "up"} label="Подходит" onClick={() => onVote("up")}>
           <ThumbsUp className="size-4" />
@@ -684,7 +797,7 @@ function ProductCard({ product, vote, onVote, onCopy }: { product: Product; vote
           <ThumbsDown className="size-4" />
         </VoteButton>
       </div>
-    </article>
+    </motion.article>
   );
 }
 
@@ -698,16 +811,16 @@ function VoteButton({ active, label, children, onClick }: { active: boolean; lab
 
 function ActionLink({ href, children }: { href: string; children: ReactNode }) {
   return (
-    <a href={href} target="_blank" rel="noreferrer" className="flex items-center justify-between rounded-2xl bg-white/20 p-4 font-black backdrop-blur-xl transition duration-200 hover:scale-[1.02] hover:bg-white hover:text-black">
+    <motion.a href={href} target="_blank" rel="noreferrer" whileHover={{ y: -2, scale: 1.012 }} whileTap={{ scale: 0.986 }} className="apple-glass-card flex items-center justify-between rounded-2xl bg-white/20 p-4 font-black backdrop-blur-xl transition duration-200 hover:bg-white hover:text-black">
       {children}
       <ArrowRight className="size-5 -rotate-45" />
-    </a>
+    </motion.a>
   );
 }
 
 function TelegramCard({ href, title, text }: { href: string; title: string; text: string }) {
   return (
-    <a href={href} target="_blank" rel="noreferrer" className="group rounded-2xl bg-white/85 p-5 backdrop-blur-xl transition duration-200 hover:scale-[1.02] hover:bg-white">
+    <motion.a href={href} target="_blank" rel="noreferrer" whileHover={{ y: -4, scale: 1.012 }} whileTap={{ scale: 0.986 }} className="apple-glass-card group rounded-2xl bg-white/85 p-5 backdrop-blur-xl transition duration-200 hover:bg-white">
       <div className="mb-8 flex items-center justify-between">
         <MessageCircle className="size-7" />
         <span className="grid size-11 place-items-center rounded-full border border-black transition duration-200 group-hover:bg-black group-hover:text-white">
@@ -716,21 +829,49 @@ function TelegramCard({ href, title, text }: { href: string; title: string; text
       </div>
       <h3 className="text-2xl font-black">{title}</h3>
       <p className="mt-2 text-sm font-semibold text-black/55">{text}</p>
-    </a>
+    </motion.a>
   );
 }
 
 function Footer() {
   return (
-    <footer className="flex flex-col gap-5 px-5 py-8 text-sm font-semibold text-black/55 md:flex-row md:items-center md:justify-between">
-      <div className="flex items-center gap-3">
-        <Image src="/krasavitsa-logo.png" alt="Красавица" width={42} height={42} className="rounded-full" />
-        <span>© 2026 Красавица Beauty OS</span>
-      </div>
-      <div className="flex flex-wrap gap-5">
-        <a href="https://t.me/thesp3cial" target="_blank" rel="noreferrer" className="hover:text-black">Разработчик: @thesp3cial</a>
-        <a href="https://t.me/krasavitsa_ai_bot" target="_blank" rel="noreferrer" className="hover:text-black">Telegram Bot</a>
-        <a href="https://t.me/krasavitsa_ai" target="_blank" rel="noreferrer" className="hover:text-black">Telegram Channel</a>
+    <footer className="px-3 pb-5 pt-2 md:px-5">
+      <div className="rounded-2xl border border-black/5 bg-white/70 p-6 text-sm font-semibold text-black/55 shadow-[inset_0_1px_0_rgba(255,255,255,.86),0_20px_70px_rgba(29,29,31,.05)] backdrop-blur-2xl md:p-8">
+        <div className="grid gap-8 md:grid-cols-[1.1fr_0.9fr_0.9fr]">
+          <div>
+            <div className="flex items-center gap-3">
+              <Image src="/krasavitsa-logo.png" alt="Красавица" width={42} height={42} className="rounded-full" />
+              <div>
+                <p className="text-lg font-black uppercase text-black">Красавица</p>
+                <p className="mt-1 text-xs font-normal uppercase text-black/38">Beauty OS</p>
+              </div>
+            </div>
+            <p className="mt-5 max-w-xl leading-6">
+              AI-сервис для подбора косметического ухода. Рекомендации носят информационный характер и не заменяют консультацию врача или косметолога.
+            </p>
+            <p className="mt-4 text-xs text-black/38">© 2026 Красавица Beauty OS</p>
+          </div>
+
+          <div>
+            <p className="text-xs font-black uppercase text-black/40">Справка</p>
+            <div className="mt-4 grid gap-3">
+              <a href="#ai" className="hover:text-black">AI-подбор ухода</a>
+              <a href="#features" className="hover:text-black">Возможности</a>
+              <a href="https://t.me/krasavitsa_ai_bot" target="_blank" rel="noreferrer" className="hover:text-black">Telegram Bot</a>
+              <a href="https://t.me/krasavitsa_ai" target="_blank" rel="noreferrer" className="hover:text-black">Telegram Channel</a>
+            </div>
+          </div>
+
+          <div>
+            <p className="text-xs font-black uppercase text-black/40">Документы</p>
+            <div className="mt-4 grid gap-3">
+              <a href="/privacy" className="hover:text-black">Политика конфиденциальности</a>
+              <a href="/personal-data" className="hover:text-black">Согласие на обработку данных</a>
+              <a href="/terms" className="hover:text-black">Пользовательское соглашение</a>
+              <a href="https://t.me/thesp3cial" target="_blank" rel="noreferrer" className="hover:text-black">Разработчик: @thesp3cial</a>
+            </div>
+          </div>
+        </div>
       </div>
     </footer>
   );

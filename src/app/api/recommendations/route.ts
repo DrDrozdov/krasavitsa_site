@@ -5,7 +5,13 @@ type Product = {
   category: string;
   reason: string;
   rating: number;
-  marketplace: string;
+  marketplace?: string;
+  marketplaces?: MarketplaceLink[];
+};
+
+type MarketplaceLink = {
+  label: string;
+  href: string;
 };
 
 type RecommendationPayload = {
@@ -19,23 +25,37 @@ const fallbackProducts: Product[] = [
     category: "Увлажняющий крем",
     reason: "Легкая текстура, спокойный финиш и комфорт для кожи, склонной к жирности.",
     rating: 4.8,
-    marketplace: "https://market.yandex.ru/",
+    marketplaces: marketplaceLinks("Purito Oat-in Calming Gel Cream"),
   },
   {
     name: "COSRX Low pH Good Morning Gel Cleanser",
     category: "Очищение",
     reason: "Мягкое ежедневное очищение без ощущения пленки и перегруза.",
     rating: 4.7,
-    marketplace: "https://www.ozon.ru/",
+    marketplaces: marketplaceLinks("COSRX Low pH Good Morning Gel Cleanser"),
   },
   {
     name: "The Ordinary Niacinamide 10% + Zinc 1%",
     category: "Сыворотка",
     reason: "Помогает контролировать блеск и поддерживать ровный тон.",
     rating: 4.6,
-    marketplace: "https://www.wildberries.ru/",
+    marketplaces: marketplaceLinks("The Ordinary Niacinamide 10% + Zinc 1%"),
   },
 ];
+
+function marketplaceLinks(name: string, provided?: MarketplaceLink[], fallback?: string): MarketplaceLink[] {
+  const query = encodeURIComponent(name);
+  const links: MarketplaceLink[] = [
+    { label: "Я.Маркет", href: `https://market.yandex.ru/search?text=${query}` },
+    { label: "Ozon", href: `https://www.ozon.ru/search/?text=${query}` },
+    { label: "WB", href: `https://www.wildberries.ru/catalog/0/search.aspx?search=${query}` },
+    { label: "ЗЯ", href: `https://goldapple.ru/search?q=${query}` },
+    { label: "Лэтуаль", href: `https://www.letu.ru/search?q=${query}` },
+  ];
+  const validProvided = provided?.filter((item) => item.label && item.href) ?? [];
+  const merged = fallback ? [{ label: "Магазин", href: fallback }, ...validProvided, ...links] : [...validProvided, ...links];
+  return merged.filter((item, index, array) => array.findIndex((candidate) => candidate.href === item.href) === index).slice(0, 5);
+}
 
 function previewAnswer(query: string) {
   return {
@@ -57,7 +77,7 @@ function normalizeProducts(products: Product[] | undefined): Product[] {
     category: product.category || "Средство ухода",
     reason: product.reason || "Подходит под указанные ограничения и цель ухода.",
     rating: Number(product.rating) || 4.6,
-    marketplace: product.marketplace || "https://market.yandex.ru/",
+    marketplaces: marketplaceLinks(product.name || fallbackProducts[index % fallbackProducts.length].name, product.marketplaces, product.marketplace),
   }));
 }
 
@@ -141,7 +161,7 @@ export async function POST(request: Request) {
               {
                 role: "system",
                 content:
-                  "Ты Beauty OS «Красавица», AI-платформа для осознанного подбора косметического ухода. Отвечай только валидным JSON без markdown. Формат: {\"summary\":\"короткий вывод на русском\", \"products\":[{\"name\":\"название средства\", \"category\":\"категория\", \"reason\":\"почему подходит\", \"rating\":4.8, \"marketplace\":\"https://...\"}]}. Дай 3-4 продукта. Не ставь медицинские диагнозы, не обещай лечение, учитывай бюджет и ограничения пользователя.",
+                  "Ты Beauty OS «Красавица», AI-платформа для осознанного подбора косметического ухода. Отвечай только валидным JSON без markdown. Формат: {\"summary\":\"короткий вывод на русском\", \"products\":[{\"name\":\"точное название средства и бренд\", \"category\":\"категория\", \"reason\":\"почему подходит\", \"rating\":4.8, \"marketplaces\":[{\"label\":\"Я.Маркет\", \"href\":\"https://market.yandex.ru/search?text=...\"},{\"label\":\"Ozon\", \"href\":\"https://www.ozon.ru/search/?text=...\"}]}]}. Дай 3-4 реальных продукта с точными названиями. Для ссылок используй поисковые URL конкретного названия товара на Яндекс Маркете, Ozon, Wildberries, Золотом Яблоке или Лэтуаль. Не ставь медицинские диагнозы, не обещай лечение, учитывай бюджет и ограничения пользователя.",
               },
               { role: "user", content: query },
             ],
