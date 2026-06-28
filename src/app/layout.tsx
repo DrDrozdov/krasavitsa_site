@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { PointerGlow } from "@/components/pointer-glow";
 import "./globals.css";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://krasavitsa.ai";
@@ -72,7 +73,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ru" className="scroll-smooth">
-      <body>{children}</body>
+      <body>
+        <PointerGlow />
+        {children}
+      </body>
     </html>
   );
 }

@@ -150,14 +150,23 @@ a {
   content: "";
   position: absolute;
   inset: 0;
-  z-index: -1;
-  background: radial-gradient(circle at 38% 16%, rgba(255, 255, 255, 0.46), transparent 42%);
+  z-index: 0;
+  background:
+    radial-gradient(circle at var(--pointer-x, 50%) var(--pointer-y, 50%), rgba(255, 255, 255, 0.52), transparent 34%),
+    radial-gradient(circle at var(--pointer-x, 50%) var(--pointer-y, 50%), rgba(235, 199, 183, 0.24), transparent 48%);
   opacity: 0;
-  transform: scale(0.96);
+  transform: scale(0.98);
   transition:
-    opacity 220ms ease,
-    transform 520ms var(--ease-soft);
+    opacity 180ms ease,
+    transform 440ms var(--ease-soft),
+    background 80ms linear;
   pointer-events: none;
+}
+
+.apple-glass-card > *,
+.apple-glass-button > * {
+  position: relative;
+  z-index: 1;
 }
 
 .apple-glass-card:hover,
@@ -172,13 +181,57 @@ a {
 
 .apple-glass-card:hover::after,
 .apple-glass-button:hover::after {
-  opacity: 1;
+  opacity: 0.9;
   transform: scale(1);
 }
 
 .apple-glass-card:active,
 .apple-glass-button:active {
   transform: translateY(0) scale(0.982);
+}
+
+[data-pointer-glow="true"] {
+  --pointer-x: 50%;
+  --pointer-y: 50%;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+[data-pointer-glow="true"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(circle at var(--pointer-x) var(--pointer-y), rgba(255, 255, 255, 0.42), transparent 32%),
+    radial-gradient(circle at var(--pointer-x) var(--pointer-y), rgba(235, 199, 183, 0.2), transparent 48%);
+  opacity: 0;
+  transform: scale(0.98);
+  transition:
+    opacity 180ms ease,
+    transform 440ms var(--ease-soft),
+    background 80ms linear;
+  pointer-events: none;
+}
+
+[data-pointer-glow="true"] > * {
+  position: relative;
+  z-index: 1;
+}
+
+[data-pointer-glow="true"][data-pointer-active="true"]::after {
+  opacity: 0.72;
+  transform: scale(1);
+}
+
+[data-pointer-glow="true"][data-pointer-pressed="true"]::after {
+  opacity: 1;
+  transform: scale(1.08);
+}
+
+[data-pointer-glow="true"][data-pointer-pressed="true"] {
+  filter: saturate(1.08);
 }
 
 .liquid-glass {
