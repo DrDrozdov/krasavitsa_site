@@ -44,21 +44,24 @@ a {
 }
 
 .portal-animated-bg {
-  animation: portal-pan 8s ease-in-out infinite;
-  background-repeat: no-repeat;
-  background-size: auto 112%;
+  background: #fcfafb;
 }
 
-@keyframes portal-pan {
+.hero-image-layer {
+  animation: portal-layer-pan 8s ease-in-out infinite;
+  transform: scale(1.04) translate3d(0, 0, 0);
+  transform-origin: center;
+  will-change: transform;
+}
+
+@keyframes portal-layer-pan {
   0%,
   100% {
-    background-position: 50% 50%;
-    background-size: auto 112%;
+    transform: scale(1.04) translate3d(0, 0, 0);
   }
 
   50% {
-    background-position: 58% 48%;
-    background-size: auto 118%;
+    transform: scale(1.09) translate3d(-2.2%, -1.4%, 0);
   }
 }
 

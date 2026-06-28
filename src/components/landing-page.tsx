@@ -185,7 +185,7 @@ export function LandingPage() {
       <section id="home" className="grid min-h-screen gap-2 px-3 pb-2 pt-24 md:grid-rows-[auto_1fr] md:px-5">
         <div className="grid gap-2 md:grid-cols-3">
           {featureBars.map(([label, action], index) => (
-            <PortalTile key={label} delay={index * 0.08} className="h-16 md:h-20">
+            <FeaturePill key={label} delay={index * 0.08}>
               <button
                 type="button"
                 onClick={() => focusAi(action)}
@@ -196,7 +196,7 @@ export function LandingPage() {
                   <span className="mt-1 hidden text-xs font-bold text-black/45 md:block">{action}</span>
                 </span>
               </button>
-            </PortalTile>
+            </FeaturePill>
           ))}
         </div>
 
@@ -204,11 +204,11 @@ export function LandingPage() {
           <div className="absolute left-5 top-5 z-10 max-w-[260px] text-sm font-semibold leading-5 md:left-8 md:top-8">
             AI-платформа для осознанного выбора косметики и будущая единая Beauty OS.
           </div>
-          <div className="absolute bottom-44 left-4 z-10 md:bottom-20 md:left-8">
+          <div className="absolute bottom-48 left-4 z-10 md:bottom-24 md:left-8">
             <h1 className="max-w-5xl text-[clamp(3.9rem,10.4vw,9.8rem)] font-black leading-[0.9] tracking-tight">
               Красавица
             </h1>
-            <p className="mt-6 text-xl font-normal uppercase leading-none text-black/35 md:text-3xl">
+            <p className="mt-9 text-xl font-normal uppercase leading-none text-black/25 md:text-3xl">
               Beauty OS
             </p>
           </div>
@@ -568,6 +568,24 @@ function Header({ onTry }: { onTry: () => void }) {
   );
 }
 
+function FeaturePill({ children, delay = 0 }: { children: ReactNode; delay?: number }) {
+  return (
+    <motion.div
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: "-80px" }}
+      variants={reveal}
+      transition={{ duration: 0.62, delay }}
+      className="relative h-16 overflow-hidden rounded-2xl border border-black/5 bg-white/55 shadow-[inset_0_1px_0_rgba(255,255,255,.8),0_18px_60px_rgba(29,29,31,.05)] backdrop-blur-2xl md:h-20"
+    >
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(255,255,255,.95),transparent_36%),linear-gradient(120deg,rgba(255,255,255,.74),rgba(246,242,244,.42),rgba(255,255,255,.7))]" />
+      <div className="absolute left-6 top-1/2 h-12 w-24 -translate-y-1/2 rounded-full bg-[#FBC9D6]/25 blur-2xl" />
+      <div className="absolute right-6 top-1/2 h-10 w-20 -translate-y-1/2 rounded-full bg-white/70 blur-xl" />
+      {children}
+    </motion.div>
+  );
+}
+
 function PortalTile({ children, className, delay = 0, hero = false }: { children: ReactNode; className?: string; delay?: number; hero?: boolean }) {
   return (
     <motion.div
@@ -577,11 +595,24 @@ function PortalTile({ children, className, delay = 0, hero = false }: { children
       variants={reveal}
       transition={{ duration: 0.62, delay }}
       className={cn(
-        "relative overflow-hidden rounded-2xl bg-[url('/beauty-portal-hero.png')] bg-cover bg-center bg-no-repeat shadow-[inset_0_0_0_1px_rgba(0,0,0,.06)]",
+        "relative overflow-hidden rounded-2xl shadow-[inset_0_0_0_1px_rgba(0,0,0,.06)]",
         hero && "portal-animated-bg",
+        !hero && "bg-[url('/beauty-portal-hero.png')] bg-cover bg-center bg-no-repeat",
         className,
       )}
     >
+      {hero ? (
+        <div className="hero-image-layer absolute inset-0">
+          <Image
+            src="/beauty-portal-hero.png"
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-center"
+          />
+        </div>
+      ) : null}
       <div className={cn("absolute inset-0 bg-white/45 backdrop-blur-[1px]", hero && "bg-white/18")} />
       <div className="absolute inset-0 [background:linear-gradient(110deg,rgba(255,255,255,.8),rgba(255,255,255,.18)_45%,rgba(255,255,255,.55))]" />
       <div className={cn("relative z-10 flex h-full items-center justify-center", hero && "block")}>{children}</div>
