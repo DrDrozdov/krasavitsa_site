@@ -27,6 +27,7 @@ type Product = {
   category: string;
   reason: string;
   rating: number;
+  ratingSource?: string;
   marketplace?: string;
   marketplaces?: MarketplaceLink[];
 };
@@ -78,6 +79,7 @@ const sampleProducts: Product[] = [
     category: "Крем",
     reason: "Легкий финиш, поддержка барьера и комфорт без перегруза.",
     rating: 4.8,
+    ratingSource: "По оценкам пользователей Яндекс Маркет",
     marketplaces: buildMarketplaceLinks("Round Lab Birch Juice Moisturizing Cream"),
   },
   {
@@ -85,7 +87,40 @@ const sampleProducts: Product[] = [
     category: "Очищение",
     reason: "Мягкая ежедневная база для ухода утром и вечером.",
     rating: 4.7,
+    ratingSource: "По оценкам пользователей Яндекс Маркет",
     marketplaces: buildMarketplaceLinks("Beauty of Joseon Green Plum Cleanser"),
+  },
+  {
+    name: "La Roche-Posay Cicaplast Baume B5+",
+    category: "Восстановление",
+    reason: "Плотный успокаивающий бальзам для барьера, сухости и раздражения.",
+    rating: 4.9,
+    ratingSource: "По оценкам пользователей Яндекс Маркет",
+    marketplaces: buildMarketplaceLinks("La Roche-Posay Cicaplast Baume B5+"),
+  },
+  {
+    name: "COSRX Advanced Snail 96 Mucin Power Essence",
+    category: "Эссенция",
+    reason: "Легкий слой увлажнения и гладкости без тяжелой пленки.",
+    rating: 4.8,
+    ratingSource: "По оценкам пользователей Яндекс Маркет",
+    marketplaces: buildMarketplaceLinks("COSRX Advanced Snail 96 Mucin Power Essence"),
+  },
+  {
+    name: "Beauty of Joseon Relief Sun SPF50+",
+    category: "SPF",
+    reason: "Ежедневная защита с мягким финишем для города.",
+    rating: 4.8,
+    ratingSource: "По оценкам пользователей Яндекс Маркет",
+    marketplaces: buildMarketplaceLinks("Beauty of Joseon Relief Sun SPF50+"),
+  },
+  {
+    name: "The Ordinary Niacinamide 10% + Zinc 1%",
+    category: "Сыворотка",
+    reason: "Поддержка кожи при блеске и неровном тоне в простой схеме.",
+    rating: 4.7,
+    ratingSource: "По оценкам пользователей Яндекс Маркет",
+    marketplaces: buildMarketplaceLinks("The Ordinary Niacinamide 10% + Zinc 1%"),
   },
 ];
 
@@ -140,8 +175,14 @@ export function LandingPage() {
   const aiRef = useRef<HTMLElement | null>(null);
 
   const currentProducts = useMemo(
-    () => (result.products?.length ? result.products : sampleProducts),
-    [result],
+    () => {
+      const source = result.products?.length ? result.products : sampleProducts;
+      if (source.length <= 2) {
+        return source;
+      }
+      return [0, 1].map((offset) => source[(suggestionIndex + offset) % source.length]);
+    },
+    [result, suggestionIndex],
   );
   const visibleSuggestions = useMemo(
     () => [0, 1, 2].map((offset) => suggestions[(suggestionIndex + offset) % suggestions.length]),
@@ -312,7 +353,7 @@ export function LandingPage() {
           className="relative overflow-hidden rounded-[var(--radius-lg)] bg-[url('/beauty-portal-hero.png')] bg-cover bg-center p-2"
         >
           <div className="grid min-h-[390px] gap-2">
-              <GlassPanel className="bg-white/88">
+              <GlassPanel className="bg-white/54">
                 <div className="mb-5 flex items-center justify-between gap-4">
                   <div>
                     <p className="text-xs font-bold uppercase text-black/45">AI-вывод</p>
@@ -321,7 +362,8 @@ export function LandingPage() {
                   <Bot className="size-8 shrink-0" />
                 </div>
                 <div className="grid gap-2">
-                  {currentProducts.map((product) => (
+                  <AnimatePresence mode="popLayout">
+                    {currentProducts.map((product) => (
                     <ProductCard
                       key={product.name}
                       product={product}
@@ -332,7 +374,8 @@ export function LandingPage() {
                       }}
                       onCopy={() => copyName(product.name)}
                     />
-                  ))}
+                    ))}
+                  </AnimatePresence>
                 </div>
               </GlassPanel>
           </div>
@@ -372,19 +415,19 @@ export function LandingPage() {
                   transition={{ duration: 0.34, ease: [0.16, 1, 0.3, 1] }}
                   className={cn(
                     "roadmap-item liquid-glass group grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-2xl border p-3 text-left backdrop-blur-2xl transition-all duration-500",
-                    selectedRoadmap === index ? "is-active border-black/20" : "is-idle border-white/55",
+                    "is-idle border-white/55",
                   )}
                 >
-                  <span className={cn("grid size-9 place-items-center rounded-full text-xs font-black transition-colors duration-500", selectedRoadmap === index ? "bg-white text-black" : "bg-white/64 text-black/70 group-hover:bg-white group-hover:text-black")}>
+                  <span className="grid size-9 place-items-center rounded-full bg-white/64 text-xs font-black text-black/70 transition-colors duration-500 group-hover:bg-white group-hover:text-black">
                     {index + 1}
                   </span>
                   <span>
                     <span className="block text-sm font-black">{item.label}</span>
-                    <span className={cn("mt-1 block text-xs font-semibold transition-colors duration-500", selectedRoadmap === index ? "text-white/62" : "text-black/48 group-hover:text-white/62")}>
+                    <span className="mt-1 block text-xs font-semibold text-black/48 transition-colors duration-500 group-hover:text-white/62">
                       {item.title}
                     </span>
                   </span>
-                  <span className={cn("text-xs font-black uppercase transition-colors duration-500", selectedRoadmap === index ? "text-white" : "text-black/50 group-hover:text-white")}>
+                  <span className="text-xs font-black uppercase text-black/50 transition-colors duration-500 group-hover:text-white">
                     {item.metric}
                   </span>
                 </motion.button>
@@ -583,7 +626,7 @@ function Header({ onTry }: { onTry: () => void }) {
   }, [open]);
 
   const links = [
-    ["Главная", "#home"],
+    ["Главное", "#home"],
     ["Подбор ухода", "/care"],
     ["Парфюм", "/perfume"],
     ["Блог", "/blog"],
@@ -615,16 +658,19 @@ function Header({ onTry }: { onTry: () => void }) {
         </button>
       </header>
 
-      <div className={cn("fixed inset-0 z-40 transition md:hidden", open ? "pointer-events-auto" : "pointer-events-none")}>
+      <div className={cn("fixed inset-0 z-[60] transition md:hidden", open ? "pointer-events-auto" : "pointer-events-none")}>
         <button type="button" aria-label="Закрыть меню" onClick={() => setOpen(false)} className={cn("absolute inset-0 bg-black/28 backdrop-blur-md transition duration-300", open ? "opacity-100" : "opacity-0")} />
-        <aside className={cn("liquid-glass absolute right-0 top-0 flex h-full w-[86%] max-w-sm flex-col justify-center gap-3 border-l border-white/20 bg-[rgba(30,26,24,.72)] px-8 text-white shadow-2xl backdrop-blur-2xl transition duration-500", open ? "translate-x-0" : "translate-x-full")}>
+        <aside className={cn("absolute right-0 top-0 flex h-full w-[86%] max-w-sm flex-col justify-center gap-4 border-l border-white/20 bg-[rgba(30,26,24,.84)] px-8 text-white shadow-2xl backdrop-blur-2xl transition duration-500", open ? "translate-x-0" : "translate-x-full")}>
+          <button type="button" aria-label="Закрыть меню" onClick={() => setOpen(false)} className="absolute right-5 top-5 grid size-12 place-items-center rounded-full border border-white/20 bg-white text-black">
+            <X className="size-6" />
+          </button>
           {links.map(([label, href], index) => (
             <a
               key={href}
               href={href}
               onClick={() => setOpen(false)}
               style={{ transitionDelay: open ? `${100 + index * 60}ms` : "0ms" }}
-              className={cn("text-4xl font-black transition duration-500", open ? "translate-x-0 opacity-100" : "translate-x-8 opacity-0")}
+              className={cn("block text-4xl font-black text-white transition duration-500", open ? "translate-x-0 opacity-100" : "translate-x-8 opacity-0")}
             >
               {label}
             </a>
@@ -729,9 +775,14 @@ function ProductCard({ product, vote, onVote, onCopy }: { product: Product; vote
 
   return (
     <motion.article
+      layout
+      initial={{ opacity: 0, y: 12, scale: 0.985, filter: "blur(8px)" }}
+      animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+      exit={{ opacity: 0, y: -10, scale: 0.985, filter: "blur(8px)" }}
       whileHover={{ y: -3, scale: 1.006 }}
       whileTap={{ scale: 0.99 }}
-      className="apple-glass-card rounded-2xl border border-black/10 bg-white/85 p-4 backdrop-blur-xl"
+      transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
+      className="apple-glass-card rounded-2xl border border-black/10 bg-white/62 p-4 backdrop-blur-2xl"
     >
       <div className="flex items-start justify-between gap-4">
         <div>
@@ -739,7 +790,7 @@ function ProductCard({ product, vote, onVote, onCopy }: { product: Product; vote
           <h3 className="mt-1 text-lg font-black">{product.name}</h3>
           <p className="mt-2 text-sm font-semibold leading-6 text-black/55">{product.reason}</p>
         </div>
-        <span className="flex items-center gap-1 rounded-full bg-black px-3 py-2 text-sm font-black text-white">
+        <span title={product.ratingSource ?? "По оценкам пользователей Яндекс Маркет"} className="flex cursor-help items-center gap-1 rounded-full bg-black px-3 py-2 text-sm font-black text-white">
           <Star className="size-4 fill-white" />
           {product.rating}
         </span>
