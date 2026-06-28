@@ -91,39 +91,32 @@ const sampleProducts: Product[] = [
 
 const roadmap = [
   {
-    label: "Сегодня",
+    label: "Сейчас",
     title: "AI-подбор ухода",
     text: "Главный сценарий уже на сайте: пользователь описывает задачу и получает подборку средств с объяснением.",
     action: "Попробовать подбор",
     metric: "Live",
   },
   {
-    label: "Скоро",
+    label: "Профиль",
     title: "Beauty-профиль",
     text: "Тип кожи, бюджет, реакции и история рекомендаций будут собираться в один персональный профиль.",
     action: "Посмотреть логику",
     metric: "Profile",
   },
   {
-    label: "Затем",
-    title: "Рейтинг сообщества",
+    label: "Сообщество",
+    title: "Рейтинг средств",
     text: "Оценки пользователей помогут понять, какие средства действительно работают для похожих запросов.",
     action: "Оценить подборку",
     metric: "Rating",
   },
   {
-    label: "Позже",
-    title: "Парфюм",
+    label: "Ароматы",
+    title: "Подбор парфюма",
     text: "Отдельный модуль для подбора ароматов по настроению, нотам и контексту использования.",
     action: "Оставить запрос",
     metric: "Scent",
-  },
-  {
-    label: "Будущее",
-    title: "Единая экосистема",
-    text: "Красавица объединит уход, парфюм, каталог, профиль и историю решений в одном Beauty OS.",
-    action: "Начать с AI",
-    metric: "OS",
   },
 ];
 
@@ -374,55 +367,64 @@ export function LandingPage() {
                   key={item.label}
                   type="button"
                   onClick={() => setSelectedRoadmap(index)}
-                  whileHover={{ y: -2, scale: 0.992 }}
-                  whileTap={{ y: -2, scale: 0.992 }}
-                  transition={{ duration: 0.58, ease: [0.16, 1, 0.3, 1] }}
+                  whileHover={{ scale: [1, 1.012, 1.006] }}
+                  whileTap={{ scale: [1, 1.012, 1.006] }}
+                  transition={{ duration: 0.34, ease: [0.16, 1, 0.3, 1] }}
                   className={cn(
-                    "roadmap-item liquid-glass group grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-2xl border p-3 text-left backdrop-blur-2xl transition duration-500",
+                    "roadmap-item liquid-glass group grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-2xl border p-3 text-left backdrop-blur-2xl transition-colors duration-300",
                     selectedRoadmap === index
-                      ? "border-white/80 bg-white/88 text-black"
-                      : "border-white/55 bg-white/48 text-black/78 hover:bg-white/72",
+                      ? "border-black/20 bg-black text-white"
+                      : "border-white/55 bg-white/54 text-black/78 hover:border-white/80 hover:bg-white/86 hover:text-black",
                   )}
                 >
-                  <span className={cn("grid size-9 place-items-center rounded-full text-xs font-black", selectedRoadmap === index ? "bg-black text-white" : "bg-white/58 text-black/70")}>
+                  <span className={cn("grid size-9 place-items-center rounded-full text-xs font-black transition-colors duration-300", selectedRoadmap === index ? "bg-white text-black" : "bg-white/64 text-black/70 group-hover:bg-black group-hover:text-white")}>
                     {index + 1}
                   </span>
                   <span>
                     <span className="block text-sm font-black">{item.label}</span>
-                    <span className={cn("mt-1 block text-xs font-semibold", selectedRoadmap === index ? "text-black/55" : "text-black/48")}>
+                    <span className={cn("mt-1 block text-xs font-semibold transition-colors duration-300", selectedRoadmap === index ? "text-white/62" : "text-black/48 group-hover:text-black/58")}>
                       {item.title}
                     </span>
                   </span>
-                  <span className={cn("text-xs font-black uppercase", selectedRoadmap === index ? "text-black" : "text-black/50")}>
+                  <span className={cn("text-xs font-black uppercase transition-colors duration-300", selectedRoadmap === index ? "text-white" : "text-black/50 group-hover:text-black")}>
                     {item.metric}
                   </span>
                 </motion.button>
               ))}
             </div>
 
-            <div className="liquid-glass rounded-2xl bg-white/90 p-4 text-black backdrop-blur-2xl">
-              <div className="mb-4 flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-xs font-black uppercase text-black/45">{roadmap[selectedRoadmap].label}</p>
-                  <h4 className="mt-1 text-xl font-black">{roadmap[selectedRoadmap].title}</h4>
-                </div>
-                <span className="rounded-full bg-black px-3 py-2 text-xs font-black uppercase text-white">
-                  {roadmap[selectedRoadmap].metric}
-                </span>
-              </div>
-              <p className="text-sm font-semibold leading-6 text-black/60">{roadmap[selectedRoadmap].text}</p>
-              <button
-                type="button"
-                onClick={() => {
-                  setNotice(`${roadmap[selectedRoadmap].label}: ${roadmap[selectedRoadmap].title}`);
-                  focusAi(roadmap[selectedRoadmap].action);
-                }}
-                className="apple-glass-button mt-4 inline-flex h-10 items-center gap-2 rounded-full bg-black px-5 text-sm font-black text-white transition duration-200 hover:scale-105"
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={roadmap[selectedRoadmap].label}
+                initial={{ opacity: 0, y: 14, scale: 0.985, filter: "blur(10px)" }}
+                animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+                exit={{ opacity: 0, y: -10, scale: 0.99, filter: "blur(8px)" }}
+                transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
+                className="liquid-glass rounded-2xl border border-white/70 bg-white/64 p-4 text-black shadow-[var(--shadow-glass)] backdrop-blur-2xl"
               >
-                {roadmap[selectedRoadmap].action}
-                <ArrowRight className="size-4 -rotate-45" />
-              </button>
-            </div>
+                <div className="mb-4 flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-xs font-black uppercase text-black/45">{roadmap[selectedRoadmap].label}</p>
+                    <h4 className="mt-1 text-xl font-black">{roadmap[selectedRoadmap].title}</h4>
+                  </div>
+                  <span className="rounded-full bg-black px-3 py-2 text-xs font-black uppercase text-white">
+                    {roadmap[selectedRoadmap].metric}
+                  </span>
+                </div>
+                <p className="text-sm font-semibold leading-6 text-black/60">{roadmap[selectedRoadmap].text}</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNotice(`${roadmap[selectedRoadmap].label}: ${roadmap[selectedRoadmap].title}`);
+                    focusAi(roadmap[selectedRoadmap].action);
+                  }}
+                  className="apple-glass-button mt-4 inline-flex h-10 items-center gap-2 rounded-full bg-black px-5 text-sm font-black text-white transition duration-300 hover:bg-black/85"
+                >
+                  {roadmap[selectedRoadmap].action}
+                  <ArrowRight className="size-4 -rotate-45" />
+                </button>
+              </motion.div>
+            </AnimatePresence>
           </div>
         </motion.div>
       </section>
@@ -448,62 +450,74 @@ function HomePortalIntro({ onStart }: { onStart: () => void }) {
 
   return (
     <section className="px-3 pb-2 pt-2 md:px-5">
-      <BeautyPortalGrid className="min-h-0 max-w-none items-stretch">
-        <PortalPanel className="md:col-span-5">
-          <div className="flex min-h-[300px] flex-col justify-between">
-            <div>
-              <p className="text-xs font-black uppercase text-[var(--color-text-soft)]">Подбор ухода</p>
-              <h2 className="mt-4 max-w-2xl text-[clamp(2.5rem,4.7vw,5rem)] font-black leading-[0.92] tracking-tight">
-                Подбор ухода без хаоса
-              </h2>
-            </div>
-            <div>
-              <p className="max-w-xl text-base font-semibold leading-7 text-[var(--color-text-muted)]">
-                Красавица помогает собрать уход по задаче, а не по случайным советам из ленты. Спокойно, понятно и с уважением к бюджету.
-              </p>
-              <Button onClick={onStart} className="mt-5 h-12 px-6">
-                Начать подбор
-                <ArrowRight className="size-4 -rotate-45" />
-              </Button>
-            </div>
-          </div>
-        </PortalPanel>
-        <PortalPanel className="md:col-span-4 md:row-span-2" image="/beauty-products-portal.png">
-          <div className="flex h-full min-h-[500px] items-end">
-            <div className="liquid-glass rounded-[var(--radius-lg)] border border-white/60 bg-white/46 p-4 backdrop-blur-2xl">
-              <p className="text-xs font-black uppercase text-[var(--color-text-soft)]">Beauty-портал</p>
-              <p className="mt-2 text-xl font-black leading-tight">Запрос, подбор, объяснение и сохранение.</p>
-            </div>
-          </div>
-        </PortalPanel>
-        <PortalPanel className="md:col-span-3">
-          <div className="relative flex h-full min-h-[300px] flex-col justify-between overflow-hidden">
-            <div>
+      <BeautyPortalGrid className="min-h-0 max-w-none">
+        <PortalPanel className="md:col-span-12" image="/beauty-products-portal.png">
+          <div className="grid min-h-[560px] gap-2 md:grid-cols-12 md:grid-rows-[auto_auto]">
+            <motion.div
+              initial={{ opacity: 0, y: 18, scale: 0.985 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
+              viewport={{ once: true, margin: "-80px" }}
+              transition={{ duration: 0.72, ease: [0.16, 1, 0.3, 1] }}
+              className="liquid-glass flex min-h-[280px] flex-col justify-between rounded-[var(--radius-lg)] border border-white/65 bg-white/50 p-5 shadow-[var(--shadow-glass)] backdrop-blur-2xl md:col-span-5 md:p-6"
+            >
+              <div>
+                <p className="text-xs font-black uppercase text-[var(--color-text-soft)]">Подбор ухода</p>
+                <h2 className="mt-4 max-w-2xl text-[clamp(2.45rem,4.5vw,4.8rem)] font-black leading-[0.92] tracking-tight">
+                  Подбор ухода без хаоса
+                </h2>
+              </div>
+              <div>
+                <p className="max-w-xl text-base font-semibold leading-7 text-[var(--color-text-muted)]">
+                  Красавица помогает собрать уход по задаче, а не по случайным советам из ленты. Спокойно, понятно и с уважением к бюджету.
+                </p>
+                <Button onClick={onStart} className="mt-5 h-12 px-6">
+                  Начать подбор
+                  <ArrowRight className="size-4 -rotate-45" />
+                </Button>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 18, scale: 0.985 }}
+              whileInView={{ opacity: 1, x: 0, scale: 1 }}
+              viewport={{ once: true, margin: "-80px" }}
+              transition={{ duration: 0.72, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
+              className="liquid-glass relative min-h-[250px] overflow-hidden rounded-[var(--radius-lg)] border border-white/65 bg-white/46 p-5 shadow-[var(--shadow-glass)] backdrop-blur-2xl md:col-span-4 md:col-start-9 md:p-6"
+            >
               <p className="text-xs font-black uppercase text-[var(--color-text-soft)]">Live сценарий</p>
-              <h3 className="mt-3 text-[clamp(1.6rem,2.5vw,2.3rem)] font-black leading-tight">Подбор собирается на глазах</h3>
-            </div>
-            <div className="relative min-h-[150px]">
-              {floating.map(([label, value], index) => (
-                <motion.div
-                  key={label}
-                  initial={{ opacity: 0, y: 18, scale: 0.97, filter: "blur(10px)" }}
-                  animate={{ opacity: [0, 1, 1, 0], y: [18, 0, 0, -8], scale: [0.97, 1, 1, 0.985], filter: ["blur(10px)", "blur(0px)", "blur(0px)", "blur(8px)"] }}
-                  transition={{ duration: 9.6, delay: index * 2.2, repeat: Infinity, ease: [0.16, 1, 0.3, 1] }}
-                  className="live-chip liquid-glass absolute left-0 right-0 rounded-[var(--radius-md)] border border-white/65 bg-white/56 p-3 shadow-[var(--shadow-card)] backdrop-blur-2xl"
-                  style={{ top: `${index * 30}px` }}
-                >
-                  <p className="text-xs font-black uppercase text-[var(--color-text-soft)]">{label}</p>
-                  <p className="mt-1 text-lg font-black">{value}</p>
-                </motion.div>
+              <h3 className="mt-3 max-w-sm text-[clamp(1.55rem,2.3vw,2.15rem)] font-black leading-tight">Подбор собирается на глазах</h3>
+              <div className="relative mt-6 min-h-[126px]">
+                {floating.map(([label, value], index) => (
+                  <motion.div
+                    key={label}
+                    initial={{ opacity: 0, y: 14, scale: 0.97, filter: "blur(10px)" }}
+                    animate={{ opacity: [0, 1, 1, 0], y: [14, 0, 0, -6], scale: [0.97, 1, 1, 0.985], filter: ["blur(10px)", "blur(0px)", "blur(0px)", "blur(8px)"] }}
+                    transition={{ duration: 10.5, delay: index * 2.35, repeat: Infinity, ease: [0.16, 1, 0.3, 1] }}
+                    className="live-chip liquid-glass absolute left-0 right-0 rounded-[var(--radius-md)] border border-white/70 bg-white/58 p-3 shadow-[var(--shadow-card)] backdrop-blur-2xl"
+                    style={{ top: `${index * 24}px` }}
+                  >
+                    <p className="text-[10px] font-black uppercase text-[var(--color-text-soft)]">{label}</p>
+                    <p className="mt-1 text-base font-black">{value}</p>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+
+            <div className="grid gap-2 md:col-span-12 md:grid-cols-4">
+              {steps.map(([title, text], index) => (
+                <StepCard key={title} index={index + 1} title={title} text={text} />
               ))}
             </div>
           </div>
+          <motion.div
+            aria-hidden
+            animate={{ opacity: [0.24, 0.48, 0.24], x: [0, 18, 0] }}
+            transition={{ duration: 8, repeat: Infinity, ease: [0.16, 1, 0.3, 1] }}
+            className="liquid-glass pointer-events-none absolute bottom-8 left-[44%] hidden rounded-full border border-white/55 bg-white/34 px-5 py-3 text-sm font-black text-black/62 backdrop-blur-2xl md:block"
+          >
+            Запрос → подбор → объяснение → сохранение
+          </motion.div>
         </PortalPanel>
-        {steps.map(([title, text], index) => (
-          <PortalPanel key={title} className="step-panel min-h-[160px] md:col-span-3">
-            <StepCard index={index + 1} title={title} text={text} />
-          </PortalPanel>
-        ))}
       </BeautyPortalGrid>
     </section>
   );
