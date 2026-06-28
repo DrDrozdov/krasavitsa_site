@@ -298,16 +298,19 @@ export function LandingPage() {
           whileInView="visible"
           viewport={{ once: true, margin: "-80px" }}
           variants={reveal}
-          className="liquid-glass relative overflow-hidden rounded-[var(--radius-lg)] border border-white/20 bg-[rgba(30,26,24,.88)] p-5 text-white md:p-6"
+          className="search-panel liquid-glass relative overflow-hidden rounded-[var(--radius-lg)] border border-white/20 bg-[rgba(30,26,24,.9)] p-5 text-white md:p-6"
         >
-          <div className="absolute inset-0 opacity-50 [background:radial-gradient(circle_at_20%_10%,rgba(255,255,255,.22),transparent_36%),radial-gradient(circle_at_80%_0%,rgba(245,140,168,.30),transparent_34%)]" />
+          <div className="absolute inset-0 opacity-80 [background:radial-gradient(circle_at_18%_12%,rgba(255,255,255,.16),transparent_32%),radial-gradient(circle_at_86%_0%,rgba(235,199,183,.28),transparent_34%),linear-gradient(135deg,rgba(30,26,24,.95),rgba(30,26,24,.78))]" />
           <div className="relative z-10 flex min-h-[390px] flex-col justify-between gap-5">
             <div>
               <div className="mb-5 flex items-center gap-3">
                 <Image src="/krasavitsa-logo.png" alt="Красавица" width={44} height={44} className="rounded-full bg-white" />
                 <div>
                   <p className="text-xs font-bold uppercase text-white/55">AI-подбор</p>
-                  <h2 className="text-3xl font-black leading-none md:text-5xl">Beauty Search</h2>
+                  <h2 className="text-3xl font-black leading-none text-white md:text-5xl">Beauty Search</h2>
+                  <p className="mt-2 max-w-sm text-sm font-semibold leading-5 text-white/58">
+                    Опишите задачу, бюджет и ограничения. Подбор появится справа.
+                  </p>
                 </div>
               </div>
               <textarea
@@ -356,7 +359,7 @@ export function LandingPage() {
           transition={{ delay: 0.12 }}
           className="relative overflow-hidden rounded-[var(--radius-lg)] bg-[url('/beauty-portal-hero.png')] bg-cover bg-center p-2"
         >
-          <div className="grid min-h-[390px] gap-2 md:grid-cols-[1fr_0.72fr]">
+          <div className="grid min-h-[390px] gap-2">
               <GlassPanel className="bg-white/88">
                 <div className="mb-5 flex items-center justify-between gap-4">
                   <div>
@@ -380,27 +383,10 @@ export function LandingPage() {
                   ))}
                 </div>
               </GlassPanel>
-              <GlassPanel className="justify-between bg-white/28 text-white">
-                <div>
-                  <p className="text-xs font-bold uppercase text-white/65">Live Portal</p>
-                  <h3 className="mt-3 text-[clamp(2.3rem,4vw,4.2rem)] font-black leading-[0.92]">
-                    Уход рядом с запросом
-                  </h3>
-                  <p className="mt-4 max-w-sm text-sm font-semibold leading-6 text-white/70">
-                    Результаты появляются сразу возле формы, без лишних пустых экранов.
-                  </p>
-                </div>
-                <div className="grid gap-2">
-                  <ActionLink href="https://t.me/krasavitsa_ai_bot">Открыть Telegram-бот</ActionLink>
-                  <ActionLink href="https://t.me/krasavitsa_ai">Открыть Telegram-канал</ActionLink>
-                </div>
-              </GlassPanel>
           </div>
         </motion.div>
         </div>
       </section>
-
-      <HomeEditorialSections onStart={() => focusAi("Помоги собрать уход без случайных покупок")} />
 
       <section id="telegram" className="grid gap-2 px-3 pb-2 pt-2 md:grid-cols-[1fr_0.9fr] md:px-5">
         <TelegramPortalPanel />
@@ -503,6 +489,12 @@ function HomePortalIntro({ onStart }: { onStart: () => void }) {
     ["Получите понятный уход", "Каждое средство находится в карточке с причиной выбора."],
     ["Сохраните рекомендации", "История и избранное будут собираться в профиле."],
   ];
+  const floating = [
+    ["Тип кожи", "комбинированная"],
+    ["Бюджет", "до 2500 ₽"],
+    ["Фокус", "барьер + SPF"],
+    ["Формат", "утро / вечер"],
+  ];
 
   return (
     <section className="px-3 pb-2 pt-2 md:px-5">
@@ -534,20 +526,34 @@ function HomePortalIntro({ onStart }: { onStart: () => void }) {
             </div>
           </div>
         </PortalPanel>
-        <PortalPanel className="md:col-span-3">
-          <div className="grid h-full gap-3">
-            {steps.slice(0, 2).map(([title, text], index) => (
-              <StepCard key={title} index={index + 1} title={title} text={text} />
-            ))}
+        <PortalPanel className="md:col-span-3 md:row-span-2">
+          <div className="relative flex h-full min-h-[380px] flex-col justify-between overflow-hidden">
+            <div>
+              <p className="text-xs font-black uppercase text-[var(--color-text-soft)]">Live сценарий</p>
+              <h3 className="mt-3 text-3xl font-black leading-tight">Подбор собирается на глазах</h3>
+            </div>
+            <div className="relative min-h-[220px]">
+              {floating.map(([label, value], index) => (
+                <motion.div
+                  key={label}
+                  initial={{ opacity: 0, y: 22, scale: 0.96, filter: "blur(8px)" }}
+                  animate={{ opacity: [0, 1, 1, 0], y: [22, 0, 0, -10], scale: [0.96, 1, 1, 0.98], filter: ["blur(8px)", "blur(0px)", "blur(0px)", "blur(6px)"] }}
+                  transition={{ duration: 6.4, delay: index * 1.2, repeat: Infinity, ease: [0.16, 1, 0.3, 1] }}
+                  className="liquid-glass absolute left-0 right-0 rounded-[var(--radius-lg)] border border-white/60 bg-white/54 p-4 shadow-[var(--shadow-card)] backdrop-blur-2xl"
+                  style={{ top: `${index * 42}px` }}
+                >
+                  <p className="text-xs font-black uppercase text-[var(--color-text-soft)]">{label}</p>
+                  <p className="mt-1 text-xl font-black">{value}</p>
+                </motion.div>
+              ))}
+            </div>
           </div>
         </PortalPanel>
-        <PortalPanel className="md:col-span-3">
-          <div className="grid h-full gap-3">
-            {steps.slice(2).map(([title, text], index) => (
-              <StepCard key={title} index={index + 3} title={title} text={text} />
-            ))}
-          </div>
-        </PortalPanel>
+        {steps.map(([title, text], index) => (
+          <PortalPanel key={title} className="md:col-span-3">
+            <StepCard index={index + 1} title={title} text={text} />
+          </PortalPanel>
+        ))}
       </BeautyPortalGrid>
     </section>
   );
@@ -560,84 +566,6 @@ function StepCard({ index, title, text }: { index: number; title: string; text: 
       <h3 className="mt-2 text-xl font-black leading-tight">{title}</h3>
       <p className="mt-2 text-sm font-semibold leading-6 text-[var(--color-text-muted)]">{text}</p>
     </div>
-  );
-}
-
-function HomeEditorialSections({ onStart }: { onStart: () => void }) {
-  const concerns = ["Жирный блеск", "Сухость", "Покраснения", "Акне", "SPF", "Восстановление барьера"];
-  const faq = [
-    ["Это заменяет косметолога?", "Нет. Красавица помогает разобраться с уходом и покупками, но не ставит диагнозы и не обещает лечение."],
-    ["Можно указать бюджет?", "Да. Бюджет — один из главных параметров подбора, чтобы рекомендации были реалистичными."],
-    ["Где сохраняются рекомендации?", "Сейчас удобнее продолжать в Telegram. В профиле на сайте появится история подборов и избранное."],
-  ];
-
-  return (
-    <>
-      <section className="px-3 pb-2 pt-2 md:px-5">
-        <div className="grid gap-2 md:grid-cols-[0.9fr_1.1fr]">
-          <div className="liquid-glass rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-glass)] p-5 shadow-[var(--shadow-soft)] backdrop-blur-2xl md:p-6">
-            <p className="text-xs font-black uppercase text-[var(--color-text-soft)]">Что вас беспокоит?</p>
-            <h2 className="mt-4 text-[clamp(2.2rem,4vw,4.2rem)] font-black leading-[0.96] tracking-tight">
-              Выберите задачу, а не случайный тренд
-            </h2>
-            <p className="mt-4 max-w-xl text-sm font-semibold leading-6 text-[var(--color-text-muted)]">
-              Подбор строится вокруг реального запроса: состояния кожи, бюджета, текущего ухода и ограничений.
-            </p>
-          </div>
-          <div className="grid gap-2 sm:grid-cols-2">
-            {concerns.map((item) => (
-              <button key={item} type="button" onClick={onStart} className="liquid-glass apple-glass-card rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-white/54 p-5 text-left text-xl font-black shadow-[var(--shadow-card)] backdrop-blur-2xl">
-                {item}
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="grid gap-2 px-3 pb-2 pt-2 md:grid-cols-3 md:px-5">
-        {[
-          ["Что умеет Красавица", "Собирает рекомендации, объясняет роль каждого шага, учитывает бюджет и помогает не перегружать уход."],
-          ["Подбор парфюма", "Будущий модуль поможет выбирать аромат под настроение, повод и стиль, без холодной технической подачи."],
-          ["Отзывы и доверие", "Реакции пользователей будут превращаться в рейтинг средств и помогать будущим подборкам."],
-        ].map(([title, text]) => (
-          <article key={title} className="liquid-glass apple-glass-card rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-glass)] p-5 shadow-[var(--shadow-card)] backdrop-blur-2xl md:p-6">
-            <h2 className="text-[clamp(1.8rem,2.7vw,3rem)] font-black leading-[1] tracking-tight">{title}</h2>
-            <p className="mt-4 text-sm font-semibold leading-6 text-[var(--color-text-muted)]">{text}</p>
-          </article>
-        ))}
-      </section>
-
-      <section className="px-3 pb-2 pt-2 md:px-5">
-        <div className="liquid-glass rounded-[var(--radius-xl)] border border-white/12 bg-[rgba(30,26,24,.9)] p-5 text-white shadow-[var(--shadow-soft)] md:p-6">
-          <div className="grid gap-8 md:grid-cols-[0.9fr_1.1fr] md:items-end">
-            <div>
-              <p className="text-xs font-black uppercase text-white/45">FAQ</p>
-              <h2 className="mt-3 text-[clamp(2.2rem,4vw,4.4rem)] font-black leading-[0.94]">Перед первым подбором</h2>
-            </div>
-            <div className="grid gap-2">
-              {faq.map(([question, answer]) => (
-                <details key={question} className="rounded-[var(--radius-lg)] border border-white/12 bg-white/10 p-4 backdrop-blur-xl">
-                  <summary className="cursor-pointer text-base font-black">{question}</summary>
-                  <p className="mt-3 text-sm font-semibold leading-6 text-white/62">{answer}</p>
-                </details>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="px-3 pb-2 pt-2 md:px-5">
-        <div className="liquid-glass flex flex-col justify-between gap-5 rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-glass-strong)] p-5 shadow-[var(--shadow-soft)] backdrop-blur-2xl md:flex-row md:items-center md:p-6">
-          <div>
-            <p className="text-xs font-black uppercase text-[var(--color-text-soft)]">Финальный шаг</p>
-            <h2 className="mt-2 text-[clamp(2.1rem,3.5vw,3.8rem)] font-black leading-none">Собрать уход сейчас</h2>
-          </div>
-          <Button onClick={onStart} className="h-12 w-fit px-6">
-            Начать подбор
-          </Button>
-        </div>
-      </section>
-    </>
   );
 }
 
@@ -965,15 +893,6 @@ function VoteButton({ active, label, children, onClick }: { active: boolean; lab
     <button type="button" aria-label={label} title={label} onClick={onClick} className={cn("grid size-9 place-items-center rounded-full border border-black/15 transition duration-200 hover:bg-black hover:text-white", active && "bg-black text-white")}>
       {children}
     </button>
-  );
-}
-
-function ActionLink({ href, children }: { href: string; children: ReactNode }) {
-  return (
-    <motion.a href={href} target="_blank" rel="noreferrer" whileHover={{ y: -2, scale: 1.012 }} whileTap={{ scale: 0.986 }} className="apple-glass-card flex items-center justify-between rounded-2xl bg-white/20 p-4 font-black backdrop-blur-xl transition duration-200 hover:bg-white hover:text-black">
-      {children}
-      <ArrowRight className="size-5 -rotate-45" />
-    </motion.a>
   );
 }
 

@@ -1,7 +1,10 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { ArrowRight, MessageCircle } from "lucide-react";
+import { motion } from "motion/react";
 import { LinkButton } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -119,13 +122,18 @@ export function PortalPanel({
   priority?: boolean;
 }) {
   return (
-    <div className={cn("liquid-glass portal-panel relative min-h-[220px] overflow-hidden rounded-[var(--radius-lg)] border border-white/55 bg-[var(--color-glass)] p-5 backdrop-blur-2xl md:p-6", className)}>
+    <motion.div
+      whileHover={{ y: -4, scale: 1.006 }}
+      whileTap={{ scale: 0.986 }}
+      transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
+      className={cn("liquid-glass portal-panel relative min-h-[220px] overflow-hidden rounded-[var(--radius-lg)] border border-white/55 bg-[var(--color-glass)] p-5 backdrop-blur-2xl md:p-6", className)}
+    >
       {image ? (
         <Image src={image} alt="" fill priority={priority} sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover object-center" />
       ) : null}
       <div className={cn("absolute inset-0", image ? "bg-[linear-gradient(115deg,rgba(250,247,243,.88),rgba(250,247,243,.42)_48%,rgba(250,247,243,.2))]" : "bg-[radial-gradient(circle_at_18%_10%,rgba(255,255,255,.9),transparent_34%),linear-gradient(135deg,rgba(255,255,255,.72),rgba(247,228,218,.34))]")} />
       <div className="relative z-10 h-full">{children}</div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -196,10 +204,16 @@ export function SoftCards({ items }: { items: Array<{ title: string; text: strin
   return (
     <div className="mx-auto grid max-w-none gap-2 px-3 pb-2 md:grid-cols-3 md:px-5">
       {items.map((item) => (
-        <article key={item.title} className="liquid-glass apple-glass-card rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-glass)] p-5 shadow-[var(--shadow-card)] backdrop-blur-2xl">
+        <motion.article
+          key={item.title}
+          whileHover={{ y: -5, scale: 1.008 }}
+          whileTap={{ scale: 0.986 }}
+          transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
+          className="liquid-glass apple-glass-card rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-glass)] p-5 shadow-[var(--shadow-card)] backdrop-blur-2xl"
+        >
           <h3 className="text-2xl font-black leading-tight">{item.title}</h3>
           <p className="mt-3 text-sm font-semibold leading-6 text-[var(--color-text-muted)]">{item.text}</p>
-        </article>
+        </motion.article>
       ))}
     </div>
   );
