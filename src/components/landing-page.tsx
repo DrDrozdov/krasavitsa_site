@@ -372,9 +372,7 @@ export function LandingPage() {
                   transition={{ duration: 0.34, ease: [0.16, 1, 0.3, 1] }}
                   className={cn(
                     "roadmap-item liquid-glass group grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-2xl border p-3 text-left backdrop-blur-2xl transition-all duration-500",
-                    selectedRoadmap === index
-                      ? "border-black/20 bg-black text-white"
-                      : "border-white/55 bg-white/40 text-black/78 hover:border-black/20 hover:bg-black hover:text-white",
+                    selectedRoadmap === index ? "is-active border-black/20" : "is-idle border-white/55",
                   )}
                 >
                   <span className={cn("grid size-9 place-items-center rounded-full text-xs font-black transition-colors duration-500", selectedRoadmap === index ? "bg-white text-black" : "bg-white/64 text-black/70 group-hover:bg-white group-hover:text-black")}>

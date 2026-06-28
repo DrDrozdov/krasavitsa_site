@@ -253,6 +253,28 @@ a {
   box-shadow: var(--shadow-hover);
 }
 
+.roadmap-item {
+  color: rgba(30, 26, 24, 0.78);
+}
+
+.roadmap-item.is-idle {
+  background-color: rgba(255, 255, 255, 0.46);
+}
+
+.roadmap-item.is-active,
+.roadmap-item.is-idle:hover,
+.roadmap-item.is-idle:focus-visible {
+  background-color: rgba(30, 26, 24, 0.92);
+  color: #fff;
+  border-color: rgba(30, 26, 24, 0.22);
+}
+
+.roadmap-item.is-active::before,
+.roadmap-item.is-idle:hover::before,
+.roadmap-item.is-idle:focus-visible::before {
+  opacity: 0.18;
+}
+
 @keyframes portal-layer-pan {
   0%,
   100% {
