@@ -1,8 +1,42 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fcfafb;
-  --foreground: #1d1d1f;
+  --background: #faf7f3;
+  --foreground: #1e1a18;
+  --color-bg: #faf7f3;
+  --color-bg-soft: #fffdfb;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f7f0ea;
+  --color-text: #1e1a18;
+  --color-text-muted: #6f6660;
+  --color-text-soft: #9b9088;
+  --color-accent: #ebc7b7;
+  --color-accent-strong: #dfa58f;
+  --color-accent-soft: #f7e4da;
+  --color-rose: #e8b8c6;
+  --color-sage: #c8d8c0;
+  --color-cream: #f3e3c8;
+  --color-border: rgba(30, 26, 24, 0.1);
+  --color-border-strong: rgba(30, 26, 24, 0.16);
+  --color-glass: rgba(255, 255, 255, 0.58);
+  --color-glass-strong: rgba(255, 255, 255, 0.74);
+  --color-overlay: rgba(30, 26, 24, 0.28);
+  --radius-sm: 12px;
+  --radius-md: 18px;
+  --radius-lg: 28px;
+  --radius-xl: 36px;
+  --radius-xxl: 44px;
+  --radius-pill: 999px;
+  --shadow-soft: 0 18px 60px rgba(46, 32, 24, 0.08);
+  --shadow-card: 0 12px 34px rgba(46, 32, 24, 0.07);
+  --shadow-hover: 0 18px 46px rgba(46, 32, 24, 0.12);
+  --shadow-glass: 0 12px 40px rgba(46, 32, 24, 0.1);
+  --ease-main: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-soft: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 160ms;
+  --duration-base: 240ms;
+  --duration-slow: 360ms;
+  --duration-reveal: 520ms;
 }
 
 @theme inline {
@@ -22,7 +56,10 @@ html {
 
 body {
   min-height: 100vh;
-  background: var(--background);
+  background:
+    radial-gradient(circle at 14% 2%, rgba(232, 184, 198, 0.22), transparent 26rem),
+    radial-gradient(circle at 88% 12%, rgba(243, 227, 200, 0.34), transparent 28rem),
+    var(--background);
   color: var(--foreground);
   font-family: "Inter", "Manrope", "Segoe UI", Arial, Helvetica, sans-serif;
 }
@@ -105,19 +142,14 @@ a {
 .apple-glass-button::after {
   content: "";
   position: absolute;
-  inset: -42% -18%;
+  inset: 0;
   z-index: -1;
-  background: linear-gradient(
-    110deg,
-    transparent 28%,
-    rgba(255, 255, 255, 0.66) 46%,
-    transparent 64%
-  );
+  background: radial-gradient(circle at 38% 16%, rgba(255, 255, 255, 0.46), transparent 42%);
   opacity: 0;
-  transform: translateX(-26%) rotate(8deg);
+  transform: scale(0.96);
   transition:
     opacity 220ms ease,
-    transform 720ms cubic-bezier(0.16, 1, 0.3, 1);
+    transform 520ms var(--ease-soft);
   pointer-events: none;
 }
 
@@ -132,7 +164,7 @@ a {
 .apple-glass-card:hover::after,
 .apple-glass-button:hover::after {
   opacity: 1;
-  transform: translateX(28%) rotate(8deg);
+  transform: scale(1);
 }
 
 .apple-glass-card:active,
@@ -149,6 +181,19 @@ a {
   background: rgba(255, 255, 255, 0.5);
   filter: blur(46px);
   pointer-events: none;
+}
+
+.portal-panel {
+  transition:
+    transform var(--duration-slow) var(--ease-soft),
+    box-shadow var(--duration-slow) ease,
+    border-color var(--duration-slow) ease;
+}
+
+.portal-panel:hover {
+  transform: translateY(-3px);
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-hover);
 }
 
 @keyframes portal-layer-pan {

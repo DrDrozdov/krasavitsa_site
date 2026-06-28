@@ -1,0 +1,224 @@
+import Image from "next/image";
+import Link from "next/link";
+import type { ReactNode } from "react";
+import { ArrowRight, MessageCircle } from "lucide-react";
+import { LinkButton } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+
+export const navLinks = [
+  ["Главная", "/"],
+  ["Подбор ухода", "/care"],
+  ["Парфюм", "/perfume"],
+  ["Блог", "/blog"],
+  ["О проекте", "/about"],
+  ["Профиль", "/profile"],
+];
+
+export function SiteHeader() {
+  return (
+    <header className="sticky top-0 z-40 border-b border-[var(--color-border)] bg-[rgba(250,247,243,.76)] px-4 py-3 backdrop-blur-2xl md:px-6">
+      <div className="mx-auto flex max-w-[1480px] flex-wrap items-center justify-between gap-3">
+        <Link href="/" className="flex items-center gap-3">
+          <Image src="/krasavitsa-logo.png" alt="Красавица" width={46} height={46} className="rounded-full" priority />
+          <span className="flex flex-col">
+            <span className="text-xl font-black uppercase leading-none tracking-tight">Красавица</span>
+            <span className="mt-1 text-[10px] font-normal uppercase leading-none text-[var(--color-text-soft)]">Beauty OS</span>
+          </span>
+        </Link>
+        <nav className="flex flex-wrap items-center justify-end gap-2">
+          {navLinks.map(([label, href]) => (
+            <Link key={href} href={href} className="apple-glass-button rounded-full border border-[var(--color-border)] bg-[var(--color-glass)] px-4 py-2 text-xs font-bold text-[var(--color-text)] backdrop-blur-2xl transition hover:border-[var(--color-border-strong)] md:px-5 md:py-3 md:text-sm">
+              {label}
+            </Link>
+          ))}
+          <LinkButton href="https://t.me/krasavitsa_ai_bot" className="hidden h-11 px-5 md:inline-flex">
+            Telegram
+          </LinkButton>
+        </nav>
+      </div>
+    </header>
+  );
+}
+
+export function SiteFooter() {
+  return (
+    <footer className="px-3 pb-5 pt-2 md:px-5">
+      <div className="mx-auto max-w-[1480px] rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-glass-strong)] p-6 text-sm font-semibold text-[var(--color-text-muted)] shadow-[var(--shadow-soft)] backdrop-blur-2xl md:p-8">
+        <div className="grid gap-8 md:grid-cols-[1.1fr_0.9fr_0.9fr]">
+          <div>
+            <div className="flex items-center gap-3">
+              <Image src="/krasavitsa-logo.png" alt="Красавица" width={42} height={42} className="rounded-full" />
+              <div>
+                <p className="text-lg font-black uppercase text-[var(--color-text)]">Красавица</p>
+                <p className="mt-1 text-xs font-normal uppercase text-[var(--color-text-soft)]">Beauty OS</p>
+              </div>
+            </div>
+            <p className="mt-5 max-w-xl leading-6">
+              Спокойный beauty-помощник для подбора ухода. Рекомендации носят информационный характер и не заменяют консультацию специалиста.
+            </p>
+            <p className="mt-4 text-xs text-[var(--color-text-soft)]">© 2026 Красавица</p>
+          </div>
+          <FooterColumn title="Разделы" links={navLinks} />
+          <FooterColumn
+            title="Документы"
+            links={[
+              ["Политика конфиденциальности", "/privacy"],
+              ["Согласие на обработку данных", "/personal-data"],
+              ["Пользовательское соглашение", "/terms"],
+              ["Разработчик: @thesp3cial", "https://t.me/thesp3cial"],
+            ]}
+          />
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+function FooterColumn({ title, links }: { title: string; links: string[][] }) {
+  return (
+    <div>
+      <p className="text-xs font-black uppercase text-[var(--color-text-soft)]">{title}</p>
+      <div className="mt-4 grid gap-3">
+        {links.map(([label, href]) => (
+          <Link key={href} href={href} className="hover:text-[var(--color-text)]">
+            {label}
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function BeautyPageShell({ children }: { children: ReactNode }) {
+  return (
+    <main className="min-h-screen overflow-hidden bg-[var(--color-bg)] text-[var(--color-text)]">
+      <SiteHeader />
+      {children}
+      <SiteFooter />
+    </main>
+  );
+}
+
+export function BeautyPortalGrid({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <section className={cn("mx-auto grid max-w-[1480px] gap-2 overflow-hidden rounded-[var(--radius-xxl)] border border-[var(--color-border)] bg-[var(--color-bg-soft)] p-2 shadow-[var(--shadow-soft)] md:grid-cols-12", className)}>
+      {children}
+    </section>
+  );
+}
+
+export function PortalPanel({
+  children,
+  className,
+  image,
+  priority = false,
+}: {
+  children?: ReactNode;
+  className?: string;
+  image?: string;
+  priority?: boolean;
+}) {
+  return (
+    <div className={cn("portal-panel relative min-h-[240px] overflow-hidden rounded-[var(--radius-lg)] border border-white/55 bg-[var(--color-glass)] p-6 backdrop-blur-2xl md:p-8", className)}>
+      {image ? (
+        <Image src={image} alt="" fill priority={priority} sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover object-center" />
+      ) : null}
+      <div className={cn("absolute inset-0", image ? "bg-[linear-gradient(115deg,rgba(250,247,243,.88),rgba(250,247,243,.42)_48%,rgba(250,247,243,.2))]" : "bg-[radial-gradient(circle_at_18%_10%,rgba(255,255,255,.9),transparent_34%),linear-gradient(135deg,rgba(255,255,255,.72),rgba(247,228,218,.34))]")} />
+      <div className="relative z-10 h-full">{children}</div>
+    </div>
+  );
+}
+
+export function PageHero({
+  eyebrow,
+  title,
+  subtitle,
+  cta = "Начать подбор",
+  ctaHref = "https://t.me/krasavitsa_ai_bot",
+  image = "/beauty-products-portal.png",
+  tiles = [],
+}: {
+  eyebrow: string;
+  title: string;
+  subtitle: string;
+  cta?: string;
+  ctaHref?: string;
+  image?: string;
+  tiles?: string[];
+}) {
+  return (
+    <div className="px-3 pb-2 pt-5 md:px-5">
+      <BeautyPortalGrid className="min-h-[620px]">
+        <PortalPanel className="md:col-span-7 md:row-span-2" image={image} priority>
+          <div className="flex min-h-[520px] flex-col justify-between">
+            <div>
+              <p className="text-sm font-black uppercase text-[var(--color-text-soft)]">{eyebrow}</p>
+              <h1 className="mt-5 max-w-4xl text-[clamp(3rem,7vw,7rem)] font-black leading-[0.94] tracking-tight">{title}</h1>
+            </div>
+            <p className="max-w-2xl text-lg font-semibold leading-8 text-[var(--color-text-muted)]">{subtitle}</p>
+          </div>
+        </PortalPanel>
+        <PortalPanel className="md:col-span-5">
+          <div className="flex h-full flex-col justify-between gap-8">
+            <p className="max-w-md text-2xl font-black leading-tight">Без хаоса, случайных советов и лишних покупок.</p>
+            <LinkButton href={ctaHref} className="h-13 w-fit px-6">
+              {cta}
+              <ArrowRight className="size-4 -rotate-45" />
+            </LinkButton>
+          </div>
+        </PortalPanel>
+        <PortalPanel className="md:col-span-5">
+          <div className="grid h-full gap-3 sm:grid-cols-2">
+            {tiles.map((tile, index) => (
+              <div key={tile} className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-white/54 p-4 text-sm font-black text-[var(--color-text-muted)] backdrop-blur-xl">
+                <span className="text-[var(--color-text-soft)]">0{index + 1}</span>
+                <p className="mt-2 text-[var(--color-text)]">{tile}</p>
+              </div>
+            ))}
+          </div>
+        </PortalPanel>
+      </BeautyPortalGrid>
+    </div>
+  );
+}
+
+export function SectionIntro({ kicker, title, text }: { kicker: string; title: string; text: string }) {
+  return (
+    <div className="mx-auto max-w-[1480px] px-3 py-10 md:px-5 md:py-14">
+      <p className="text-sm font-black uppercase text-[var(--color-text-soft)]">{kicker}</p>
+      <h2 className="mt-4 max-w-4xl text-[clamp(2.3rem,4.6vw,4.7rem)] font-black leading-[0.98] tracking-tight">{title}</h2>
+      <p className="mt-5 max-w-3xl text-lg font-semibold leading-8 text-[var(--color-text-muted)]">{text}</p>
+    </div>
+  );
+}
+
+export function SoftCards({ items }: { items: Array<{ title: string; text: string }> }) {
+  return (
+    <div className="mx-auto grid max-w-[1480px] gap-2 px-3 pb-2 md:grid-cols-3 md:px-5">
+      {items.map((item) => (
+        <article key={item.title} className="apple-glass-card rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-glass)] p-6 shadow-[var(--shadow-card)] backdrop-blur-2xl">
+          <h3 className="text-2xl font-black leading-tight">{item.title}</h3>
+          <p className="mt-4 text-base font-semibold leading-7 text-[var(--color-text-muted)]">{item.text}</p>
+        </article>
+      ))}
+    </div>
+  );
+}
+
+export function TelegramCTA({ title = "Продолжить в Telegram", text = "Красавица задаст пару уточняющих вопросов и сохранит рекомендации в чате." }) {
+  return (
+    <div className="px-3 py-2 md:px-5">
+      <div className="mx-auto flex max-w-[1480px] flex-col justify-between gap-6 rounded-[var(--radius-xxl)] border border-[var(--color-border)] bg-[var(--color-text)] p-6 text-white shadow-[var(--shadow-soft)] md:flex-row md:items-center md:p-8">
+        <div>
+          <p className="text-sm font-black uppercase text-white/45">Telegram</p>
+          <h2 className="mt-3 text-[clamp(2.4rem,4vw,4.4rem)] font-black leading-none">{title}</h2>
+          <p className="mt-4 max-w-2xl text-base font-semibold leading-7 text-white/62">{text}</p>
+        </div>
+        <LinkButton href="https://t.me/krasavitsa_ai_bot" className="h-14 w-fit bg-white px-7 text-black hover:bg-white/88">
+          <MessageCircle className="size-5" />
+          Открыть бот
+        </LinkButton>
+      </div>
+    </div>
+  );
+}

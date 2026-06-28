@@ -6,14 +6,14 @@ type ButtonTone = "primary" | "secondary" | "ghost";
 
 const tones: Record<ButtonTone, string> = {
   primary:
-    "bg-[#1D1D1F] text-white shadow-[0_18px_45px_rgba(29,29,31,0.16)] hover:bg-[#333337]",
+    "bg-[var(--color-text)] text-white shadow-[var(--shadow-card)] hover:bg-[#332D29]",
   secondary:
-    "border border-[#ECECEC] bg-white text-[#1D1D1F] shadow-[0_14px_34px_rgba(29,29,31,0.06)] hover:border-[#FBC9D6] hover:bg-[#FCFAFB]",
-  ghost: "text-[#1D1D1F] hover:bg-[#F6F2F4]",
+    "border border-[var(--color-border)] bg-[var(--color-glass-strong)] text-[var(--color-text)] shadow-[var(--shadow-card)] backdrop-blur-2xl hover:border-[var(--color-border-strong)] hover:bg-white/86",
+  ghost: "text-[var(--color-text)] hover:bg-[var(--color-surface-muted)]",
 };
 
 const base =
-  "inline-flex h-12 items-center justify-center gap-2 rounded-full px-5 text-sm font-semibold transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#F58CA8]";
+  "apple-glass-button inline-flex h-12 items-center justify-center gap-2 rounded-full px-5 text-sm font-semibold transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent-strong)]";
 
 type CommonProps = {
   children: ReactNode;
