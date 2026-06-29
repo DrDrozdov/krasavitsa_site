@@ -28,6 +28,12 @@ export default function PerfumePage() {
     { title: "После душа", text: "Чистые мускусы, свежие цветы и ощущение ухоженности вместо громкой парфюмерии." },
     { title: "Вечерний образ", text: "Более плотная композиция с характером, но с учетом сезона и вашего стиля." },
   ];
+  const prompts = [
+    "Хочу чистый аромат на каждый день без сладости",
+    "Нужен теплый вечерний парфюм до 6000 ₽",
+    "Подбери аромат похожий на кремовый мускус",
+    "Ищу свежий офисный запах без резкого цитруса",
+  ];
 
   return (
     <BeautyPageShell>
@@ -71,6 +77,37 @@ export default function PerfumePage() {
       <SoftCards
         items={occasions}
       />
+      <section className="px-3 py-2 md:px-5">
+        <BeautyPortalGrid>
+          <PortalPanel className="md:col-span-5">
+            <p className="text-sm font-black uppercase text-[var(--color-text-soft)]">Примеры запросов</p>
+            <h2 className="mt-4 text-[clamp(2.25rem,4vw,4.4rem)] font-black leading-none">Можно писать человеческим языком</h2>
+            <p className="mt-5 text-base font-semibold leading-7 text-[var(--color-text-muted)]">
+              Будущий модуль будет понимать не только семейства ароматов, но и ситуации: близкая дистанция, офис, вечер, подарок или настроение.
+            </p>
+          </PortalPanel>
+          <PortalPanel className="md:col-span-7">
+            <div className="grid gap-3">
+              {prompts.map((prompt) => (
+                <div key={prompt} className="apple-glass-card rounded-full border border-white/60 bg-white/42 px-5 py-4 text-base font-black backdrop-blur-2xl">
+                  {prompt}
+                </div>
+              ))}
+            </div>
+          </PortalPanel>
+          <PortalPanel className="md:col-span-12">
+            <div className="flex flex-col justify-between gap-5 md:flex-row md:items-center">
+              <div>
+                <p className="text-sm font-black uppercase text-[var(--color-text-soft)]">Скоро</p>
+                <h2 className="mt-3 text-[clamp(2.2rem,3.8vw,4rem)] font-black leading-none">Парфюм появится как отдельный модуль Красавицы</h2>
+              </div>
+              <p className="max-w-xl text-sm font-semibold leading-6 text-[var(--color-text-muted)]">
+                Сейчас можно подписаться на запуск: мы не будем собирать лишние данные, только сообщим, когда подбор ароматов станет доступен.
+              </p>
+            </div>
+          </PortalPanel>
+        </BeautyPortalGrid>
+      </section>
       <section className="px-3 py-2 md:px-5">
         <BeautyPortalGrid>
           <PortalPanel className="md:col-span-12">

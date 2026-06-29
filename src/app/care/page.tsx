@@ -9,6 +9,16 @@ export const metadata: Metadata = {
 
 export default function CarePage() {
   const categories = ["Лицо", "Волосы", "Тело", "Акне", "Anti-age", "Чувствительная кожа", "Восстановление барьера", "SPF и защита"];
+  const examples = [
+    ["Жирный блеск", "Мягкое очищение, легкий крем-гель, SPF с матовым финишем."],
+    ["Сухость", "Крем с липидами, бережное умывание и пауза в активных средствах."],
+    ["Покраснения", "Минимальный уход без отдушек и поддержка защитного барьера."],
+  ];
+  const faq = [
+    ["Это заменяет косметолога?", "Нет. Красавица помогает ориентироваться в уходе, но не ставит диагнозы и не заменяет врача."],
+    ["Можно указать бюджет?", "Да. Бюджет — один из главных параметров, чтобы подбор не превращался в лишние покупки."],
+    ["Можно исключить ингредиенты?", "Да. В запросе можно указать отдушки, кислоты, ретиноиды, бренды или текстуры, которые не подходят."],
+  ];
 
   return (
     <BeautyPageShell>
@@ -53,6 +63,50 @@ export default function CarePage() {
           { title: "Без лишнего давления", text: "Сервис не заставляет покупать все сразу и помогает понять приоритеты." },
         ]}
       />
+      <section className="px-3 py-2 md:px-5">
+        <BeautyPortalGrid>
+          <PortalPanel className="md:col-span-5" image="/beauty-products-portal.png">
+            <div className="flex min-h-[420px] flex-col justify-between">
+              <div>
+                <p className="text-sm font-black uppercase text-[var(--color-text-soft)]">Примеры</p>
+                <h2 className="mt-4 text-[clamp(2.25rem,4vw,4.4rem)] font-black leading-none">Один запрос — понятная схема</h2>
+              </div>
+              <p className="max-w-lg text-base font-semibold leading-7 text-[var(--color-text-muted)]">
+                Результат должен объяснять не только что купить, но и почему это место в уходе важно именно сейчас.
+              </p>
+            </div>
+          </PortalPanel>
+          <PortalPanel className="md:col-span-7">
+            <div className="grid h-full gap-3">
+              {examples.map(([title, text], index) => (
+                <div key={title} className="apple-glass-card rounded-[var(--radius-md)] border border-white/60 bg-white/42 p-5 backdrop-blur-2xl">
+                  <p className="text-xs font-black text-[var(--color-text-soft)]">0{index + 1}</p>
+                  <h3 className="mt-2 text-2xl font-black">{title}</h3>
+                  <p className="mt-2 text-sm font-semibold leading-6 text-[var(--color-text-muted)]">{text}</p>
+                </div>
+              ))}
+            </div>
+          </PortalPanel>
+        </BeautyPortalGrid>
+      </section>
+      <section className="px-3 py-2 md:px-5">
+        <BeautyPortalGrid>
+          <PortalPanel className="md:col-span-4">
+            <p className="text-sm font-black uppercase text-[var(--color-text-soft)]">FAQ</p>
+            <h2 className="mt-4 text-[clamp(2.2rem,3.8vw,4rem)] font-black leading-none">Перед первым подбором</h2>
+          </PortalPanel>
+          <PortalPanel className="md:col-span-8">
+            <div className="grid gap-2">
+              {faq.map(([question, answer]) => (
+                <details key={question} className="group rounded-[var(--radius-md)] border border-white/60 bg-white/42 p-4 backdrop-blur-2xl">
+                  <summary className="cursor-pointer text-lg font-black">{question}</summary>
+                  <p className="mt-3 text-sm font-semibold leading-6 text-[var(--color-text-muted)]">{answer}</p>
+                </details>
+              ))}
+            </div>
+          </PortalPanel>
+        </BeautyPortalGrid>
+      </section>
       <TelegramCTA />
     </BeautyPageShell>
   );

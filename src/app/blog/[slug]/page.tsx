@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { BeautyPageShell } from "@/components/portal-components";
+import { BeautyPageShell, BeautyPortalGrid, PortalPanel, TelegramCTA } from "@/components/portal-components";
 import { blogPosts, getPost } from "@/data/blog";
 
 export function generateStaticParams() {
@@ -44,6 +44,20 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           ))}
         </div>
       </article>
+      <section className="px-3 py-2 md:px-5">
+        <BeautyPortalGrid>
+          <PortalPanel className="md:col-span-5">
+            <p className="text-sm font-black uppercase text-[var(--color-text-soft)]">После чтения</p>
+            <h2 className="mt-4 text-[clamp(2.1rem,3.6vw,3.8rem)] font-black leading-none">Превратите материал в личный запрос</h2>
+          </PortalPanel>
+          <PortalPanel className="md:col-span-7">
+            <p className="text-lg font-semibold leading-8 text-[var(--color-text-muted)]">
+              Если статья похожа на вашу ситуацию, опишите кожу, бюджет и текущий уход. Красавица соберет подбор не по тренду, а по задаче.
+            </p>
+          </PortalPanel>
+        </BeautyPortalGrid>
+      </section>
+      <TelegramCTA title="Подобрать уход по этой теме" text="Продолжите в Telegram, чтобы Красавица задала уточняющие вопросы и сохранила рекомендации." />
     </BeautyPageShell>
   );
 }
