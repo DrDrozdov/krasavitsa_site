@@ -642,13 +642,15 @@ function Header({ onTry }: { onTry: () => void }) {
 
       <div className={cn("fixed inset-0 z-[60] transition md:hidden", open ? "pointer-events-auto" : "pointer-events-none")}>
         <button type="button" aria-label="Закрыть меню" onClick={() => setOpen(false)} className={cn("absolute inset-0 bg-black/28 backdrop-blur-md transition duration-300", open ? "opacity-100" : "opacity-0")} />
-        <aside className={cn("absolute right-0 top-0 z-10 flex h-full w-[86%] max-w-sm flex-col gap-4 overflow-y-auto border-l border-white/20 bg-[rgba(30,26,24,.9)] px-6 pb-8 pt-24 text-white shadow-2xl backdrop-blur-2xl transition duration-500", open ? "translate-x-0 opacity-100" : "translate-x-full opacity-0")}>
-          <button type="button" aria-label="Закрыть меню" onClick={() => setOpen(false)} className="absolute right-5 top-5 grid size-12 place-items-center rounded-full border border-white/20 bg-white text-black">
-            <X className="size-6" />
-          </button>
-          <div className="mb-4">
-            <p className="text-xs font-black uppercase text-white/38">Меню</p>
-            <p className="mt-2 text-2xl font-black uppercase leading-none">Красавица</p>
+        <aside className={cn("absolute right-0 top-0 z-10 flex h-full w-[86%] max-w-sm flex-col gap-4 overflow-y-auto border-l border-white/20 bg-[rgba(30,26,24,.9)] px-6 pb-8 pt-[calc(env(safe-area-inset-top)+1.25rem)] text-white shadow-2xl backdrop-blur-2xl transition duration-500", open ? "translate-x-0 opacity-100" : "translate-x-full opacity-0")}>
+          <div className="mb-2 flex items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase text-white/38">Меню</p>
+              <p className="mt-2 text-2xl font-black uppercase leading-none">Красавица</p>
+            </div>
+            <button type="button" aria-label="Закрыть меню" onClick={() => setOpen(false)} className="grid size-12 shrink-0 place-items-center rounded-full border border-white/18 bg-white text-black shadow-[0_18px_46px_rgba(0,0,0,.18)]">
+              <X className="size-6" />
+            </button>
           </div>
           {mobileLinks.map(([label, href]) => (
             <a

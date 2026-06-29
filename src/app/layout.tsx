@@ -72,6 +72,15 @@ const bootLoaderScript = `
   const value = document.getElementById("boot-loader-value");
   if (!root || !value) return;
 
+  const isHome = window.location.pathname === "/" || window.location.pathname === "";
+  if (!isHome) {
+    root.remove();
+    return;
+  }
+
+  root.classList.add("is-active");
+  root.removeAttribute("aria-hidden");
+
   let count = 0;
   let appReady = false;
   let countReady = false;
@@ -91,6 +100,11 @@ const bootLoaderScript = `
     appReady = true;
     finish();
   };
+
+  window.setTimeout(() => {
+    appReady = true;
+    finish();
+  }, 6500);
 
   const tick = () => {
     count = Math.min(100, count + 1 + Math.floor(Math.random() * 3));

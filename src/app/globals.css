@@ -76,7 +76,7 @@ body {
   position: fixed;
   inset: 0;
   z-index: 2147483647;
-  display: flex;
+  display: none;
   align-items: flex-end;
   justify-content: flex-start;
   padding: clamp(1.5rem, 3vw, 3rem);
@@ -89,6 +89,10 @@ body {
     opacity 680ms var(--ease-soft),
     filter 680ms var(--ease-soft),
     transform 680ms var(--ease-soft);
+}
+
+#boot-loader.is-active {
+  display: flex;
 }
 
 #boot-loader.is-complete {
