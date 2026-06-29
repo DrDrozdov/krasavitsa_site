@@ -66,6 +66,48 @@ export const viewport: Viewport = {
   colorScheme: "light",
 };
 
+const bootLoaderScript = `
+(() => {
+  const root = document.getElementById("boot-loader");
+  const value = document.getElementById("boot-loader-value");
+  if (!root || !value) return;
+
+  let count = 0;
+  let appReady = false;
+  let countReady = false;
+  const startedAt = Date.now();
+  const minDuration = 2200;
+
+  const finish = () => {
+    if (!appReady || !countReady) return;
+    const remaining = Math.max(0, minDuration - (Date.now() - startedAt));
+    window.setTimeout(() => {
+      root.classList.add("is-complete");
+      window.setTimeout(() => root.remove(), 720);
+    }, remaining);
+  };
+
+  window.__krasavitsaAppReady = () => {
+    appReady = true;
+    finish();
+  };
+
+  const tick = () => {
+    count = Math.min(100, count + 1 + Math.floor(Math.random() * 3));
+    value.textContent = String(count);
+    if (count >= 100) {
+      countReady = true;
+      value.textContent = "100";
+      finish();
+      return;
+    }
+    window.setTimeout(tick, 18 + Math.floor(Math.random() * 22));
+  };
+
+  window.setTimeout(tick, 40);
+})();
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -74,6 +116,12 @@ export default function RootLayout({
   return (
     <html lang="ru" className="scroll-smooth">
       <body>
+        <div id="boot-loader" aria-hidden="true">
+          <div id="boot-loader-value" suppressHydrationWarning>
+            0
+          </div>
+        </div>
+        <script dangerouslySetInnerHTML={{ __html: bootLoaderScript }} />
         <PointerGlow />
         {children}
       </body>

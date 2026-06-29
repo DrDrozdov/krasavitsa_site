@@ -43,6 +43,12 @@ type RecommendationResponse = {
   products: Product[];
 };
 
+declare global {
+  interface Window {
+    __krasavitsaAppReady?: () => void;
+  }
+}
+
 const suggestions = [
   "Подбери уход для жирной кожи до 1500 рублей",
   "Нужна мягкая база для чувствительной кожи",
@@ -161,7 +167,6 @@ const reveal = {
 };
 
 export function LandingPage() {
-  const [showSplash, setShowSplash] = useState(true);
   const [query, setQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [notice, setNotice] = useState("");
@@ -173,6 +178,14 @@ export function LandingPage() {
     products: sampleProducts,
   });
   const aiRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const readyTimer = window.setTimeout(() => {
+      window.__krasavitsaAppReady?.();
+    }, 260);
+
+    return () => window.clearTimeout(readyTimer);
+  }, []);
 
   const currentProducts = useMemo(
     () => {
@@ -253,7 +266,6 @@ export function LandingPage() {
 
   return (
     <main className="min-h-screen overflow-hidden bg-white text-black">
-      <AnimatePresence>{showSplash ? <SplashScreen onComplete={() => setShowSplash(false)} /> : null}</AnimatePresence>
       <Header onTry={() => focusAi()} />
 
       <section id="home" className="grid min-h-[86svh] gap-2 px-3 pb-2 pt-18 md:min-h-screen md:px-5 md:pt-20">
@@ -584,50 +596,6 @@ function StepCard({ index, title, text }: { index: number; title: string; text: 
   );
 }
 
-function SplashScreen({ onComplete }: { onComplete: () => void }) {
-  const [count, setCount] = useState(0);
-  const [exiting, setExiting] = useState(false);
-
-  useEffect(() => {
-    const startedAt = Date.now();
-    const interval = window.setInterval(() => {
-      setCount((current) => {
-        if (current >= 100) {
-          window.clearInterval(interval);
-          const remaining = Math.max(0, 1850 - (Date.now() - startedAt));
-          window.setTimeout(() => setExiting(true), remaining + 180);
-          window.setTimeout(onComplete, remaining + 820);
-          return 100;
-        }
-        return Math.min(100, current + 2);
-      });
-    }, 22);
-
-    return () => window.clearInterval(interval);
-  }, [onComplete]);
-
-  return (
-    <motion.div
-      initial={{ opacity: 1 }}
-      exit={{ opacity: 0, filter: "blur(10px)" }}
-      className={cn(
-        "fixed inset-0 z-[100] flex items-end justify-start bg-white p-6 transition-opacity duration-700 md:p-10",
-        exiting && "opacity-0",
-      )}
-    >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_14%_82%,rgba(235,199,183,.28),transparent_28%),linear-gradient(180deg,#fff,#faf7f3)]" />
-      <motion.span
-        initial={{ y: 18, opacity: 0, scale: 0.96 }}
-        animate={{ y: 0, opacity: 1, scale: 1 }}
-        transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
-        className="relative text-7xl font-black leading-none text-black tabular-nums md:text-9xl"
-      >
-        {count}
-      </motion.span>
-    </motion.div>
-  );
-}
-
 function Header({ onTry }: { onTry: () => void }) {
   const [open, setOpen] = useState(false);
 
@@ -645,6 +613,7 @@ function Header({ onTry }: { onTry: () => void }) {
     ["Блог", "/blog"],
     ["Профиль", "/profile"],
   ];
+  const mobileLinks = [...links, ["Контакты", "#contacts"]];
 
   return (
     <>
@@ -673,20 +642,20 @@ function Header({ onTry }: { onTry: () => void }) {
 
       <div className={cn("fixed inset-0 z-[60] transition md:hidden", open ? "pointer-events-auto" : "pointer-events-none")}>
         <button type="button" aria-label="Закрыть меню" onClick={() => setOpen(false)} className={cn("absolute inset-0 bg-black/28 backdrop-blur-md transition duration-300", open ? "opacity-100" : "opacity-0")} />
-        <aside className={cn("absolute right-0 top-0 flex h-full w-[86%] max-w-sm flex-col justify-center gap-5 border-l border-white/20 bg-[rgba(30,26,24,.86)] px-8 text-white shadow-2xl backdrop-blur-2xl transition duration-500", open ? "translate-x-0" : "translate-x-full")}>
+        <aside className={cn("absolute right-0 top-0 z-10 flex h-full w-[86%] max-w-sm flex-col gap-4 overflow-y-auto border-l border-white/20 bg-[rgba(30,26,24,.9)] px-6 pb-8 pt-24 text-white shadow-2xl backdrop-blur-2xl transition duration-500", open ? "translate-x-0 opacity-100" : "translate-x-full opacity-0")}>
           <button type="button" aria-label="Закрыть меню" onClick={() => setOpen(false)} className="absolute right-5 top-5 grid size-12 place-items-center rounded-full border border-white/20 bg-white text-black">
             <X className="size-6" />
           </button>
-          <div className="mb-8">
+          <div className="mb-4">
             <p className="text-xs font-black uppercase text-white/38">Меню</p>
             <p className="mt-2 text-2xl font-black uppercase leading-none">Красавица</p>
           </div>
-          {links.map(([label, href]) => (
+          {mobileLinks.map(([label, href]) => (
             <a
               key={href}
               href={href}
               onClick={() => setOpen(false)}
-              className="apple-glass-button block rounded-full border border-white/16 bg-white/10 px-5 py-4 text-xl font-black text-white backdrop-blur-2xl transition duration-300 hover:bg-white hover:text-black"
+              className="apple-glass-button block rounded-full border border-white/18 bg-white/14 px-5 py-4 text-xl font-black text-white shadow-[inset_0_1px_0_rgba(255,255,255,.2)] backdrop-blur-2xl transition duration-300 hover:bg-white hover:text-black"
             >
               {label}
             </a>
@@ -871,7 +840,7 @@ function TelegramCard({ href, title, text }: { href: string; title: string; text
 
 function Footer() {
   return (
-    <footer className="px-3 pb-5 pt-2 md:px-5">
+    <footer id="contacts" className="px-3 pb-5 pt-2 md:px-5">
       <div className="rounded-2xl border border-black/5 bg-white/70 p-6 text-sm font-semibold text-black/55 shadow-[inset_0_1px_0_rgba(255,255,255,.86),0_20px_70px_rgba(29,29,31,.05)] backdrop-blur-2xl md:p-8">
         <div className="grid gap-8 md:grid-cols-[1.1fr_0.9fr_0.9fr]">
           <div>

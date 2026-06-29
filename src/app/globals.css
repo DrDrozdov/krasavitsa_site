@@ -72,6 +72,43 @@ body {
   font-family: "Inter", "Manrope", "Segoe UI", Arial, Helvetica, sans-serif;
 }
 
+#boot-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  padding: clamp(1.5rem, 3vw, 3rem);
+  background:
+    radial-gradient(circle at 14% 82%, rgba(235, 199, 183, 0.28), transparent 28%),
+    linear-gradient(180deg, #fff, #faf7f3);
+  color: #000;
+  opacity: 1;
+  transition:
+    opacity 680ms var(--ease-soft),
+    filter 680ms var(--ease-soft),
+    transform 680ms var(--ease-soft);
+}
+
+#boot-loader.is-complete {
+  opacity: 0;
+  filter: blur(12px);
+  transform: scale(1.012);
+  pointer-events: none;
+}
+
+#boot-loader-value {
+  font-family: "Manrope", "Inter", "Segoe UI", Arial, Helvetica, sans-serif;
+  font-size: clamp(4.75rem, 10vw, 9rem);
+  font-weight: 950;
+  line-height: 0.88;
+  letter-spacing: 0;
+  color: #000;
+  font-variant-numeric: tabular-nums;
+  animation: boot-counter-in 460ms var(--ease-soft) both;
+}
+
 h1,
 h2,
 h3 {
@@ -403,6 +440,20 @@ a {
   100% {
     opacity: 0;
     transform: scale(1);
+  }
+}
+
+@keyframes boot-counter-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.96);
+    filter: blur(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
   }
 }
 
