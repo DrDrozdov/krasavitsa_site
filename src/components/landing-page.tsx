@@ -184,6 +184,7 @@ export function LandingPage() {
     },
     [result, suggestionIndex],
   );
+  const productWindowKey = currentProducts.map((product) => product.name).join("|");
   const visibleSuggestions = useMemo(
     () => [0, 1, 2].map((offset) => suggestions[(suggestionIndex + offset) % suggestions.length]),
     [suggestionIndex],
@@ -361,20 +362,29 @@ export function LandingPage() {
                   </div>
                   <Bot className="size-8 shrink-0" />
                 </div>
-                <div className="grid gap-2">
-                  <AnimatePresence mode="popLayout">
-                    {currentProducts.map((product) => (
-                    <ProductCard
-                      key={product.name}
-                      product={product}
-                      vote={votes[product.name]}
-                      onVote={(vote) => {
-                        setVotes((current) => ({ ...current, [product.name]: vote }));
-                        setNotice(vote === "up" ? "Оценка учтена." : "Отметила как неподходящее.");
-                      }}
-                      onCopy={() => copyName(product.name)}
-                    />
-                    ))}
+                <div className="relative h-[520px] overflow-hidden sm:h-[430px] md:h-[386px]">
+                  <AnimatePresence mode="wait" initial={false}>
+                    <motion.div
+                      key={productWindowKey}
+                      initial={{ opacity: 0, x: 24, filter: "blur(10px)" }}
+                      animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+                      exit={{ opacity: 0, x: -24, filter: "blur(10px)" }}
+                      transition={{ duration: 0.48, ease: [0.16, 1, 0.3, 1] }}
+                      className="absolute inset-0 grid content-start gap-2"
+                    >
+                      {currentProducts.map((product) => (
+                        <ProductCard
+                          key={product.name}
+                          product={product}
+                          vote={votes[product.name]}
+                          onVote={(vote) => {
+                            setVotes((current) => ({ ...current, [product.name]: vote }));
+                            setNotice(vote === "up" ? "Оценка учтена." : "Отметила как неподходящее.");
+                          }}
+                          onCopy={() => copyName(product.name)}
+                        />
+                      ))}
+                    </motion.div>
                   </AnimatePresence>
                 </div>
               </GlassPanel>
@@ -579,17 +589,19 @@ function SplashScreen({ onComplete }: { onComplete: () => void }) {
   const [exiting, setExiting] = useState(false);
 
   useEffect(() => {
+    const startedAt = Date.now();
     const interval = window.setInterval(() => {
       setCount((current) => {
         if (current >= 100) {
           window.clearInterval(interval);
-          window.setTimeout(() => setExiting(true), 200);
-          window.setTimeout(onComplete, 900);
+          const remaining = Math.max(0, 1850 - (Date.now() - startedAt));
+          window.setTimeout(() => setExiting(true), remaining + 180);
+          window.setTimeout(onComplete, remaining + 820);
           return 100;
         }
-        return current + 1;
+        return Math.min(100, current + 2);
       });
-    }, 18);
+    }, 22);
 
     return () => window.clearInterval(interval);
   }, [onComplete]);
@@ -603,11 +615,12 @@ function SplashScreen({ onComplete }: { onComplete: () => void }) {
         exiting && "opacity-0",
       )}
     >
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_14%_82%,rgba(235,199,183,.28),transparent_28%),linear-gradient(180deg,#fff,#faf7f3)]" />
       <motion.span
         initial={{ y: 18, opacity: 0, scale: 0.96 }}
         animate={{ y: 0, opacity: 1, scale: 1 }}
         transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
-        className="text-7xl font-black leading-none tabular-nums md:text-9xl"
+        className="relative text-7xl font-black leading-none text-black tabular-nums md:text-9xl"
       >
         {count}
       </motion.span>
@@ -660,22 +673,25 @@ function Header({ onTry }: { onTry: () => void }) {
 
       <div className={cn("fixed inset-0 z-[60] transition md:hidden", open ? "pointer-events-auto" : "pointer-events-none")}>
         <button type="button" aria-label="Закрыть меню" onClick={() => setOpen(false)} className={cn("absolute inset-0 bg-black/28 backdrop-blur-md transition duration-300", open ? "opacity-100" : "opacity-0")} />
-        <aside className={cn("absolute right-0 top-0 flex h-full w-[86%] max-w-sm flex-col justify-center gap-4 border-l border-white/20 bg-[rgba(30,26,24,.84)] px-8 text-white shadow-2xl backdrop-blur-2xl transition duration-500", open ? "translate-x-0" : "translate-x-full")}>
+        <aside className={cn("absolute right-0 top-0 flex h-full w-[86%] max-w-sm flex-col justify-center gap-5 border-l border-white/20 bg-[rgba(30,26,24,.86)] px-8 text-white shadow-2xl backdrop-blur-2xl transition duration-500", open ? "translate-x-0" : "translate-x-full")}>
           <button type="button" aria-label="Закрыть меню" onClick={() => setOpen(false)} className="absolute right-5 top-5 grid size-12 place-items-center rounded-full border border-white/20 bg-white text-black">
             <X className="size-6" />
           </button>
-          {links.map(([label, href], index) => (
+          <div className="mb-8">
+            <p className="text-xs font-black uppercase text-white/38">Меню</p>
+            <p className="mt-2 text-2xl font-black uppercase leading-none">Красавица</p>
+          </div>
+          {links.map(([label, href]) => (
             <a
               key={href}
               href={href}
               onClick={() => setOpen(false)}
-              style={{ transitionDelay: open ? `${100 + index * 60}ms` : "0ms" }}
-              className={cn("block text-4xl font-black text-white transition duration-500", open ? "translate-x-0 opacity-100" : "translate-x-8 opacity-0")}
+              className="apple-glass-button block rounded-full border border-white/16 bg-white/10 px-5 py-4 text-xl font-black text-white backdrop-blur-2xl transition duration-300 hover:bg-white hover:text-black"
             >
               {label}
             </a>
           ))}
-          <button type="button" onClick={() => { setOpen(false); onTry(); }} className="mt-8 rounded-full bg-white px-6 py-4 text-sm font-bold text-black">
+          <button type="button" onClick={() => { setOpen(false); onTry(); }} className="apple-glass-button mt-5 rounded-full bg-white px-6 py-4 text-sm font-bold text-black">
             Попробовать AI
           </button>
         </aside>
@@ -775,10 +791,6 @@ function ProductCard({ product, vote, onVote, onCopy }: { product: Product; vote
 
   return (
     <motion.article
-      layout
-      initial={{ opacity: 0, y: 12, scale: 0.985, filter: "blur(8px)" }}
-      animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
-      exit={{ opacity: 0, y: -10, scale: 0.985, filter: "blur(8px)" }}
       whileHover={{ y: -3, scale: 1.006 }}
       whileTap={{ scale: 0.99 }}
       transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
