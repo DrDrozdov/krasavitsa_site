@@ -173,6 +173,7 @@ export function LandingPage() {
   const [votes, setVotes] = useState<Record<string, "up" | "down">>({});
   const [selectedRoadmap, setSelectedRoadmap] = useState(0);
   const [suggestionIndex, setSuggestionIndex] = useState(0);
+  const [hasUserResult, setHasUserResult] = useState(false);
   const [result, setResult] = useState<RecommendationResponse>({
     summary: "Beauty OS готова собрать подборку. Опишите кожу, бюджет и желаемый эффект.",
     products: sampleProducts,
@@ -193,9 +194,12 @@ export function LandingPage() {
       if (source.length <= 2) {
         return source;
       }
+      if (hasUserResult) {
+        return source.slice(0, 2);
+      }
       return [0, 1].map((offset) => source[(suggestionIndex + offset) % source.length]);
     },
-    [result, suggestionIndex],
+    [hasUserResult, result, suggestionIndex],
   );
   const productWindowKey = currentProducts.map((product) => product.name).join("|");
   const visibleSuggestions = useMemo(
@@ -251,6 +255,7 @@ export function LandingPage() {
       }
 
       setResult(data);
+      setHasUserResult(true);
       setNotice(data.mode === "preview" ? "Preview-режим активен. Подключите live API на сервере." : "Подборка обновлена.");
     } catch (caught) {
       setNotice(caught instanceof Error ? caught.message : "Не удалось получить подборку");

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { BeautyPageShell, BeautyPortalGrid, PageHero, PortalPanel, SectionIntro, SoftCards, TelegramCTA } from "@/components/portal-components";
+import Image from "next/image";
+import { BeautyPageShell, BeautyPortalGrid, PortalPanel, SectionIntro, SoftCards, TelegramCTA } from "@/components/portal-components";
 
 export const metadata: Metadata = {
   title: "О проекте — Красавица",
@@ -16,13 +17,48 @@ export default function AboutPage() {
 
   return (
     <BeautyPageShell>
-      <PageHero
-        eyebrow="О проекте"
-        title="Красавица — помощник, который упрощает выбор ухода"
-        subtitle="Мы хотим, чтобы подбор косметики перестал быть бесконечным поиском, случайными покупками и противоречивыми советами."
-        cta="Попробовать Красавицу"
-        tiles={["Понятно", "Без давления", "По бюджету", "С объяснением"]}
-      />
+      <section className="px-3 pb-2 pt-5 md:px-5">
+        <div className="liquid-glass relative min-h-[720px] overflow-hidden rounded-[var(--radius-xxl)] border border-[var(--color-border)] bg-white/48 p-5 shadow-[var(--shadow-soft)] backdrop-blur-2xl md:p-8">
+          <div className="absolute inset-x-[18%] bottom-0 top-8 hidden md:block">
+            <Image src="/beauty-products-portal.png" alt="" fill priority sizes="50vw" className="object-cover object-center opacity-90" />
+            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(250,247,243,.92),rgba(250,247,243,.18)_35%,rgba(250,247,243,.2)_65%,rgba(250,247,243,.94))]" />
+          </div>
+          <div className="relative z-10 grid min-h-[660px] gap-6 md:grid-cols-[0.95fr_0.8fr]">
+            <div className="flex flex-col justify-between">
+              <div>
+                <p className="text-sm font-black uppercase text-[var(--color-text-soft)]">О проекте</p>
+                <h1 className="mt-8 max-w-3xl text-[clamp(3.2rem,7vw,7.2rem)] font-black leading-[0.9] tracking-tight">
+                  Выбор ухода без шума
+                </h1>
+                <p className="mt-6 max-w-xl text-lg font-semibold leading-8 text-[var(--color-text-muted)]">
+                  Красавица помогает превратить разрозненные советы, корзины и тренды в понятный план: задача, бюджет, объяснение и спокойный выбор.
+                </p>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-3">
+                {["Без давления", "По бюджету", "С объяснением"].map((item) => (
+                  <div key={item} className="apple-glass-card rounded-full border border-black/10 bg-white/40 px-5 py-4 text-sm font-black backdrop-blur-2xl">
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="grid content-between gap-4">
+              <div className="apple-glass-card rounded-[var(--radius-xl)] border border-black/10 bg-white/48 p-6 text-right backdrop-blur-2xl">
+                <p className="text-[clamp(2.7rem,6vw,6rem)] font-black leading-none">4</p>
+                <p className="mt-3 text-sm font-semibold leading-6 text-[var(--color-text-muted)]">главные зоны: подбор, профиль, рейтинг доверия и парфюм</p>
+              </div>
+              <div className="apple-glass-card rounded-[var(--radius-xl)] border border-black/10 bg-[rgba(30,26,24,.82)] p-6 text-white backdrop-blur-2xl">
+                <p className="text-[clamp(2.7rem,6vw,6rem)] font-black leading-none">0</p>
+                <p className="mt-3 text-sm font-semibold leading-6 text-white/68">давления на покупку: сначала смысл, потом средство</p>
+              </div>
+              <div className="apple-glass-card rounded-[var(--radius-xl)] border border-black/10 bg-white/48 p-6 backdrop-blur-2xl">
+                <p className="text-[clamp(2.7rem,6vw,6rem)] font-black leading-none">1</p>
+                <p className="mt-3 text-sm font-semibold leading-6 text-[var(--color-text-muted)]">личный сценарий вместо универсальных советов из ленты</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
       <SectionIntro kicker="Миссия" title="Меньше шума, больше ясности" text="Красавица не продает технологию как самоцель. Она помогает человеку понять, что именно нужно его коже и почему." />
       <section className="px-3 py-2 md:px-5">
         <BeautyPortalGrid>

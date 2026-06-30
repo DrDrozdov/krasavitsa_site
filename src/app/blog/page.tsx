@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BeautyPageShell, BeautyPortalGrid, PageHero, PortalPanel, SectionIntro, TelegramCTA } from "@/components/portal-components";
+import { BlogFilter } from "@/components/blog-filter";
 import { blogPosts } from "@/data/blog";
 
 export const metadata: Metadata = {
@@ -10,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 export default function BlogPage() {
-  const categories = ["Уход", "Акне", "SPF", "Составы", "Парфюм", "Подборки", "Ошибки ухода"];
+  const categories = ["Уход", "Акне", "SPF", "Составы", "Парфюм", "Подборки", "Ошибки ухода", "Anti-age"];
   const featured = blogPosts[0];
 
   return (
@@ -23,13 +24,6 @@ export default function BlogPage() {
         tiles={["Уход", "Составы", "SPF", "Парфюм"]}
       />
       <SectionIntro kicker="Категории" title="Читайте по задаче, а не по тренду" text="Материалы помогают понять кожу, не перегрузить уход и спокойнее выбирать средства." />
-      <div className="mx-auto flex max-w-[1480px] flex-wrap gap-2 px-3 pb-2 md:px-5">
-        {categories.map((item) => (
-          <span key={item} className="rounded-full border border-[var(--color-border)] bg-white/62 px-5 py-3 text-sm font-black text-[var(--color-text-muted)] backdrop-blur-xl">
-            {item}
-          </span>
-        ))}
-      </div>
       <section className="px-3 py-2 md:px-5">
         <BeautyPortalGrid>
           <PortalPanel className="md:col-span-7" image="/beauty-products-portal.png">
@@ -67,18 +61,7 @@ export default function BlogPage() {
           ))}
         </div>
       </section>
-      <section className="mx-auto grid max-w-[1480px] gap-2 px-3 py-2 md:grid-cols-3 md:px-5">
-        {blogPosts.map((post) => (
-          <Link key={post.slug} href={`/blog/${post.slug}`} className="apple-glass-card flex min-h-[280px] flex-col justify-between rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-glass)] p-6 shadow-[var(--shadow-card)] backdrop-blur-2xl">
-            <div>
-              <p className="text-xs font-black uppercase text-[var(--color-text-soft)]">{post.category} · {post.readTime}</p>
-              <h2 className="mt-4 text-3xl font-black leading-tight">{post.title}</h2>
-              <p className="mt-4 text-base font-semibold leading-7 text-[var(--color-text-muted)]">{post.excerpt}</p>
-            </div>
-            <span className="mt-8 inline-flex items-center gap-2 text-sm font-black">Читать</span>
-          </Link>
-        ))}
-      </section>
+      <BlogFilter posts={blogPosts} categories={categories} />
       <TelegramCTA title="Подобрать уход по статье" text="Если материал похож на вашу ситуацию, Красавица поможет собрать персональный уход в Telegram." />
     </BeautyPageShell>
   );

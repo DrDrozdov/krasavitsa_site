@@ -8,6 +8,7 @@ import {
   SoftCards,
   TelegramCTA,
 } from "@/components/portal-components";
+import { PerfumeFinder } from "@/components/perfume-finder";
 
 export const metadata: Metadata = {
   title: "Подбор парфюма — Красавица",
@@ -77,6 +78,7 @@ export default function PerfumePage() {
       <SoftCards
         items={occasions}
       />
+      <PerfumeFinder />
       <section className="px-3 py-2 md:px-5">
         <BeautyPortalGrid>
           <PortalPanel className="md:col-span-5">

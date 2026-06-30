@@ -126,7 +126,7 @@ export function PortalPanel({
       whileHover={{ y: -4, scale: 1.006 }}
       whileTap={{ scale: 0.986 }}
       transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
-      className={cn("liquid-glass portal-panel relative min-h-[220px] overflow-hidden rounded-[var(--radius-lg)] border border-white/55 bg-[var(--color-glass)] p-5 backdrop-blur-2xl md:p-6", className)}
+      className={cn("liquid-glass apple-glass-card portal-panel relative min-h-[220px] overflow-hidden rounded-[var(--radius-lg)] border border-white/55 bg-[var(--color-glass)] p-5 backdrop-blur-2xl md:p-6", className)}
     >
       {image ? (
         <Image src={image} alt="" fill priority={priority} sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover object-center" />
@@ -222,13 +222,13 @@ export function SoftCards({ items }: { items: Array<{ title: string; text: strin
 export function TelegramCTA({ title = "Продолжить в Telegram", text = "Красавица задаст пару уточняющих вопросов и сохранит рекомендации в чате." }) {
   return (
     <div className="px-3 py-2 md:px-5">
-      <div className="liquid-glass mx-auto flex max-w-none flex-col justify-between gap-6 rounded-[var(--radius-xl)] border border-white/12 bg-[rgba(30,26,24,.9)] p-5 text-white shadow-[var(--shadow-soft)] md:flex-row md:items-center md:p-6">
+      <div className="liquid-glass apple-glass-card mx-auto flex max-w-none flex-col justify-between gap-6 rounded-[var(--radius-xl)] border border-black/10 bg-white/42 p-5 text-[var(--color-text)] shadow-[var(--shadow-soft)] backdrop-blur-2xl md:flex-row md:items-center md:p-6">
         <div>
-          <p className="text-sm font-black uppercase text-white/45">Telegram</p>
+          <p className="text-sm font-black uppercase text-[var(--color-text-soft)]">Telegram</p>
           <h2 className="mt-3 text-[clamp(2.1rem,3.4vw,3.6rem)] font-black leading-none">{title}</h2>
-          <p className="mt-4 max-w-2xl text-sm font-semibold leading-6 text-white/62">{text}</p>
+          <p className="mt-4 max-w-2xl text-sm font-semibold leading-6 text-[var(--color-text-muted)]">{text}</p>
         </div>
-        <LinkButton href="https://t.me/krasavitsa_ai_bot" className="h-14 w-fit bg-white px-7 text-black hover:bg-white/88">
+        <LinkButton href="https://t.me/krasavitsa_ai_bot" className="h-14 w-fit bg-black px-7 text-white hover:bg-neutral-800">
           <MessageCircle className="size-5" />
           Открыть бот
         </LinkButton>
