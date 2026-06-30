@@ -88,8 +88,31 @@ function ProfileForm() {
           </label>
         ))}
       </div>
+      <div className="grid gap-3 md:grid-cols-2">
+        {[
+          ["Имя", "Мария"],
+          ["Email", "demo@krasavitsa.ai"],
+        ].map(([label, value]) => (
+          <label key={label} className="apple-glass-card rounded-[var(--radius-md)] border border-white/60 bg-white/34 p-4 backdrop-blur-2xl">
+            <span className="text-xs font-black uppercase text-[var(--color-text-soft)]">{label}</span>
+            <input readOnly value={value} className="mt-3 w-full bg-transparent text-lg font-black outline-none" aria-label={label} />
+          </label>
+        ))}
+      </div>
+      <div className="grid gap-2 rounded-[var(--radius-md)] border border-white/60 bg-white/28 p-4 backdrop-blur-2xl">
+        {[
+          "Согласие на обработку данных для работы профиля",
+          "Согласие получать сервисные уведомления в Telegram",
+          "Я понимаю, что форма сейчас демонстрационная",
+        ].map((item) => (
+          <label key={item} className="flex items-center gap-3 text-sm font-bold text-[var(--color-text-muted)]">
+            <input type="checkbox" readOnly checked className="size-5 accent-black" />
+            {item}
+          </label>
+        ))}
+      </div>
       <button type="button" className="apple-glass-button rounded-full bg-black px-6 py-4 text-sm font-black text-white">
-        Тестовая кнопка профиля
+        Создать тестовый профиль
       </button>
     </motion.div>
   );

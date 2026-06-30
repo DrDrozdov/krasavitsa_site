@@ -20,7 +20,7 @@ const perfumes: Perfume[] = [
     notes: ["мускус", "соль", "кожа"],
     occasion: "каждый день",
     text: "Мягкий близкий аромат: чистая кожа после душа, без сладости и громкого шлейфа.",
-    image: "/beauty-products-portal.png",
+    image: "/perfume-clean-reserve.svg",
   },
   {
     name: "Maison Margiela Lazy Sunday Morning",
@@ -28,7 +28,7 @@ const perfumes: Perfume[] = [
     notes: ["мускус", "ирис", "ландыш"],
     occasion: "офис",
     text: "Светлый хлопковый профиль для офиса и близкой дистанции.",
-    image: "/beauty-portal-hero.png",
+    image: "/perfume-margiela.svg",
   },
   {
     name: "Byredo Blanche",
@@ -36,7 +36,7 @@ const perfumes: Perfume[] = [
     notes: ["альдегиды", "пион", "мускус"],
     occasion: "офис",
     text: "Холодная чистота, белая рубашка и очень собранное звучание.",
-    image: "/beauty-products-portal.png",
+    image: "/perfume-byredo.svg",
   },
   {
     name: "Diptyque Eau Duelle",
@@ -44,7 +44,7 @@ const perfumes: Perfume[] = [
     notes: ["ваниль", "кардамон", "чай"],
     occasion: "вечер",
     text: "Теплая ваниль без кондитерской тяжести, хорошо работает вечером.",
-    image: "/beauty-products-portal.png",
+    image: "/perfume-diptyque.svg",
   },
   {
     name: "Jo Malone Wood Sage & Sea Salt",
@@ -52,7 +52,7 @@ const perfumes: Perfume[] = [
     notes: ["соль", "шалфей", "древесность"],
     occasion: "каждый день",
     text: "Минеральная свежесть без резкого цитруса и ощущения спортивного одеколона.",
-    image: "/beauty-portal-hero.png",
+    image: "/perfume-jo-malone.svg",
   },
   {
     name: "Narciso Rodriguez Pure Musc",
@@ -60,7 +60,7 @@ const perfumes: Perfume[] = [
     notes: ["мускус", "цветы", "кашемир"],
     occasion: "свидание",
     text: "Чистый, но более заметный мускус: мягко, взросло, без перегруза.",
-    image: "/beauty-products-portal.png",
+    image: "/perfume-narciso.svg",
   },
   {
     name: "Zara Ebony Wood",
@@ -68,7 +68,7 @@ const perfumes: Perfume[] = [
     notes: ["древесность", "перец", "гвоздика"],
     occasion: "вечер",
     text: "Теплая древесная база для прохладной погоды и спокойного образа.",
-    image: "/beauty-portal-hero.png",
+    image: "/perfume-diptyque.svg",
   },
   {
     name: "L'Occitane Thé Vert",
@@ -76,7 +76,7 @@ const perfumes: Perfume[] = [
     notes: ["чай", "цитрус", "зелень"],
     occasion: "каждый день",
     text: "Зеленый чай, чистый старт дня и легкая прозрачная свежесть.",
-    image: "/beauty-products-portal.png",
+    image: "/perfume-jo-malone.svg",
   },
 ];
 
@@ -164,7 +164,7 @@ export function PerfumeFinder() {
       <div className="liquid-glass grid gap-2 rounded-[var(--radius-xxl)] border border-[var(--color-border)] bg-white/30 p-2 shadow-[var(--shadow-soft)] backdrop-blur-2xl md:grid-cols-[0.82fr_1.18fr]">
         <div className="relative overflow-hidden rounded-[var(--radius-xl)] border border-black/10 bg-[linear-gradient(145deg,rgba(54,45,42,.9),rgba(94,78,72,.74))] p-5 text-white shadow-[var(--shadow-card)] backdrop-blur-2xl md:p-6">
           <div className="absolute inset-0 opacity-[0.18]">
-            <Image src="/beauty-products-portal.png" alt="" fill sizes="(min-width: 768px) 40vw, 100vw" className="object-cover" />
+            <Image src="/beauty-bg-04.svg" alt="" fill sizes="(min-width: 768px) 40vw, 100vw" className="object-cover" />
           </div>
           <div className="relative z-10">
             <p className="text-sm font-black uppercase text-white/50">Парфюм-поиск</p>

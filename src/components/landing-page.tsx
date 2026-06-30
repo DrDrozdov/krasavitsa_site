@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { FormEvent, ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Button, LinkButton } from "@/components/ui/button";
 import { BeautyPortalGrid, PortalPanel } from "@/components/portal-components";
 import { cn } from "@/lib/utils";
@@ -270,7 +271,7 @@ export function LandingPage() {
   }
 
   return (
-    <main className="min-h-screen overflow-hidden bg-white text-black">
+    <main className="min-h-screen overflow-hidden bg-[var(--color-bg)] text-[var(--color-text)]">
       <Header onTry={() => focusAi()} />
 
       <section id="home" className="grid min-h-[86svh] gap-2 px-3 pb-2 pt-18 md:min-h-screen md:px-5 md:pt-20">
@@ -368,7 +369,7 @@ export function LandingPage() {
           viewport={{ once: true, margin: "-80px" }}
           variants={reveal}
           transition={{ delay: 0.12 }}
-          className="relative overflow-hidden rounded-[var(--radius-lg)] bg-[url('/beauty-portal-hero.png')] bg-cover bg-center p-2"
+          className="relative overflow-hidden rounded-[var(--radius-lg)] bg-[url('/beauty-bg-01.svg')] bg-cover bg-center p-2"
         >
           <div className="grid min-h-[390px] gap-2">
               <GlassPanel className="bg-white/54">
@@ -417,7 +418,7 @@ export function LandingPage() {
           whileInView="visible"
           viewport={{ once: true }}
           variants={reveal}
-          className="liquid-glass relative overflow-hidden rounded-[var(--radius-xl)] bg-[url('/beauty-products-portal.png')] bg-cover bg-center bg-no-repeat p-2"
+          className="liquid-glass relative overflow-hidden rounded-[var(--radius-xl)] bg-[url('/beauty-bg-05.svg')] bg-cover bg-center bg-no-repeat p-2"
         >
           <div className="absolute inset-0 bg-white/58" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_10%,rgba(255,255,255,.72),transparent_32%),linear-gradient(135deg,rgba(255,255,255,.56),rgba(255,255,255,.22))]" />
@@ -519,7 +520,7 @@ function HomePortalIntro({ onStart }: { onStart: () => void }) {
   return (
     <section className="px-3 pb-2 pt-2 md:px-5">
       <BeautyPortalGrid className="min-h-0 max-w-none">
-        <PortalPanel className="md:col-span-12" image="/beauty-products-portal.png">
+        <PortalPanel className="md:col-span-12" image="/beauty-bg-02.svg">
           <div className="grid min-h-[540px] gap-2 md:grid-cols-12 md:grid-rows-[auto_auto]">
             <motion.div
               initial={{ opacity: 0, y: 18, scale: 0.985 }}
@@ -622,23 +623,24 @@ function Header({ onTry }: { onTry: () => void }) {
 
   return (
     <>
-      <header className="fixed left-0 right-0 top-0 z-50 flex items-center justify-between bg-white/54 px-4 py-2 backdrop-blur-2xl md:px-6 md:py-3">
+      <header className="fixed left-0 right-0 top-0 z-50 flex items-center justify-between border-b border-[var(--color-border)] bg-[rgba(250,247,243,.62)] px-4 py-2 backdrop-blur-2xl md:px-6 md:py-3">
         <a href="#home" className="flex items-center gap-3" onClick={() => setOpen(false)}>
           <Image src="/krasavitsa-logo.png" alt="Красавица" width={48} height={48} className="rounded-full" priority />
           <span className="flex flex-col">
             <span className="text-xl font-black uppercase leading-none tracking-tight md:text-2xl">Красавица</span>
-            <span className="mt-1 text-[9px] font-bold uppercase leading-none text-black/55">Beauty OS</span>
+            <span className="mt-1 text-[9px] font-bold uppercase leading-none text-[var(--color-text-soft)]">Beauty OS</span>
           </span>
         </a>
         <nav className="hidden items-center gap-2 md:flex">
           {links.map(([label, href]) => (
-            <a key={href} href={href} className="apple-glass-button rounded-full border border-black/15 bg-white/50 px-5 py-3 text-sm font-bold transition duration-200 hover:bg-black hover:text-white">
+            <a key={href} href={href} className={cn("apple-glass-button rounded-full border border-black/15 bg-white/50 px-5 py-3 text-sm font-bold transition duration-200 hover:bg-black hover:text-white", href === "#home" && "bg-black text-white")}>
               {label}
             </a>
           ))}
-          <button type="button" onClick={onTry} className="rounded-full bg-black px-6 py-3 text-sm font-bold text-white transition duration-200 hover:bg-neutral-800">
+          <button type="button" onClick={onTry} className="apple-glass-button rounded-full bg-black px-6 py-3 text-sm font-bold text-white transition duration-200 hover:bg-neutral-800">
             Попробовать AI
           </button>
+          <ThemeToggle />
         </nav>
         <button type="button" aria-label="Открыть меню" onClick={() => setOpen((value) => !value)} className="relative grid size-12 place-items-center rounded-full border border-white/20 bg-black text-white shadow-[0_14px_34px_rgba(0,0,0,.18)] md:hidden">
           {open ? <X className="size-6" /> : <Menu className="size-6" />}
@@ -670,6 +672,7 @@ function Header({ onTry }: { onTry: () => void }) {
           <button type="button" onClick={() => { setOpen(false); onTry(); }} className="apple-glass-button mt-5 rounded-full bg-white px-6 py-4 text-sm font-bold text-black">
             Попробовать AI
           </button>
+          <ThemeToggle className="mt-3 h-14 w-[88px] border-white/18 bg-white/10 text-white hover:bg-white hover:text-black" />
         </aside>
       </div>
     </>

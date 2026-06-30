@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 560">
+  <rect width="560" height="560" fill="#fff"/>
+  <ellipse cx="280" cy="470" rx="145" ry="24" fill="#eee"/>
+  <rect x="205" y="155" width="150" height="290" rx="26" fill="#f7f7f7" stroke="#d8d8d8" stroke-width="6"/>
+  <rect x="235" y="106" width="90" height="58" rx="12" fill="#ddd"/>
+  <rect x="252" y="72" width="56" height="40" rx="8" fill="#c9c9c9"/>
+  <text x="280" y="292" font-family="Arial" font-size="28" font-weight="700" text-anchor="middle" fill="#222">CLEAN</text>
+  <text x="280" y="326" font-family="Arial" font-size="18" text-anchor="middle" fill="#777">RESERVE</text>
+</svg>

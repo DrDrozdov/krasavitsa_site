@@ -52,7 +52,7 @@ export function ThemeToggle({ className }: { className?: string }) {
       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-current opacity-80">
         <Moon className="size-4" />
       </span>
-      <span className="theme-toggle-thumb absolute left-1 top-1 grid size-9 place-items-center rounded-full bg-white text-black shadow-[0_8px_22px_rgba(0,0,0,.18)] transition duration-300">
+      <span className="theme-toggle-thumb absolute left-1 top-1 grid size-9 place-items-center rounded-full bg-white text-black shadow-[0_8px_22px_rgba(0,0,0,.18)] transition-transform duration-300 ease-[var(--ease-soft)]">
         {theme === "dark" ? <Moon className="size-4" /> : <Sun className="size-4" />}
       </span>
     </button>

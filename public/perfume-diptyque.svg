@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 560">
+  <rect width="560" height="560" fill="#fff"/>
+  <ellipse cx="280" cy="470" rx="138" ry="24" fill="#eee"/>
+  <rect x="203" y="145" width="154" height="298" rx="22" fill="#fff8f2" stroke="#d9c4ae" stroke-width="6"/>
+  <rect x="238" y="90" width="84" height="64" rx="14" fill="#d3b48e"/>
+  <ellipse cx="280" cy="292" rx="54" ry="76" fill="#fff" stroke="#111" stroke-width="4"/>
+  <text x="280" y="292" font-family="Arial" font-size="14" font-weight="700" text-anchor="middle" fill="#111">DIPTYQUE</text>
+  <text x="280" y="316" font-family="Arial" font-size="12" text-anchor="middle" fill="#777">EAU DUELLE</text>
+</svg>

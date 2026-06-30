@@ -7,8 +7,6 @@ const interactiveSelector = [
   "a[href]",
   "[role='button']",
   ".apple-glass-button",
-  ".apple-glass-card",
-  ".roadmap-item",
 ].join(",");
 
 function findTarget(target: EventTarget | null): HTMLElement | null {
