@@ -764,6 +764,7 @@ function GlassPanel({ children, className }: { children: ReactNode; className?: 
 
 function ProductCard({ product, vote, onVote, onCopy }: { product: Product; vote?: "up" | "down"; onVote: (vote: "up" | "down") => void; onCopy: () => void }) {
   const marketplaceLinks = buildMarketplaceLinks(product.name, product.marketplaces, product.marketplace);
+  const reactionHref = vote ? `https://t.me/krasavitsa_ai_bot?start=${encodeURIComponent(`reaction:${vote}:${product.name}`)}` : "";
 
   return (
     <motion.article
@@ -809,6 +810,12 @@ function ProductCard({ product, vote, onVote, onCopy }: { product: Product; vote
         <VoteButton active={vote === "down"} label="Не подходит" onClick={() => onVote("down")}>
           <ThumbsDown className="size-4" />
         </VoteButton>
+        {reactionHref ? (
+          <a href={reactionHref} target="_blank" rel="noreferrer" className="apple-glass-button inline-flex h-9 items-center gap-2 rounded-full border border-black/15 bg-white/54 px-4 text-xs font-black text-black transition duration-200 hover:bg-black hover:text-white">
+            TG sync
+            <ExternalLink className="size-3.5" />
+          </a>
+        ) : null}
       </div>
     </motion.article>
   );

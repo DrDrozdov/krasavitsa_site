@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { PointerGlow } from "@/components/pointer-glow";
+import { RouteTransition } from "@/components/route-transition";
 import "./globals.css";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://krasavitsa.ai";
@@ -122,6 +123,20 @@ const bootLoaderScript = `
 })();
 `;
 
+const themeScript = `
+(() => {
+  try {
+    const stored = window.localStorage.getItem("krasavitsa-theme");
+    const theme = stored === "dark" || stored === "light"
+      ? stored
+      : (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    document.documentElement.dataset.theme = theme;
+  } catch {
+    document.documentElement.dataset.theme = "light";
+  }
+})();
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -130,6 +145,7 @@ export default function RootLayout({
   return (
     <html lang="ru" className="scroll-smooth">
       <body>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <div id="boot-loader" aria-hidden="true">
           <div id="boot-loader-value" suppressHydrationWarning>
             0
@@ -137,6 +153,7 @@ export default function RootLayout({
         </div>
         <script dangerouslySetInnerHTML={{ __html: bootLoaderScript }} />
         <PointerGlow />
+        <RouteTransition />
         {children}
       </body>
     </html>

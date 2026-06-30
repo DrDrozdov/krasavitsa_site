@@ -39,6 +39,30 @@
   --duration-reveal: 520ms;
 }
 
+:root[data-theme="dark"] {
+  --background: #14110f;
+  --foreground: #f6efea;
+  --color-bg: #14110f;
+  --color-bg-soft: #1c1816;
+  --color-surface: #231f1c;
+  --color-surface-muted: #2a2421;
+  --color-text: #f6efea;
+  --color-text-muted: rgba(246, 239, 234, 0.68);
+  --color-text-soft: rgba(246, 239, 234, 0.42);
+  --color-accent: #e8b8c6;
+  --color-accent-strong: #f0b5a4;
+  --color-accent-soft: rgba(235, 199, 183, 0.18);
+  --color-border: rgba(255, 255, 255, 0.13);
+  --color-border-strong: rgba(255, 255, 255, 0.24);
+  --color-glass: rgba(42, 36, 33, 0.36);
+  --color-glass-strong: rgba(52, 45, 41, 0.5);
+  --color-overlay: rgba(0, 0, 0, 0.46);
+  --shadow-soft: 0 18px 70px rgba(0, 0, 0, 0.34);
+  --shadow-card: 0 12px 40px rgba(0, 0, 0, 0.28);
+  --shadow-hover: 0 22px 60px rgba(0, 0, 0, 0.4);
+  --shadow-glass: 0 16px 48px rgba(0, 0, 0, 0.32);
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -70,6 +94,44 @@ body {
     var(--background);
   color: var(--foreground);
   font-family: "Inter", "Manrope", "Segoe UI", Arial, Helvetica, sans-serif;
+}
+
+:root[data-theme="dark"] body {
+  background:
+    radial-gradient(circle at 12% 4%, rgba(232, 184, 198, 0.12), transparent 25rem),
+    radial-gradient(circle at 84% 8%, rgba(243, 227, 200, 0.1), transparent 27rem),
+    linear-gradient(180deg, #14110f, #1a1513 46%, #12100f);
+}
+
+:root[data-theme="dark"] .liquid-glass {
+  background-color: rgba(36, 31, 28, 0.34);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+:root[data-theme="dark"] .apple-glass-card,
+:root[data-theme="dark"] .apple-glass-button {
+  border-color: rgba(255, 255, 255, 0.14);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 18px 58px rgba(0, 0, 0, 0.24);
+}
+
+:root[data-theme="dark"] .apple-glass-button:hover,
+:root[data-theme="dark"] .apple-glass-card:hover {
+  border-color: rgba(255, 255, 255, 0.24);
+}
+
+:root[data-theme="dark"] header.liquid-glass {
+  background: rgba(20, 17, 15, 0.72);
+}
+
+:root[data-theme="dark"] .portal-panel::before {
+  opacity: 0.42;
+}
+
+:root[data-theme="dark"] input,
+:root[data-theme="dark"] textarea {
+  color: var(--color-text);
 }
 
 #boot-loader {
@@ -273,6 +335,14 @@ a {
 
 [data-pointer-glow="true"][data-pointer-pressed="true"] {
   filter: saturate(1.08);
+}
+
+.theme-toggle.is-dark .theme-toggle-thumb {
+  transform: translateX(32px);
+}
+
+:root[data-theme="dark"] .theme-toggle:not(.is-dark) .theme-toggle-thumb {
+  transform: translateX(32px);
 }
 
 .liquid-glass {
