@@ -381,13 +381,13 @@ export function LandingPage() {
                   <Bot className="size-8 shrink-0" />
                 </div>
                 <div className="relative h-[520px] overflow-hidden sm:h-[430px] md:h-[386px]">
-                  <AnimatePresence mode="wait" initial={false}>
+                  <AnimatePresence initial={false}>
                     <motion.div
                       key={productWindowKey}
-                      initial={{ opacity: 0, x: 24, filter: "blur(10px)" }}
-                      animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
-                      exit={{ opacity: 0, x: -24, filter: "blur(10px)" }}
-                      transition={{ duration: 0.48, ease: [0.16, 1, 0.3, 1] }}
+                      initial={{ opacity: 0, y: 34, scale: 0.99, filter: "blur(12px)" }}
+                      animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+                      exit={{ opacity: 0, y: -34, scale: 0.99, filter: "blur(12px)" }}
+                      transition={{ duration: 0.68, ease: [0.16, 1, 0.3, 1] }}
                       className="absolute inset-0 grid content-start gap-2"
                     >
                       {currentProducts.map((product) => (

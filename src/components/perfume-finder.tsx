@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type Perfume = {
   name: string;
@@ -118,19 +118,28 @@ export function PerfumeFinder() {
   const [query, setQuery] = useState("");
   const [note, setNote] = useState("Все");
   const [mood, setMood] = useState("Любое");
-  const [promptIndex, setPromptIndex] = useState(0);
+  const [visiblePromptIndexes, setVisiblePromptIndexes] = useState([0, 1, 2, 3]);
+  const promptSlotRef = useRef(0);
+  const nextPromptRef = useRef(4);
 
   useEffect(() => {
     const timer = window.setInterval(() => {
-      setPromptIndex((current) => (current + 4) % promptPool.length);
-    }, 5200);
+      setVisiblePromptIndexes((current) => {
+        const next = [...current];
+        const slot = promptSlotRef.current % next.length;
+        next[slot] = nextPromptRef.current % promptPool.length;
+        promptSlotRef.current += 1;
+        nextPromptRef.current += 1;
+        return next;
+      });
+    }, 2800);
 
     return () => window.clearInterval(timer);
   }, []);
 
   const visiblePrompts = useMemo(
-    () => [0, 1, 2, 3].map((offset) => promptPool[(promptIndex + offset) % promptPool.length]),
-    [promptIndex],
+    () => visiblePromptIndexes.map((index) => promptPool[index % promptPool.length]),
+    [visiblePromptIndexes],
   );
 
   const results = useMemo(() => {
@@ -161,8 +170,8 @@ export function PerfumeFinder() {
 
   return (
     <section className="px-3 py-2 md:px-5">
-      <div className="liquid-glass grid gap-2 rounded-[var(--radius-xxl)] border border-[var(--color-border)] bg-white/30 p-2 shadow-[var(--shadow-soft)] backdrop-blur-2xl md:grid-cols-[0.82fr_1.18fr]">
-        <div className="relative overflow-hidden rounded-[var(--radius-xl)] border border-black/10 bg-[linear-gradient(145deg,rgba(54,45,42,.9),rgba(94,78,72,.74))] p-5 text-white shadow-[var(--shadow-card)] backdrop-blur-2xl md:p-6">
+      <div className="liquid-glass grid items-start gap-2 rounded-[var(--radius-xxl)] border border-[var(--color-border)] bg-white/30 p-2 shadow-[var(--shadow-soft)] backdrop-blur-2xl md:grid-cols-[0.78fr_1.22fr]">
+        <div className="relative self-start overflow-hidden rounded-[var(--radius-xl)] border border-black/10 bg-[linear-gradient(145deg,rgba(54,45,42,.9),rgba(94,78,72,.74))] p-5 text-white shadow-[var(--shadow-card)] backdrop-blur-2xl md:p-6">
           <div className="absolute inset-0 opacity-[0.18]">
             <Image src="/beauty-bg-04.svg" alt="" fill sizes="(min-width: 768px) 40vw, 100vw" className="object-cover" />
           </div>
@@ -185,23 +194,23 @@ export function PerfumeFinder() {
             <div className="mt-6">
               <p className="mb-3 text-xs font-black uppercase text-white/42">Живые примеры</p>
               <div className="grid gap-2">
-                <AnimatePresence mode="popLayout">
-                  {visiblePrompts.map((prompt) => (
+                {visiblePrompts.map((prompt, index) => (
+                  <AnimatePresence key={index} mode="wait" initial={false}>
                     <motion.button
                       key={prompt}
                       type="button"
                       onClick={() => applyPrompt(prompt)}
                       layout
-                      initial={{ opacity: 0, y: 10, filter: "blur(8px)" }}
+                      initial={{ opacity: 0, y: 14, filter: "blur(10px)" }}
                       animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                      exit={{ opacity: 0, y: -8, filter: "blur(8px)" }}
-                      transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
+                      exit={{ opacity: 0, y: -14, filter: "blur(10px)" }}
+                      transition={{ duration: 0.62, ease: [0.16, 1, 0.3, 1] }}
                       className="apple-glass-button rounded-full border border-white/14 bg-white/10 px-4 py-3 text-left text-sm font-black text-white/78 backdrop-blur-xl transition hover:bg-white hover:text-black"
                     >
                       {prompt}
                     </motion.button>
-                  ))}
-                </AnimatePresence>
+                  </AnimatePresence>
+                ))}
               </div>
             </div>
           </div>
