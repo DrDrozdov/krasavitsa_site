@@ -1,0 +1,19 @@
+services:
+  krasavitsa:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      HOSTNAME: 0.0.0.0
+      PORT: 3000
+    ports:
+      - "3000"
+    volumes:
+      - krasavitsa-analytics:/app/data
+    restart: unless-stopped
+
+volumes:
+  krasavitsa-analytics:
