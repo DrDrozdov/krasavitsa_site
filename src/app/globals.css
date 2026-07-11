@@ -1,23 +1,27 @@
 @import "tailwindcss";
 
 :root {
-  --background: #faf7f3;
-  --foreground: #1e1a18;
-  --color-bg: #faf7f3;
-  --color-bg-soft: #fffdfb;
-  --color-surface: #ffffff;
-  --color-surface-muted: #f7f0ea;
-  --color-text: #1e1a18;
-  --color-text-muted: #6f6660;
-  --color-text-soft: #9b9088;
-  --color-accent: #ebc7b7;
-  --color-accent-strong: #dfa58f;
-  --color-accent-soft: #f7e4da;
-  --color-rose: #e8b8c6;
+  --background: #f7efed;
+  --foreground: #2a171c;
+  --color-bg: #f7efed;
+  --color-bg-soft: #fff9f7;
+  --color-surface: #fffafa;
+  --color-surface-muted: #f1dfdc;
+  --color-text: #2a171c;
+  --color-text-muted: #715d62;
+  --color-text-soft: #9b7f83;
+  --color-bordeaux: #5c1f2d;
+  --color-bordeaux-soft: #7a3040;
+  --color-powder: #e8c7c0;
+  --color-powder-light: #f2ded9;
+  --color-accent: #e8c7c0;
+  --color-accent-strong: #8e3e50;
+  --color-accent-soft: #f1d9d4;
+  --color-rose: #d9aeb4;
   --color-sage: #c8d8c0;
   --color-cream: #f3e3c8;
-  --color-border: rgba(30, 26, 24, 0.1);
-  --color-border-strong: rgba(30, 26, 24, 0.16);
+  --color-border: rgba(92, 31, 45, 0.12);
+  --color-border-strong: rgba(92, 31, 45, 0.24);
   --color-glass: rgba(255, 255, 255, 0.28);
   --color-glass-strong: rgba(255, 255, 255, 0.4);
   --color-overlay: rgba(30, 26, 24, 0.28);
@@ -40,18 +44,22 @@
 }
 
 :root[data-theme="dark"] {
-  --background: #14110f;
-  --foreground: #f6efea;
-  --color-bg: #14110f;
-  --color-bg-soft: #1c1816;
-  --color-surface: #231f1c;
-  --color-surface-muted: #2a2421;
-  --color-text: #f6efea;
-  --color-text-muted: rgba(246, 239, 234, 0.68);
-  --color-text-soft: rgba(246, 239, 234, 0.42);
-  --color-accent: #e8b8c6;
-  --color-accent-strong: #f0b5a4;
-  --color-accent-soft: rgba(235, 199, 183, 0.18);
+  --background: #160d10;
+  --foreground: #f7e9e6;
+  --color-bg: #160d10;
+  --color-bg-soft: #211318;
+  --color-surface: #2a1820;
+  --color-surface-muted: #352029;
+  --color-text: #f7e9e6;
+  --color-text-muted: rgba(247, 233, 230, 0.72);
+  --color-text-soft: rgba(232, 199, 192, 0.52);
+  --color-bordeaux: #7d3042;
+  --color-bordeaux-soft: #a75467;
+  --color-powder: #d9aca8;
+  --color-powder-light: #ecd2cd;
+  --color-accent: #d9aca8;
+  --color-accent-strong: #e2a6b1;
+  --color-accent-soft: rgba(232, 199, 192, 0.16);
   --color-border: rgba(255, 255, 255, 0.13);
   --color-border-strong: rgba(255, 255, 255, 0.24);
   --color-glass: rgba(42, 36, 33, 0.36);
@@ -89,8 +97,8 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   background:
-    radial-gradient(circle at 14% 2%, rgba(232, 184, 198, 0.22), transparent 26rem),
-    radial-gradient(circle at 88% 12%, rgba(243, 227, 200, 0.34), transparent 28rem),
+    radial-gradient(circle at 12% 3%, rgba(92, 31, 45, 0.1), transparent 30rem),
+    radial-gradient(circle at 88% 8%, rgba(232, 199, 192, 0.52), transparent 30rem),
     var(--background);
   color: var(--foreground);
   font-family: "Inter", "Manrope", "Segoe UI", Arial, Helvetica, sans-serif;
@@ -98,9 +106,9 @@ body {
 
 :root[data-theme="dark"] body {
   background:
-    radial-gradient(circle at 12% 4%, rgba(232, 184, 198, 0.12), transparent 25rem),
-    radial-gradient(circle at 84% 8%, rgba(243, 227, 200, 0.1), transparent 27rem),
-    linear-gradient(180deg, #14110f, #1a1513 46%, #12100f);
+    radial-gradient(circle at 12% 4%, rgba(125, 48, 66, 0.24), transparent 28rem),
+    radial-gradient(circle at 84% 8%, rgba(217, 172, 168, 0.1), transparent 27rem),
+    linear-gradient(180deg, #160d10, #211218 46%, #120a0d);
 }
 
 :root[data-theme="dark"] .liquid-glass {
@@ -272,7 +280,7 @@ a {
   z-index: 0;
   background:
     radial-gradient(circle at var(--pointer-x, 50%) var(--pointer-y, 50%), rgba(255, 255, 255, 0.52), transparent 34%),
-    radial-gradient(circle at var(--pointer-x, 50%) var(--pointer-y, 50%), rgba(235, 199, 183, 0.24), transparent 48%);
+    radial-gradient(circle at var(--pointer-x, 50%) var(--pointer-y, 50%), rgba(232, 199, 192, 0.28), transparent 48%);
   opacity: 0;
   transform: scale(0.98);
   transition:
@@ -333,6 +341,39 @@ a {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.92),
     0 22px 70px rgba(29, 29, 31, 0.085);
+}
+
+.brand-action {
+  background: var(--color-bordeaux) !important;
+  color: #fff !important;
+  border-color: rgba(255, 255, 255, 0.16) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 18px 44px rgba(92, 31, 45, 0.2) !important;
+}
+
+.brand-action:hover {
+  background: var(--color-bordeaux-soft) !important;
+}
+
+.brand-panel {
+  background:
+    radial-gradient(circle at 82% 16%, rgba(232, 199, 192, 0.34), transparent 18rem),
+    linear-gradient(145deg, rgba(92, 31, 45, 0.96), rgba(72, 22, 34, 0.9));
+  color: #fff;
+}
+
+.meaning-card {
+  transition: transform 520ms var(--ease-soft), border-color 520ms ease, box-shadow 520ms ease, background-color 520ms ease;
+}
+
+.meaning-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(92, 31, 45, 0.24);
+  box-shadow: 0 24px 70px rgba(92, 31, 45, 0.1);
+}
+
+:root[data-theme="dark"] .meaning-card:hover {
+  border-color: rgba(232, 199, 192, 0.24);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.34);
 }
 
 .apple-glass-card:hover::after {

@@ -132,7 +132,7 @@ function HeaderNavLink({ label, href, active }: { label: string; href: string; a
       aria-current={active ? "page" : undefined}
       className={cn(
         "apple-glass-button group rounded-full border border-[var(--color-border)] bg-[rgba(255,255,255,.48)] px-5 py-3 text-sm font-bold text-[var(--color-text)] shadow-[inset_0_1px_0_rgba(255,255,255,.72)] backdrop-blur-2xl transition duration-300 hover:border-black/20 hover:bg-black hover:text-white",
-        active && "border-black/20 bg-black text-white shadow-[0_18px_48px_rgba(29,29,31,.12)]",
+        active && "brand-action border-transparent text-white shadow-[0_18px_48px_rgba(92,31,45,.18)]",
       )}
     >
       <span>{label}</span>
@@ -225,7 +225,7 @@ export function PortalPanel({
       whileTap={{ scale: 0.986 }}
       transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
       data-has-image={image ? "true" : "false"}
-      className={cn("liquid-glass apple-glass-card portal-panel relative min-h-[220px] overflow-hidden rounded-[var(--radius-lg)] border border-white/55 bg-[var(--color-glass)] p-5 backdrop-blur-2xl md:p-6", className)}
+      className={cn("liquid-glass apple-glass-card meaning-card portal-panel relative min-h-[220px] overflow-hidden rounded-[var(--radius-lg)] border border-white/55 bg-[var(--color-glass)] p-5 backdrop-blur-2xl md:p-6", className)}
     >
       {image ? (
         <Image src={image} alt="" fill priority={priority} sizes="(min-width: 1024px) 50vw, 100vw" className="portal-panel-image object-cover object-center" />

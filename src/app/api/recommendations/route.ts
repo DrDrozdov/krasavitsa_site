@@ -108,6 +108,15 @@ async function parseProviderResponse(response: Response) {
   return safeJson<RecommendationPayload>(cleanContent);
 }
 
+const beautyIntentWords = [
+  "кожа", "уход", "крем", "сывор", "очищ", "умыван", "spf", "акне", "блеск", "сух", "чувств", "покрас", "барьер", "морщ", "пигмент", "лицо", "волос", "космет",
+];
+
+function isBeautyRequest(query: string) {
+  const normalized = query.toLowerCase().replace(/[^а-яёa-z0-9\s-]/gi, " ");
+  return normalized.length >= 8 && beautyIntentWords.some((word) => normalized.includes(word));
+}
+
 export async function POST(request: Request) {
   try {
     const { query } = (await request.json()) as { query?: string };
@@ -116,6 +125,13 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: "Опишите задачу подробнее: тип кожи, бюджет, желаемый эффект." },
         { status: 400 },
+      );
+    }
+
+    if (!isBeautyRequest(query)) {
+      return NextResponse.json(
+        { error: "Я лучше всего разбираюсь в косметике, уходе и ароматах. Расскажите о коже, задаче, бюджете или желаемом эффекте — и я помогу сформулировать подбор." },
+        { status: 422 },
       );
     }
 

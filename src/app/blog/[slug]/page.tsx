@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { BeautyPageShell, BeautyPortalGrid, PortalPanel, TelegramCTA } from "@/components/portal-components";
 import { blogPosts, getPost } from "@/data/blog";
 
@@ -36,7 +37,11 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         <p className="mt-8 text-sm font-black uppercase text-[var(--color-text-soft)]">{post.category} · {post.readTime}</p>
         <h1 className="mt-4 text-[clamp(3rem,7vw,6.8rem)] font-black leading-[0.94] tracking-tight">{post.title}</h1>
         <p className="mt-6 text-xl font-semibold leading-9 text-[var(--color-text-muted)]">{post.excerpt}</p>
-        <div className="mt-10 grid gap-4">
+        <div className="relative mt-10 aspect-[16/9] overflow-hidden rounded-[var(--radius-xl)] border border-[var(--color-border)]">
+          <Image src={post.image} alt="" fill priority sizes="(min-width: 1024px) 896px, 100vw" className="object-cover" />
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent,rgba(92,31,45,.18))]" />
+        </div>
+        <div className="mt-6 grid gap-4">
           {post.body.map((paragraph) => (
             <p key={paragraph} className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-white/68 p-6 text-lg font-semibold leading-9 text-[var(--color-text-muted)] shadow-[var(--shadow-card)] backdrop-blur-2xl">
               {paragraph}

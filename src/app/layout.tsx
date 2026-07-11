@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { PointerGlow } from "@/components/pointer-glow";
+import { AnalyticsTracker } from "@/components/analytics-tracker";
 import { RouteTransition } from "@/components/route-transition";
 import "./globals.css";
 
@@ -153,6 +154,7 @@ export default function RootLayout({
         </div>
         <script dangerouslySetInnerHTML={{ __html: bootLoaderScript }} />
         <PointerGlow />
+        <AnalyticsTracker />
         <RouteTransition />
         {children}
       </body>

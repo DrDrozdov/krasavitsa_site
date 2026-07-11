@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
+import { trackAnalyticsEvent } from "@/lib/analytics-client";
 
 type Perfume = {
   name: string;
@@ -121,6 +122,7 @@ export function PerfumeFinder() {
   const [promptPage, setPromptPage] = useState(0);
   const [apiResults, setApiResults] = useState<Perfume[] | null>(null);
   const [isSearching, setIsSearching] = useState(false);
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -153,18 +155,24 @@ export function PerfumeFinder() {
     const trimmed = value.trim();
     setQuery(value);
     setApiResults(null);
+    setMessage("");
     if (!trimmed) return;
 
     setIsSearching(true);
+    trackAnalyticsEvent("search_submit", "perfume_search");
     try {
       const response = await fetch("/api/perfume-recommendations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query: trimmed }),
       });
-      const data = (await response.json()) as { products?: Perfume[] };
+      const data = (await response.json()) as { products?: Perfume[]; message?: string };
+      if (data.message) setMessage(data.message);
       if (response.ok && Array.isArray(data.products) && data.products.length) {
         setApiResults(data.products);
+        trackAnalyticsEvent("search_success", "perfume_search");
+      } else if (!response.ok) {
+        trackAnalyticsEvent("search_rejected", "perfume_search");
       }
     } catch {
       // The local catalog stays visible when the provider is unavailable.
@@ -214,6 +222,7 @@ export function PerfumeFinder() {
               <FilterRow title="Нота" items={noteFilters} active={note} onChange={setNote} />
               <FilterRow title="Настроение" items={moodFilters} active={mood} onChange={setMood} />
             </div>
+            {message ? <p className="mt-5 rounded-[var(--radius-md)] border border-white/16 bg-white/12 p-4 text-sm font-semibold leading-6 text-white/76 backdrop-blur-2xl">{message}</p> : null}
             <div className="mt-6">
               <p className="mb-3 text-xs font-black uppercase text-white/42">Живые примеры</p>
               <AnimatePresence mode="wait" initial={false}>

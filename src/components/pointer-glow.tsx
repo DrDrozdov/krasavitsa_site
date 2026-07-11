@@ -3,10 +3,8 @@
 import { useEffect } from "react";
 
 const interactiveSelector = [
-  "button",
-  "a[href]",
-  "[role='button']",
   ".apple-glass-button",
+  "[data-pointer-glow='true']",
 ].join(",");
 
 function findTarget(target: EventTarget | null): HTMLElement | null {

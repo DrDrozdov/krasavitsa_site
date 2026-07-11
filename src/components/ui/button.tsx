@@ -6,7 +6,7 @@ type ButtonTone = "primary" | "secondary" | "ghost";
 
 const tones: Record<ButtonTone, string> = {
   primary:
-    "bg-[var(--color-text)] text-white shadow-[var(--shadow-card)] hover:bg-[#332D29]",
+    "brand-action bg-[var(--color-bordeaux)] text-white shadow-[var(--shadow-card)]",
   secondary:
     "border border-[var(--color-border)] bg-[var(--color-glass-strong)] text-[var(--color-text)] shadow-[var(--shadow-card)] backdrop-blur-2xl hover:border-[var(--color-border-strong)] hover:bg-white/86",
   ghost: "text-[var(--color-text)] hover:bg-[var(--color-surface-muted)]",

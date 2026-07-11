@@ -20,6 +20,15 @@ const catalog: Perfume[] = [
   { name: "L'Occitane Thé Vert", mood: "Свежесть", notes: ["чай", "цитрус", "зелень"], occasion: "каждый день", text: "Зелёный чай, чистый старт дня и лёгкая прозрачная свежесть.", image: "/perfume-jo-malone.svg" },
 ];
 
+const perfumeIntentWords = [
+  "аромат", "парфюм", "духи", "запах", "нота", "шлейф", "мускус", "ваниль", "ирис", "цвет", "древес", "цитрус", "свеж", "слад", "пудр", "кожа", "офис", "вечер", "свидан", "флакон",
+];
+
+function isPerfumeRequest(query: string) {
+  const normalized = query.toLowerCase().replace(/[^а-яёa-z0-9\s-]/gi, " ");
+  return normalized.length >= 8 && perfumeIntentWords.some((word) => normalized.includes(word));
+}
+
 function localSelection(query: string) {
   const words = query.toLowerCase().split(/\s+/).filter((word) => word.length > 2);
   const selected = catalog.filter((perfume) => {
@@ -61,6 +70,13 @@ export async function POST(request: Request) {
   try {
     const { query } = (await request.json()) as { query?: string };
     if (!query?.trim()) return NextResponse.json({ products: catalog.slice(0, 4), source: "catalog" });
+    if (!isPerfumeRequest(query)) {
+      return NextResponse.json({
+        products: [],
+        rejected: true,
+        message: "Я лучше всего разбираюсь в косметике, уходе и ароматах. Опишите, какое звучание вы ищете: настроение, любимые ноты, повод или бюджет.",
+      }, { status: 422 });
+    }
 
     const catalogText = catalog.map((item) => `${item.name} | ${item.mood} | ${item.notes.join(", ")} | ${item.occasion}`).join("\n");
     const selectorPrompt = `Ты первый агент парфюм-поиска. Выбери от 2 до 4 точных названий только из каталога ниже. Учитывай ноты, настроение, повод и бюджет из запроса. Верни строго JSON: {"names":["..."]}. Каталог:\n${catalogText}`;

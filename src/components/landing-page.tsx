@@ -22,6 +22,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Button, LinkButton } from "@/components/ui/button";
 import { BeautyPortalGrid, PortalPanel } from "@/components/portal-components";
 import { cn } from "@/lib/utils";
+import { trackAnalyticsEvent } from "@/lib/analytics-client";
 
 type Product = {
   name: string;
@@ -227,6 +228,7 @@ export function LandingPage() {
     event.preventDefault();
     setNotice("");
     setIsLoading(true);
+    trackAnalyticsEvent("search_submit", "care_search");
 
     try {
       const response = await fetch("/api/recommendations", {
@@ -257,8 +259,10 @@ export function LandingPage() {
 
       setResult(data);
       setHasUserResult(true);
+      trackAnalyticsEvent("search_success", "care_search");
       setNotice(data.mode === "preview" ? "Preview-режим активен. Подключите live API на сервере." : "Подборка обновлена.");
     } catch (caught) {
+      trackAnalyticsEvent("search_rejected", "care_search");
       setNotice(caught instanceof Error ? caught.message : "Не удалось получить подборку");
     } finally {
       setIsLoading(false);
@@ -310,7 +314,7 @@ export function LandingPage() {
           whileInView="visible"
           viewport={{ once: true, margin: "-80px" }}
           variants={reveal}
-          className="search-panel liquid-glass relative overflow-hidden rounded-[var(--radius-lg)] border border-white/20 bg-[rgba(30,26,24,.9)] p-5 text-white md:p-6"
+          className="search-panel brand-panel liquid-glass relative overflow-hidden rounded-[var(--radius-lg)] border border-white/20 p-5 text-white md:p-6"
         >
           <div className="absolute inset-0 opacity-80 [background:radial-gradient(circle_at_18%_12%,rgba(255,255,255,.16),transparent_32%),radial-gradient(circle_at_86%_0%,rgba(235,199,183,.28),transparent_34%),linear-gradient(135deg,rgba(30,26,24,.95),rgba(30,26,24,.78))]" />
           <div className="relative z-10 flex min-h-[390px] flex-col justify-between gap-5">
@@ -418,11 +422,10 @@ export function LandingPage() {
           whileInView="visible"
           viewport={{ once: true }}
           variants={reveal}
-          className="liquid-glass relative overflow-hidden rounded-[var(--radius-xl)] bg-[url('/beauty-bg-05.svg')] bg-cover bg-center bg-no-repeat p-2"
+          className="liquid-glass relative overflow-hidden rounded-[var(--radius-xl)] bg-[var(--color-powder-light)] p-2"
         >
-          <div className="absolute inset-0 bg-white/58" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_10%,rgba(255,255,255,.72),transparent_32%),linear-gradient(135deg,rgba(255,255,255,.56),rgba(255,255,255,.22))]" />
-          <div className="relative z-10 flex min-h-[480px] flex-col justify-between rounded-[var(--radius-lg)] border border-white/55 bg-white/42 p-5 text-black shadow-[inset_0_0_0_1px_rgba(255,255,255,.16)] backdrop-blur-2xl md:p-6">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_8%,rgba(255,255,255,.62),transparent_32%),linear-gradient(145deg,rgba(232,199,192,.68),rgba(92,31,45,.16))]" />
+          <div className="relative z-10 flex min-h-[480px] flex-col justify-between rounded-[var(--radius-lg)] border border-white/55 bg-white/32 p-5 text-[var(--color-text)] shadow-[inset_0_0_0_1px_rgba(255,255,255,.16)] backdrop-blur-2xl md:p-6">
             <div>
               <p className="text-xs font-black uppercase text-black/45">Roadmap</p>
               <h3 className="mt-3 text-[clamp(2.5rem,4.7vw,4.4rem)] font-black leading-[0.9]">
@@ -633,11 +636,11 @@ function Header({ onTry }: { onTry: () => void }) {
         </a>
         <nav className="hidden items-center gap-2 md:flex">
           {links.map(([label, href]) => (
-            <a key={href} href={href} className={cn("apple-glass-button rounded-full border border-black/15 bg-white/50 px-5 py-3 text-sm font-bold transition duration-200 hover:bg-black hover:text-white", href === "#home" && "bg-black text-white")}>
+            <a key={href} href={href} className={cn("apple-glass-button rounded-full border border-[var(--color-border)] bg-white/50 px-5 py-3 text-sm font-bold transition duration-200 hover:bg-[var(--color-bordeaux)] hover:text-white", href === "#home" && "brand-action text-white")}>
               {label}
             </a>
           ))}
-          <button type="button" onClick={onTry} className="apple-glass-button rounded-full bg-black px-6 py-3 text-sm font-bold text-white transition duration-200 hover:bg-neutral-800">
+          <button type="button" onClick={onTry} className="apple-glass-button brand-action rounded-full px-6 py-3 text-sm font-bold text-white transition duration-200">
             Попробовать AI
           </button>
           <ThemeToggle />
