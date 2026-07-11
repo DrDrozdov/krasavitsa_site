@@ -31,6 +31,10 @@ export function SiteHeader() {
     };
   }, [mobileOpen]);
 
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
   return (
     <header className="liquid-glass sticky top-0 z-40 border-b border-[var(--color-border)] bg-[rgba(250,247,243,.62)] px-4 py-3 backdrop-blur-2xl md:px-6">
       <div className="mx-auto flex max-w-[1480px] items-center justify-between gap-3">
@@ -105,10 +109,10 @@ export function SiteHeader() {
             <LinkButton href="https://t.me/krasavitsa_ai_bot" className="mt-2 h-14 w-full bg-white px-6 text-black hover:bg-white/90">
               Попробовать AI
             </LinkButton>
-            <Link href="#contacts" className="apple-glass-button rounded-full border border-white/16 bg-white/10 px-6 py-4 text-lg font-black text-white backdrop-blur-2xl transition duration-300 hover:bg-white hover:text-black">
+            <Link href="/#contacts" className="apple-glass-button rounded-full border border-white/16 bg-white/10 px-6 py-4 text-lg font-black text-white backdrop-blur-2xl transition duration-300 hover:bg-white hover:text-black">
               Контакты
             </Link>
-            <ThemeToggle className="mt-1 h-14 w-[88px] border-white/18 bg-white/10 text-white hover:bg-white hover:text-black" />
+            <ThemeToggle className="mt-1 border-white/18 bg-white/10 text-white hover:bg-white hover:text-black" />
           </nav>
         </motion.aside>
       </div>
@@ -220,12 +224,13 @@ export function PortalPanel({
       whileHover={{ y: -4, scale: 1.006 }}
       whileTap={{ scale: 0.986 }}
       transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
+      data-has-image={image ? "true" : "false"}
       className={cn("liquid-glass apple-glass-card portal-panel relative min-h-[220px] overflow-hidden rounded-[var(--radius-lg)] border border-white/55 bg-[var(--color-glass)] p-5 backdrop-blur-2xl md:p-6", className)}
     >
       {image ? (
-        <Image src={image} alt="" fill priority={priority} sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover object-center" />
+        <Image src={image} alt="" fill priority={priority} sizes="(min-width: 1024px) 50vw, 100vw" className="portal-panel-image object-cover object-center" />
       ) : null}
-      <div className={cn("absolute inset-0", image ? "bg-[linear-gradient(115deg,rgba(250,247,243,.88),rgba(250,247,243,.42)_48%,rgba(250,247,243,.2))]" : "bg-[radial-gradient(circle_at_18%_10%,rgba(255,255,255,.9),transparent_34%),linear-gradient(135deg,rgba(255,255,255,.72),rgba(247,228,218,.34))]")} />
+      <div className={cn("portal-panel-overlay absolute inset-0", image ? "bg-[linear-gradient(115deg,rgba(250,247,243,.88),rgba(250,247,243,.42)_48%,rgba(250,247,243,.2))]" : "bg-[radial-gradient(circle_at_18%_10%,rgba(255,255,255,.9),transparent_34%),linear-gradient(135deg,rgba(255,255,255,.72),rgba(247,228,218,.34))]")} />
       <div className="relative z-10 h-full">{children}</div>
     </motion.div>
   );

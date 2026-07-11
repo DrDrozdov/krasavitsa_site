@@ -672,7 +672,7 @@ function Header({ onTry }: { onTry: () => void }) {
           <button type="button" onClick={() => { setOpen(false); onTry(); }} className="apple-glass-button mt-5 rounded-full bg-white px-6 py-4 text-sm font-bold text-black">
             Попробовать AI
           </button>
-          <ThemeToggle className="mt-3 h-14 w-[88px] border-white/18 bg-white/10 text-white hover:bg-white hover:text-black" />
+          <ThemeToggle className="mt-3 border-white/18 bg-white/10 text-white hover:bg-white hover:text-black" />
         </aside>
       </div>
     </>

@@ -41,12 +41,12 @@ export function ThemeToggle({ className }: { className?: string }) {
       aria-label={theme === "dark" ? "Включить светлую тему" : "Включить темную тему"}
       onClick={toggleTheme}
       className={cn(
-        "apple-glass-button theme-toggle relative h-11 w-[78px] shrink-0 overflow-hidden rounded-full border border-[var(--color-border)] bg-[rgba(255,255,255,.45)] p-1 text-[var(--color-text)] shadow-[inset_0_1px_0_rgba(255,255,255,.72),0_12px_30px_rgba(29,29,31,.08)] backdrop-blur-2xl transition duration-300 hover:bg-black hover:text-white",
+        "apple-glass-button theme-toggle relative flex h-11 w-[78px] shrink-0 items-center overflow-hidden rounded-full border border-[var(--color-border)] bg-[rgba(255,255,255,.45)] p-[3px] text-[var(--color-text)] shadow-[inset_0_1px_0_rgba(255,255,255,.72),0_12px_30px_rgba(29,29,31,.08)] backdrop-blur-2xl transition duration-300 hover:bg-black hover:text-white",
         theme === "dark" && "is-dark bg-[rgba(30,26,24,.82)] text-white",
         className,
       )}
     >
-      <span className="theme-toggle-thumb absolute left-1 top-1 grid size-9 place-items-center rounded-full bg-white text-black shadow-[0_8px_22px_rgba(0,0,0,.18)] transition-transform duration-300 ease-[var(--ease-soft)]">
+      <span className="theme-toggle-thumb grid size-[38px] shrink-0 place-items-center rounded-full bg-white text-black shadow-[0_8px_22px_rgba(0,0,0,.18)] transition-transform duration-300 ease-[var(--ease-soft)]">
         {theme === "dark" ? <Moon className="size-4" /> : <Sun className="size-4" />}
       </span>
     </button>

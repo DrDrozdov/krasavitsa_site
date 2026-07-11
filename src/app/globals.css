@@ -129,6 +129,23 @@ body {
   opacity: 0.42;
 }
 
+:root[data-theme="dark"] .portal-panel[data-has-image="true"] .portal-panel-overlay {
+  background: linear-gradient(115deg, rgba(20, 17, 15, 0.64), rgba(20, 17, 15, 0.4) 50%, rgba(20, 17, 15, 0.22)) !important;
+}
+
+:root[data-theme="dark"] .portal-panel[data-has-image="true"] .portal-panel-image {
+  filter: brightness(0.88) saturate(0.86);
+  opacity: 0.94;
+}
+
+:root[data-theme="dark"] .perfume-product-image {
+  filter: brightness(1.08) contrast(0.96);
+}
+
+:root[data-theme="dark"] .perfume-product-image + div {
+  background: rgba(27, 23, 21, 0.1);
+}
+
 :root[data-theme="dark"] input,
 :root[data-theme="dark"] textarea {
   color: var(--color-text);
@@ -376,18 +393,15 @@ a {
 }
 
 :root[data-theme="dark"] .liquid-glass [class*="bg-white/"],
-:root[data-theme="dark"] .portal-panel [class*="bg-white/"],
 :root[data-theme="dark"] .apple-glass-card[class*="bg-white/"] {
   background-color: rgba(48, 42, 38, 0.38) !important;
 }
 
-:root[data-theme="dark"] .liquid-glass [class*="text-black/"],
-:root[data-theme="dark"] .portal-panel [class*="text-black/"] {
+:root[data-theme="dark"] .liquid-glass [class*="text-black/"] {
   color: rgba(246, 239, 234, 0.68) !important;
 }
 
-:root[data-theme="dark"] .liquid-glass [class*="text-black"]:not([class*="text-white"]),
-:root[data-theme="dark"] .portal-panel [class*="text-black"]:not([class*="text-white"]) {
+:root[data-theme="dark"] .liquid-glass [class*="text-black"]:not([class*="text-white"]) {
   color: var(--color-text) !important;
 }
 
@@ -459,13 +473,8 @@ a {
     border-color var(--duration-slow) ease;
 }
 
-.portal-panel img {
+.portal-panel img:not(.portal-panel-image) {
   filter: brightness(1.08) saturate(0.96);
-}
-
-:root[data-theme="dark"] .portal-panel img {
-  filter: brightness(1.28) saturate(0.92);
-  opacity: 0.9;
 }
 
 .about-hero::after,
