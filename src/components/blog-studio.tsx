@@ -28,12 +28,15 @@ export function BlogStudio() {
   const [notice, setNotice] = useState("");
 
   useEffect(() => {
-    try {
-      const stored = window.localStorage.getItem(storageKey);
-      if (stored) setPosts(JSON.parse(stored) as PersonalPost[]);
-    } catch {
-      setPosts([]);
-    }
+    const timer = window.setTimeout(() => {
+      try {
+        const stored = window.localStorage.getItem(storageKey);
+        if (stored) setPosts(JSON.parse(stored) as PersonalPost[]);
+      } catch {
+        setPosts([]);
+      }
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   const persist = (next: PersonalPost[]) => {

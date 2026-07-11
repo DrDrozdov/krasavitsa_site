@@ -6,7 +6,7 @@ import { BeautyPageShell, BeautyPortalGrid, PortalPanel, TelegramCTA } from "@/c
 
 export const metadata: Metadata = {
   title: "О проекте - Красавица",
-  description: "Красавица - AI-платформа для персонального подбора косметики, ухода, beauty-профиля и будущего парфюм-модуля.",
+  description: "Красавица - AI-платформа для персонального подбора ухода за кожей, волосами и ароматов в одном интерфейсе.",
   alternates: { canonical: "/about" },
 };
 
@@ -23,7 +23,7 @@ const doneItems = [
   { title: "Оценка качества", text: "Реакции пользователей помогают постепенно отличать удачные рекомендации от случайных.", Icon: Star },
   { title: "Маркетплейсы", text: "В карточках появляются ссылки на крупные российские площадки, чтобы выбор был практичным.", Icon: Globe2 },
   { title: "Beauty Profile", text: "Профиль хранит предпочтения, историю, реакции и помогает не начинать подбор с нуля.", Icon: UserRound },
-  { title: "Веб-платформа", text: "Сайт становится визуальным интерфейсом Красавицы: поиск, профиль, блог и будущие модули.", Icon: Sparkles },
+  { title: "Веб-платформа", text: "Сайт объединяет три режима AI-подбора, защищённый профиль, блог и аналитику.", Icon: Sparkles },
 ];
 
 const focusItems = [
@@ -56,7 +56,7 @@ export default function AboutPage() {
                   Выбор ухода без шума
                 </h1>
                 <p className="mt-6 max-w-2xl text-lg font-semibold leading-8 text-[var(--color-text-muted)]">
-                  Красавица - AI-платформа нового поколения для персонального подбора косметики, ухода и будущего парфюм-направления.
+                  Красавица - единая AI-платформа для персонального подбора ухода за кожей, волосами и ароматов.
                   Мы строим не магазин, а спокойный маршрут выбора: от задачи и бюджета до объяснимой рекомендации.
                 </p>
               </div>
@@ -131,7 +131,7 @@ export default function AboutPage() {
             <p className="text-sm font-black uppercase text-[var(--color-text-soft)]">Сейчас в работе</p>
             <h2 className="mt-4 text-[clamp(2.3rem,4.4vw,4.9rem)] font-black leading-none">Следующий уровень персональности</h2>
             <p className="mt-5 text-base font-semibold leading-7 text-[var(--color-text-muted)]">
-              Внутри проекта постепенно собирается единая beauty-среда: бот, сайт, профиль, рейтинг доверия, парфюм и будущий анализ составов.
+              Внутри проекта работает единая beauty-среда: бот, сайт, три режима подбора, профиль и обезличенная аналитика.
             </p>
           </PortalPanel>
           <PortalPanel className="md:col-span-7">

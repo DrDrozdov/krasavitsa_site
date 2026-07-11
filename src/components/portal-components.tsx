@@ -13,8 +13,7 @@ import { cn } from "@/lib/utils";
 
 export const navLinks = [
   ["Главная", "/"],
-  ["Подбор ухода", "/care"],
-  ["Парфюм", "/perfume"],
+  ["AI-подбор", "/care"],
   ["Блог", "/blog"],
   ["О проекте", "/about"],
   ["Профиль", "/profile"],
@@ -30,10 +29,6 @@ export function SiteHeader() {
       document.body.style.overflow = "";
     };
   }, [mobileOpen]);
-
-  useEffect(() => {
-    setMobileOpen(false);
-  }, [pathname]);
 
   return (
     <header className="liquid-glass sticky top-0 z-40 border-b border-[var(--color-border)] bg-[rgba(250,247,243,.62)] px-4 py-3 backdrop-blur-2xl md:px-6">
@@ -155,7 +150,7 @@ export function SiteFooter() {
               </div>
             </div>
             <p className="mt-5 max-w-xl leading-6">
-              Спокойный beauty-помощник для подбора ухода. Рекомендации носят информационный характер и не заменяют консультацию специалиста.
+              Единый AI-подбор ухода за кожей, волосами и ароматов. Рекомендации носят информационный характер и не заменяют консультацию специалиста.
             </p>
             <p className="mt-4 text-xs text-[var(--color-text-soft)]">© 2026 Красавица</p>
           </div>

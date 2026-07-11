@@ -1,0 +1,179 @@
+"use client";
+
+import { AnimatePresence, motion } from "motion/react";
+import { Droplets, ExternalLink, Scissors, Sparkles } from "lucide-react";
+import { useMemo, useState } from "react";
+import { trackAnalyticsEvent } from "@/lib/analytics-client";
+
+type Mode = "skin" | "hair" | "perfume";
+type Product = { name: string; category: string; reason: string; rating: number; marketplaces?: Array<{ label: string; href: string }> };
+
+const modes: Array<{ id: Mode; label: string; description: string; Icon: typeof Sparkles }> = [
+  { id: "skin", label: "Уход за кожей", description: "Тип кожи, барьер, активы и SPF", Icon: Droplets },
+  { id: "hair", label: "Волосы", description: "Кожа головы, длина и укладка", Icon: Scissors },
+  { id: "perfume", label: "Парфюм", description: "Ноты, настроение, повод и шлейф", Icon: Sparkles },
+];
+
+const examples: Record<Mode, string[]> = {
+  skin: [
+    "Собери базовый уход для комбинированной чувствительной кожи до 3500 ₽",
+    "Нужен лёгкий крем и SPF без жирного блеска",
+    "Как восстановить барьер после кислот без отдушек",
+  ],
+  hair: [
+    "Подбери уход для жирной кожи головы и сухих окрашенных концов",
+    "Нужны шампунь, кондиционер и термозащита до 4000 ₽",
+    "Уход для пористых кудрявых волос без тяжёлых масел",
+  ],
+  perfume: [
+    "Хочу чистый мускусный аромат для офиса без сладости",
+    "Подбери тёплый вечерний парфюм с ванилью до 7000 ₽",
+    "Нужна минеральная свежесть, чай и мягкий шлейф",
+  ],
+};
+
+const placeholders: Record<Mode, string> = {
+  skin: "Например: чувствительная кожа, сухость после умывания, бюджет 3000 ₽",
+  hair: "Например: жирная кожа головы, окрашенная длина, нужна термозащита",
+  perfume: "Например: чистый мускус, офис, без сладкого шлейфа, до 6000 ₽",
+};
+
+export function BeautyFinder() {
+  const [mode, setMode] = useState<Mode>("skin");
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<Product[]>([]);
+  const [summary, setSummary] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const active = useMemo(() => modes.find((item) => item.id === mode)!, [mode]);
+
+  const changeMode = (next: Mode) => {
+    if (next === mode) return;
+    setMode(next);
+    setQuery("");
+    setResults([]);
+    setSummary("");
+    setError("");
+  };
+
+  const search = async (value = query) => {
+    const next = value.trim();
+    setQuery(value);
+    setError("");
+    if (!next) return;
+    setLoading(true);
+    trackAnalyticsEvent("search_submit", `unified_${mode}`);
+    try {
+      const response = await fetch("/api/recommendations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: next, mode }),
+      });
+      const data = (await response.json()) as { summary?: string; products?: Product[]; error?: string };
+      if (!response.ok) {
+        setResults([]);
+        setSummary("");
+        setError(data.error ?? "Не удалось обработать запрос.");
+      } else {
+        setSummary(data.summary ?? "Подборка готова.");
+        setResults(data.products ?? []);
+        trackAnalyticsEvent("search_success", `unified_${mode}`);
+      }
+    } catch {
+      setError("Связь с подбором прервалась. Попробуйте ещё раз.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <section className="px-3 pb-6 pt-4 md:px-5 md:pb-12">
+      <div className="mx-auto max-w-[1320px]">
+        <div className="text-center">
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-[var(--color-text-soft)]">Единый AI-подбор</p>
+          <h1 className="mx-auto mt-5 max-w-4xl text-[clamp(2.8rem,7vw,7rem)] font-black leading-[0.9] tracking-tight">Что вы хотите подобрать?</h1>
+          <p className="mx-auto mt-6 max-w-2xl text-base font-semibold leading-7 text-[var(--color-text-muted)]">Выберите направление. Правила, примеры и контекст AI изменятся вместе с ним.</p>
+        </div>
+
+        <div className="mt-10 grid gap-3 md:grid-cols-3">
+          {modes.map(({ id, label, description, Icon }) => (
+            <motion.button
+              key={id}
+              type="button"
+              onClick={() => changeMode(id)}
+              animate={mode === id ? { y: -4, scale: 1.015 } : { y: 0, scale: 1 }}
+              whileHover={{ y: -4, scale: 1.012 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
+              className={`direction-card rounded-[var(--radius-xl)] border p-5 text-left backdrop-blur-2xl ${mode === id ? "direction-card-active" : "border-[var(--color-border)] bg-[var(--color-glass)]"}`}
+            >
+              <Icon className="size-6" />
+              <span className="mt-8 block text-2xl font-black">{label}</span>
+              <span className="mt-2 block text-sm font-semibold text-[var(--color-text-muted)]">{description}</span>
+            </motion.button>
+          ))}
+        </div>
+
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={mode}
+            initial={{ opacity: 0, y: 18, filter: "blur(10px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            exit={{ opacity: 0, y: -12, filter: "blur(8px)" }}
+            transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
+            className="brand-panel mt-5 overflow-hidden rounded-[var(--radius-xxl)] border border-white/25 p-4 shadow-[var(--shadow-soft)] backdrop-blur-3xl md:p-7"
+          >
+            <div className="flex items-center gap-3">
+              <active.Icon className="size-6" />
+              <div>
+                <p className="text-xs font-black uppercase text-white/55">Сейчас подбираем</p>
+                <h2 className="text-2xl font-black text-white">{active.label}</h2>
+              </div>
+            </div>
+            <div className="mt-8 grid gap-3 md:grid-cols-[1fr_auto]">
+              <textarea
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder={placeholders[mode]}
+                className="min-h-32 resize-none rounded-[var(--radius-lg)] border border-white/18 bg-white/10 p-5 text-base font-semibold leading-7 text-white outline-none backdrop-blur-2xl placeholder:text-white/42 focus:border-white/50"
+              />
+              <button type="button" onClick={() => void search()} disabled={loading} className="apple-glass-button min-h-14 rounded-[var(--radius-lg)] bg-white px-8 text-base font-black text-[var(--color-bordeaux)] disabled:opacity-60 md:min-h-full">
+                {loading ? "Собираю…" : "Подобрать"}
+              </button>
+            </div>
+            <div className="mt-4 grid gap-2 md:grid-cols-3">
+              {examples[mode].map((item) => (
+                <button key={item} type="button" onClick={() => { setQuery(item); void search(item); }} className="example-chip rounded-[var(--radius-md)] border border-white/14 bg-white/8 p-4 text-left text-sm font-bold leading-5 text-white/78 backdrop-blur-xl">
+                  {item}
+                </button>
+              ))}
+            </div>
+            {error ? <p className="mt-5 rounded-[var(--radius-md)] bg-white/12 p-4 text-sm font-semibold text-white/80">{error}</p> : null}
+          </motion.div>
+        </AnimatePresence>
+
+        <AnimatePresence mode="wait">
+          {results.length ? (
+            <motion.div key={`${mode}-${summary}`} initial={{ opacity: 0, y: 22 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mt-5">
+              <p className="mx-auto max-w-3xl py-7 text-center text-xl font-bold leading-8 text-[var(--color-text-muted)]">{summary}</p>
+              <div className="grid gap-3 md:grid-cols-2">
+                {results.map((product) => (
+                  <article key={product.name} className="meaning-card liquid-glass rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-glass)] p-5 backdrop-blur-2xl md:p-6">
+                    <div className="flex items-start justify-between gap-4">
+                      <div><p className="text-xs font-black uppercase text-[var(--color-text-soft)]">{product.category}</p><h3 className="mt-3 text-2xl font-black leading-tight">{product.name}</h3></div>
+                      <span className="shrink-0 rounded-full bg-[var(--color-bordeaux)] px-3 py-2 text-xs font-black text-white">★ {product.rating.toFixed(1)}</span>
+                    </div>
+                    <p className="mt-4 text-sm font-semibold leading-6 text-[var(--color-text-muted)]">{product.reason}</p>
+                    <div className="mt-5 flex flex-wrap gap-2">
+                      {product.marketplaces?.map((link) => <a key={link.href} href={link.href} target="_blank" rel="noreferrer" className="apple-glass-button inline-flex items-center gap-1 rounded-full border border-[var(--color-border)] bg-white/48 px-3 py-2 text-xs font-black">{link.label}<ExternalLink className="size-3" /></a>)}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
+      </div>
+    </section>
+  );
+}

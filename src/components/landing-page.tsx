@@ -3,47 +3,18 @@
 import Image from "next/image";
 import {
   ArrowRight,
-  Bot,
-  Copy,
-  ExternalLink,
-  Loader2,
   Menu,
   MessageCircle,
   Send,
-  Star,
-  ThumbsDown,
-  ThumbsUp,
   WandSparkles,
   X,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { FormEvent, ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button, LinkButton } from "@/components/ui/button";
 import { BeautyPortalGrid, PortalPanel } from "@/components/portal-components";
 import { cn } from "@/lib/utils";
-import { trackAnalyticsEvent } from "@/lib/analytics-client";
-
-type Product = {
-  name: string;
-  category: string;
-  reason: string;
-  rating: number;
-  ratingSource?: string;
-  marketplace?: string;
-  marketplaces?: MarketplaceLink[];
-};
-
-type MarketplaceLink = {
-  label: string;
-  href: string;
-};
-
-type RecommendationResponse = {
-  mode?: "preview";
-  summary: string;
-  products: Product[];
-};
 
 declare global {
   interface Window {
@@ -51,115 +22,27 @@ declare global {
   }
 }
 
-const suggestions = [
-  "Подбери уход для жирной кожи до 1500 рублей",
-  "Нужна мягкая база для чувствительной кожи",
-  "Собери вечерний уход против сухости до 3000 рублей",
-  "Сыворотка для сухой кожи до 1000 рублей",
-  "Крем для чувствительной кожи без отдушек",
-  "Умывание для комбинированной кожи до 1200 рублей",
-  "SPF для города без жирного блеска",
-  "База против покраснений на каждый день",
-  "Легкий ночной уход после ретинола",
-  "Подборка корейского ухода до 2500 рублей",
-  "Тонер для восстановления барьера",
-  "Уход после кислот без раздражения",
-];
-
-function buildMarketplaceLinks(name: string, provided?: MarketplaceLink[], fallback?: string): MarketplaceLink[] {
-  const query = encodeURIComponent(name);
-  const links: MarketplaceLink[] = [
-    { label: "Я.Маркет", href: `https://market.yandex.ru/search?text=${query}` },
-    { label: "Ozon", href: `https://www.ozon.ru/search/?text=${query}` },
-    { label: "WB", href: `https://www.wildberries.ru/catalog/0/search.aspx?search=${query}` },
-    { label: "ЗЯ", href: `https://goldapple.ru/search?q=${query}` },
-    { label: "Лэтуаль", href: `https://www.letu.ru/search?q=${query}` },
-  ];
-
-  const validProvided = provided?.filter((item) => item.label && item.href) ?? [];
-  const merged = fallback ? [{ label: "Магазин", href: fallback }, ...validProvided, ...links] : [...validProvided, ...links];
-  return merged.filter((item, index, array) => array.findIndex((candidate) => candidate.href === item.href) === index).slice(0, 5);
-}
-
-const sampleProducts: Product[] = [
-  {
-    name: "Round Lab Birch Juice Moisturizing Cream",
-    category: "Крем",
-    reason: "Легкий финиш, поддержка барьера и комфорт без перегруза.",
-    rating: 4.8,
-    ratingSource: "По оценкам пользователей Яндекс Маркет",
-    marketplaces: buildMarketplaceLinks("Round Lab Birch Juice Moisturizing Cream"),
-  },
-  {
-    name: "Beauty of Joseon Green Plum Cleanser",
-    category: "Очищение",
-    reason: "Мягкая ежедневная база для ухода утром и вечером.",
-    rating: 4.7,
-    ratingSource: "По оценкам пользователей Яндекс Маркет",
-    marketplaces: buildMarketplaceLinks("Beauty of Joseon Green Plum Cleanser"),
-  },
-  {
-    name: "La Roche-Posay Cicaplast Baume B5+",
-    category: "Восстановление",
-    reason: "Плотный успокаивающий бальзам для барьера, сухости и раздражения.",
-    rating: 4.9,
-    ratingSource: "По оценкам пользователей Яндекс Маркет",
-    marketplaces: buildMarketplaceLinks("La Roche-Posay Cicaplast Baume B5+"),
-  },
-  {
-    name: "COSRX Advanced Snail 96 Mucin Power Essence",
-    category: "Эссенция",
-    reason: "Легкий слой увлажнения и гладкости без тяжелой пленки.",
-    rating: 4.8,
-    ratingSource: "По оценкам пользователей Яндекс Маркет",
-    marketplaces: buildMarketplaceLinks("COSRX Advanced Snail 96 Mucin Power Essence"),
-  },
-  {
-    name: "Beauty of Joseon Relief Sun SPF50+",
-    category: "SPF",
-    reason: "Ежедневная защита с мягким финишем для города.",
-    rating: 4.8,
-    ratingSource: "По оценкам пользователей Яндекс Маркет",
-    marketplaces: buildMarketplaceLinks("Beauty of Joseon Relief Sun SPF50+"),
-  },
-  {
-    name: "The Ordinary Niacinamide 10% + Zinc 1%",
-    category: "Сыворотка",
-    reason: "Поддержка кожи при блеске и неровном тоне в простой схеме.",
-    rating: 4.7,
-    ratingSource: "По оценкам пользователей Яндекс Маркет",
-    marketplaces: buildMarketplaceLinks("The Ordinary Niacinamide 10% + Zinc 1%"),
-  },
-];
-
 const roadmap = [
   {
     label: "Сейчас",
-    title: "AI-подбор ухода",
-    text: "Главный сценарий уже на сайте: пользователь описывает задачу и получает подборку средств с объяснением.",
+    title: "Единый AI-подбор",
+    text: "Кожа, волосы и ароматы собраны в одном сценарии с отдельными правилами и примерами для каждого направления.",
     action: "Попробовать подбор",
     metric: "Live",
   },
   {
     label: "Профиль",
-    title: "Beauty-профиль",
-    text: "Тип кожи, бюджет, реакции и история рекомендаций будут собираться в один персональный профиль.",
-    action: "Посмотреть логику",
+    title: "Личный профиль",
+    text: "Регистрация, защищённая сессия и аватар уже работают в российском серверном контуре.",
+    action: "Создать профиль",
     metric: "Profile",
   },
   {
-    label: "Сообщество",
-    title: "Рейтинг средств",
-    text: "Оценки пользователей помогут понять, какие средства действительно работают для похожих запросов.",
-    action: "Оценить подборку",
-    metric: "Rating",
-  },
-  {
-    label: "Ароматы",
-    title: "Подбор парфюма",
-    text: "Отдельный модуль для подбора ароматов по настроению, нотам и контексту использования.",
-    action: "Оставить запрос",
-    metric: "Scent",
+    label: "Дальше",
+    title: "История и обратная связь",
+    text: "Следующий слой продукта — сохранение подборок и реакции, которые улучшают персональный контекст.",
+    action: "Следить за развитием",
+    metric: "Next",
   },
 ];
 
@@ -169,18 +52,7 @@ const reveal = {
 };
 
 export function LandingPage() {
-  const [query, setQuery] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [notice, setNotice] = useState("");
-  const [votes, setVotes] = useState<Record<string, "up" | "down">>({});
   const [selectedRoadmap, setSelectedRoadmap] = useState(0);
-  const [suggestionIndex, setSuggestionIndex] = useState(0);
-  const [hasUserResult, setHasUserResult] = useState(false);
-  const [result, setResult] = useState<RecommendationResponse>({
-    summary: "Beauty OS готова собрать подборку. Опишите кожу, бюджет и желаемый эффект.",
-    products: sampleProducts,
-  });
-  const aiRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     const readyTimer = window.setTimeout(() => {
@@ -190,88 +62,9 @@ export function LandingPage() {
     return () => window.clearTimeout(readyTimer);
   }, []);
 
-  const currentProducts = useMemo(
-    () => {
-      const source = result.products?.length ? result.products : sampleProducts;
-      if (source.length <= 2) {
-        return source;
-      }
-      if (hasUserResult) {
-        return source.slice(0, 2);
-      }
-      return [0, 1].map((offset) => source[(suggestionIndex + offset) % source.length]);
-    },
-    [hasUserResult, result, suggestionIndex],
-  );
-  const productWindowKey = currentProducts.map((product) => product.name).join("|");
-  const visibleSuggestions = useMemo(
-    () => [0, 1, 2].map((offset) => suggestions[(suggestionIndex + offset) % suggestions.length]),
-    [suggestionIndex],
-  );
-
-  useEffect(() => {
-    const interval = window.setInterval(() => {
-      setSuggestionIndex((current) => (current + 1) % suggestions.length);
-    }, 4200);
-
-    return () => window.clearInterval(interval);
-  }, []);
-
   function focusAi(prefill?: string) {
-    if (prefill) {
-      setQuery(prefill);
-    }
-    aiRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-
-  async function submitRecommendation(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setNotice("");
-    setIsLoading(true);
-    trackAnalyticsEvent("search_submit", "care_search");
-
-    try {
-      const response = await fetch("/api/recommendations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query }),
-      });
-      const responseText = await response.text();
-      let data: RecommendationResponse & { error?: string } = {
-        summary: "Сервис вернул пустой ответ. Попробуйте еще раз.",
-        products: sampleProducts,
-      };
-
-      if (responseText) {
-        try {
-          data = JSON.parse(responseText);
-        } catch {
-          data = {
-            summary: "Сервис вернул ответ в неподходящем формате. Показываю безопасную демо-подборку.",
-            products: sampleProducts,
-          };
-        }
-      }
-
-      if (!response.ok) {
-        throw new Error(data.error ?? "Не удалось получить подборку");
-      }
-
-      setResult(data);
-      setHasUserResult(true);
-      trackAnalyticsEvent("search_success", "care_search");
-      setNotice(data.mode === "preview" ? "Preview-режим активен. Подключите live API на сервере." : "Подборка обновлена.");
-    } catch (caught) {
-      trackAnalyticsEvent("search_rejected", "care_search");
-      setNotice(caught instanceof Error ? caught.message : "Не удалось получить подборку");
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  async function copyName(name: string) {
-    await navigator.clipboard.writeText(name);
-    setNotice(`Скопировано: ${name}`);
+    const suffix = prefill ? `?q=${encodeURIComponent(prefill)}` : "";
+    window.location.assign(`/care${suffix}`);
   }
 
   return (
@@ -306,115 +99,6 @@ export function LandingPage() {
 
       <HomePortalIntro onStart={() => focusAi("Хочу подобрать уход: тип кожи, бюджет и задача")} />
 
-      <section ref={aiRef} id="ai" className="px-3 pb-2 pt-2 md:px-5">
-        <div className="grid gap-2 rounded-[var(--radius-xxl)] border border-[var(--color-border)] bg-[rgba(255,255,255,.54)] p-2 shadow-[var(--shadow-soft)] backdrop-blur-2xl md:grid-cols-[0.82fr_1.18fr]">
-        <motion.form
-          onSubmit={submitRecommendation}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-80px" }}
-          variants={reveal}
-          className="search-panel brand-panel liquid-glass relative overflow-hidden rounded-[var(--radius-lg)] border border-white/20 p-5 text-white md:p-6"
-        >
-          <div className="absolute inset-0 opacity-80 [background:radial-gradient(circle_at_18%_12%,rgba(255,255,255,.16),transparent_32%),radial-gradient(circle_at_86%_0%,rgba(235,199,183,.28),transparent_34%),linear-gradient(135deg,rgba(30,26,24,.95),rgba(30,26,24,.78))]" />
-          <div className="relative z-10 flex min-h-[390px] flex-col justify-between gap-5">
-            <div>
-              <div className="mb-5 flex items-center gap-3">
-                <Image src="/krasavitsa-logo.png" alt="Красавица" width={44} height={44} className="rounded-full bg-white" />
-                <div>
-                  <p className="text-xs font-bold uppercase text-white/55">AI-подбор</p>
-                  <h2 className="text-3xl font-black leading-none text-white md:text-5xl">Beauty Search</h2>
-                  <p className="mt-2 max-w-sm text-sm font-semibold leading-5 text-white/58">
-                    Опишите задачу, бюджет и ограничения. Подбор появится справа.
-                  </p>
-                </div>
-              </div>
-              <textarea
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder='Например: "Подбери уход для жирной кожи до 1500 рублей"'
-                className="min-h-32 w-full resize-none rounded-2xl border border-white/15 bg-white/10 p-4 text-base leading-7 text-white outline-none backdrop-blur-xl transition duration-200 placeholder:text-white/45 focus:border-white/60 focus:bg-white/15"
-              />
-              <div className="mt-4 flex min-h-[82px] flex-wrap content-start gap-2 md:min-h-[44px]">
-                <AnimatePresence mode="popLayout">
-                  {visibleSuggestions.map((item, index) => (
-                    <motion.button
-                      key={item}
-                      layout
-                      initial={{ opacity: 0, y: 10, scale: 0.97 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -8, scale: 0.98 }}
-                      transition={{ duration: 0.34, delay: index * 0.04 }}
-                      type="button"
-                      onClick={() => setQuery(item)}
-                      whileHover={{ y: -2, scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="apple-glass-button rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs font-semibold text-white/80 backdrop-blur-xl transition duration-200 hover:bg-white hover:text-black"
-                    >
-                      {item}
-                    </motion.button>
-                  ))}
-                </AnimatePresence>
-              </div>
-            </div>
-            <div>
-              {notice ? <p className="mb-3 text-sm text-white/70">{notice}</p> : null}
-              <Button type="submit" disabled={isLoading} className="h-12 w-full bg-white text-black hover:bg-white/85 disabled:opacity-70">
-                {isLoading ? <Loader2 className="size-5 animate-spin" /> : <Send className="size-5" />}
-                Найти уход
-              </Button>
-            </div>
-          </div>
-        </motion.form>
-
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-80px" }}
-          variants={reveal}
-          transition={{ delay: 0.12 }}
-          className="relative overflow-hidden rounded-[var(--radius-lg)] bg-[url('/beauty-bg-01.svg')] bg-cover bg-center p-2"
-        >
-          <div className="grid min-h-[390px] gap-2">
-              <GlassPanel className="bg-white/54">
-                <div className="mb-5 flex items-center justify-between gap-4">
-                  <div>
-                    <p className="text-xs font-bold uppercase text-black/45">AI-вывод</p>
-                    <p className="mt-2 text-base font-semibold leading-7">{result.summary}</p>
-                  </div>
-                  <Bot className="size-8 shrink-0" />
-                </div>
-                <div className="relative h-[520px] overflow-hidden sm:h-[430px] md:h-[386px]">
-                  <AnimatePresence initial={false}>
-                    <motion.div
-                      key={productWindowKey}
-                      initial={{ opacity: 0, y: 34, scale: 0.99, filter: "blur(12px)" }}
-                      animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
-                      exit={{ opacity: 0, y: -34, scale: 0.99, filter: "blur(12px)" }}
-                      transition={{ duration: 0.68, ease: [0.16, 1, 0.3, 1] }}
-                      className="absolute inset-0 grid content-start gap-2"
-                    >
-                      {currentProducts.map((product) => (
-                        <ProductCard
-                          key={product.name}
-                          product={product}
-                          vote={votes[product.name]}
-                          onVote={(vote) => {
-                            setVotes((current) => ({ ...current, [product.name]: vote }));
-                            setNotice(vote === "up" ? "Оценка учтена." : "Отметила как неподходящее.");
-                          }}
-                          onCopy={() => copyName(product.name)}
-                        />
-                      ))}
-                    </motion.div>
-                  </AnimatePresence>
-                </div>
-              </GlassPanel>
-          </div>
-        </motion.div>
-        </div>
-      </section>
-
       <section id="telegram" className="grid gap-2 px-3 pb-2 pt-2 md:grid-cols-[1fr_0.9fr] md:px-5">
         <TelegramPortalPanel />
         <motion.div
@@ -427,11 +111,11 @@ export function LandingPage() {
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_8%,rgba(255,255,255,.62),transparent_32%),linear-gradient(145deg,rgba(232,199,192,.68),rgba(92,31,45,.16))]" />
           <div className="relative z-10 flex min-h-[480px] flex-col justify-between rounded-[var(--radius-lg)] border border-white/55 bg-white/32 p-5 text-[var(--color-text)] shadow-[inset_0_0_0_1px_rgba(255,255,255,.16)] backdrop-blur-2xl md:p-6">
             <div>
-              <p className="text-xs font-black uppercase text-black/45">Roadmap</p>
+              <p className="text-xs font-black uppercase text-black/45">Продукт</p>
               <h3 className="mt-3 text-[clamp(2.5rem,4.7vw,4.4rem)] font-black leading-[0.9]">
-                Что будет
+                Как всё
                 <br />
-                дальше
+                устроено
               </h3>
             </div>
 
@@ -487,7 +171,6 @@ export function LandingPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    setNotice(`${roadmap[selectedRoadmap].label}: ${roadmap[selectedRoadmap].title}`);
                     focusAi(roadmap[selectedRoadmap].action);
                   }}
                   className="apple-glass-button mt-4 inline-flex h-10 items-center gap-2 rounded-full bg-black px-5 text-sm font-black text-white transition duration-300 hover:bg-black/85"
@@ -617,8 +300,7 @@ function Header({ onTry }: { onTry: () => void }) {
 
   const links = [
     ["Главное", "#home"],
-    ["Подбор ухода", "/care"],
-    ["Парфюм", "/perfume"],
+    ["AI-подбор", "/care"],
     ["Блог", "/blog"],
     ["Профиль", "/profile"],
   ];
@@ -753,85 +435,6 @@ function PortalTile({ children, className, delay = 0, hero = false }: { children
       <div className="absolute inset-0 [background:linear-gradient(110deg,rgba(255,255,255,.8),rgba(255,255,255,.18)_45%,rgba(255,255,255,.55))]" />
       <div className={cn("relative z-10 flex h-full items-center justify-center", hero && "block")}>{children}</div>
     </motion.div>
-  );
-}
-
-function GlassPanel({ children, className }: { children: ReactNode; className?: string }) {
-  return (
-    <motion.div
-      whileHover={{ y: -3, scale: 1.004 }}
-      whileTap={{ scale: 0.992 }}
-      className={cn("apple-glass-card flex flex-col rounded-2xl bg-white/75 p-5 shadow-[inset_0_0_0_1px_rgba(255,255,255,.55)] backdrop-blur-2xl", className)}
-    >
-      {children}
-    </motion.div>
-  );
-}
-
-function ProductCard({ product, vote, onVote, onCopy }: { product: Product; vote?: "up" | "down"; onVote: (vote: "up" | "down") => void; onCopy: () => void }) {
-  const marketplaceLinks = buildMarketplaceLinks(product.name, product.marketplaces, product.marketplace);
-  const reactionHref = vote ? `https://t.me/krasavitsa_ai_bot?start=${encodeURIComponent(`reaction:${vote}:${product.name}`)}` : "";
-
-  return (
-    <motion.article
-      whileHover={{ y: -3, scale: 1.006 }}
-      whileTap={{ scale: 0.99 }}
-      transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
-      className="apple-glass-card rounded-2xl border border-black/10 bg-white/62 p-4 backdrop-blur-2xl"
-    >
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="text-xs font-black uppercase text-black/45">{product.category}</p>
-          <h3 className="mt-1 text-lg font-black">{product.name}</h3>
-          <p className="mt-2 text-sm font-semibold leading-6 text-black/55">{product.reason}</p>
-        </div>
-        <span title={product.ratingSource ?? "По оценкам пользователей Яндекс Маркет"} className="flex cursor-help items-center gap-1 rounded-full bg-black px-3 py-2 text-sm font-black text-white">
-          <Star className="size-4 fill-white" />
-          {product.rating}
-        </span>
-      </div>
-      <div className="mt-4 flex flex-wrap gap-2">
-        {marketplaceLinks.map((link, index) => (
-          <a
-            key={link.href}
-            href={link.href}
-            target="_blank"
-            rel="noreferrer"
-            className={cn(
-              "inline-flex h-9 items-center gap-2 rounded-full px-4 text-sm font-bold transition duration-200 hover:scale-105",
-              index === 0 ? "bg-black text-white" : "border border-black/15 bg-white/60 text-black hover:bg-black hover:text-white",
-            )}
-          >
-            {link.label}
-            <ExternalLink className="size-4" />
-          </a>
-        ))}
-        <button type="button" onClick={onCopy} className="inline-flex h-9 items-center gap-2 rounded-full border border-black/15 px-4 text-sm font-bold transition duration-200 hover:bg-black hover:text-white">
-          <Copy className="size-4" />
-          Название
-        </button>
-        <VoteButton active={vote === "up"} label="Подходит" onClick={() => onVote("up")}>
-          <ThumbsUp className="size-4" />
-        </VoteButton>
-        <VoteButton active={vote === "down"} label="Не подходит" onClick={() => onVote("down")}>
-          <ThumbsDown className="size-4" />
-        </VoteButton>
-        {reactionHref ? (
-          <a href={reactionHref} target="_blank" rel="noreferrer" className="apple-glass-button inline-flex h-9 items-center gap-2 rounded-full border border-black/15 bg-white/54 px-4 text-xs font-black text-black transition duration-200 hover:bg-black hover:text-white">
-            TG sync
-            <ExternalLink className="size-3.5" />
-          </a>
-        ) : null}
-      </div>
-    </motion.article>
-  );
-}
-
-function VoteButton({ active, label, children, onClick }: { active: boolean; label: string; children: ReactNode; onClick: () => void }) {
-  return (
-    <button type="button" aria-label={label} title={label} onClick={onClick} className={cn("grid size-9 place-items-center rounded-full border border-black/15 transition duration-200 hover:bg-black hover:text-white", active && "bg-black text-white")}>
-      {children}
-    </button>
   );
 }
 

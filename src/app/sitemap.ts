@@ -6,7 +6,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const routes = [
     ["", 1],
     ["/care", 0.9],
-    ["/perfume", 0.75],
     ["/blog", 0.8],
     ["/about", 0.65],
     ["/profile", 0.65],

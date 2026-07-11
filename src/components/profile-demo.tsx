@@ -1,187 +1,150 @@
 "use client";
 
+import Link from "next/link";
+import Image from "next/image";
+import { Camera, LogOut, ShieldCheck, UserRound } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useState } from "react";
-import { BeautyPortalGrid, PortalPanel } from "@/components/portal-components";
+import { FormEvent, useEffect, useState } from "react";
 
-const profileFields = [
-  { label: "Тип кожи", value: "Комбинированная, склонна к обезвоженности" },
-  { label: "Главные задачи", value: "Блеск в T-зоне, сухость после умывания, SPF без липкости" },
-  { label: "Бюджет", value: "до 3 500 ₽ за базовый набор" },
-  { label: "Ограничения", value: "без сильных отдушек, осторожно с кислотами" },
-];
-
-const history = [
-  ["Сегодня", "Базовый уход: очищение, крем, SPF"],
-  ["Неделя назад", "Восстановление барьера после активов"],
-  ["Сохранено", "Легкий крем и мягкое очищение"],
-];
+type User = { id: string; email: string; nickname: string; avatarUrl?: string; createdAt: string };
+type Mode = "register" | "login";
 
 export function ProfileDemo() {
-  const [mode, setMode] = useState<"form" | "history" | "article">("form");
+  const [user, setUser] = useState<User | null>(null);
+  const [mode, setMode] = useState<Mode>("register");
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    void fetch("/api/profile/me", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((data: { user?: User | null }) => setUser(data.user ?? null))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setMessage("");
+    const form = new FormData(event.currentTarget);
+    const payload = Object.fromEntries(form.entries());
+    const response = await fetch(`/api/profile/${mode}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...payload, acceptedPrivacy: form.get("acceptedPrivacy") === "on", acceptedTerms: form.get("acceptedTerms") === "on" }),
+    });
+    const data = (await response.json()) as { user?: User; error?: string };
+    if (!response.ok || !data.user) return setMessage(data.error ?? "Не удалось сохранить профиль.");
+    setUser(data.user);
+    setMessage(mode === "register" ? "Профиль создан." : "Вы вошли в профиль.");
+  };
+
+  const uploadAvatar = async (file?: File) => {
+    if (!file) return;
+    const form = new FormData();
+    form.set("avatar", file);
+    const response = await fetch("/api/profile/avatar", { method: "POST", body: form });
+    const data = (await response.json()) as { user?: User; error?: string };
+    if (data.user) setUser(data.user);
+    setMessage(data.error ?? "Аватар обновлён.");
+  };
+
+  const logout = async () => {
+    await fetch("/api/profile/logout", { method: "POST" });
+    setUser(null);
+    setMode("login");
+    setMessage("Вы вышли из профиля.");
+  };
+
+  const deleteAccount = async () => {
+    if (!window.confirm("Удалить профиль и данные аккаунта? Это действие нельзя отменить.")) return;
+    const response = await fetch("/api/profile/me", { method: "DELETE" });
+    if (!response.ok) return setMessage("Не удалось удалить профиль.");
+    setUser(null);
+    setMode("register");
+    setMessage("Профиль удалён.");
+  };
+
+  if (loading) return <div className="mx-auto min-h-[520px] max-w-[1180px] animate-pulse rounded-[var(--radius-xxl)] bg-[var(--color-glass)]" />;
 
   return (
-    <div className="px-3 py-2 md:px-5">
-      <BeautyPortalGrid className="min-h-[640px]">
-        <PortalPanel className="md:col-span-5" image="/beauty-products-portal.png">
-          <div className="flex min-h-[420px] flex-col justify-between md:min-h-[560px]">
-            <div>
-              <p className="text-sm font-black uppercase text-[var(--color-text-soft)]">Демо-профиль</p>
-              <h2 className="mt-4 text-[clamp(2.35rem,4.6vw,5rem)] font-black leading-none">
-                Личная карта ухода, истории и материалов
-              </h2>
-              <p className="mt-5 max-w-xl text-base font-semibold leading-7 text-[var(--color-text-muted)]">
-                Это визуальный прототип. Поля пока не отправляют данные, но показывают будущую механику профиля Beauty OS.
-              </p>
-            </div>
-            <div className="mt-6 grid gap-2 sm:grid-cols-3">
-              <ProfileTab active={mode === "form"} onClick={() => setMode("form")}>Анкета</ProfileTab>
-              <ProfileTab active={mode === "history"} onClick={() => setMode("history")}>История</ProfileTab>
-              <ProfileTab active={mode === "article"} onClick={() => setMode("article")}>Статья</ProfileTab>
-            </div>
-          </div>
-        </PortalPanel>
-        <PortalPanel className="md:col-span-7">
-          <AnimatePresence mode="wait">
-            {mode === "form" ? <ProfileForm key="form" /> : null}
-            {mode === "history" ? <ProfileHistory key="history" /> : null}
-            {mode === "article" ? <ArticleDraft key="article" /> : null}
-          </AnimatePresence>
-        </PortalPanel>
-      </BeautyPortalGrid>
-    </div>
-  );
-}
-
-function ProfileTab({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`apple-glass-button rounded-full px-5 py-4 text-sm font-black ${
-        active ? "bg-black text-white" : "border border-black/10 bg-white/38 text-[var(--color-text)]"
-      }`}
-    >
-      {children}
-    </button>
-  );
-}
-
-function ProfileForm() {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 16, filter: "blur(8px)" }}
-      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-      exit={{ opacity: 0, y: -12, filter: "blur(8px)" }}
-      transition={{ duration: 0.36, ease: [0.16, 1, 0.3, 1] }}
-      className="grid h-full gap-3"
-    >
-      <div>
-        <p className="text-sm font-black uppercase text-[var(--color-text-soft)]">Анкета</p>
-        <h3 className="mt-3 text-3xl font-black leading-none md:text-4xl">Параметры кожи</h3>
-      </div>
-      <div className="grid gap-3 md:grid-cols-2">
-        {profileFields.map((field) => (
-          <label key={field.label} className="apple-glass-card rounded-[var(--radius-md)] border border-white/60 bg-white/34 p-4 backdrop-blur-2xl">
-            <span className="text-xs font-black uppercase text-[var(--color-text-soft)]">{field.label}</span>
-            <textarea readOnly value={field.value} aria-label={field.label} className="mt-3 min-h-24 w-full resize-none bg-transparent text-base font-bold leading-6 text-[var(--color-text)] outline-none" />
-          </label>
-        ))}
-      </div>
-      <div className="grid gap-3 md:grid-cols-2">
-        {[
-          ["Имя", "Мария"],
-          ["Email", "demo@krasavitsa.ai"],
-        ].map(([label, value]) => (
-          <label key={label} className="apple-glass-card rounded-[var(--radius-md)] border border-white/60 bg-white/34 p-4 backdrop-blur-2xl">
-            <span className="text-xs font-black uppercase text-[var(--color-text-soft)]">{label}</span>
-            <input readOnly value={value} className="mt-3 w-full bg-transparent text-lg font-black outline-none" aria-label={label} />
-          </label>
-        ))}
-      </div>
-      <div className="grid gap-2 rounded-[var(--radius-md)] border border-white/60 bg-white/28 p-4 backdrop-blur-2xl">
-        {[
-          "Согласие на обработку данных для работы профиля",
-          "Согласие получать сервисные уведомления в Telegram",
-          "Я понимаю, что форма сейчас демонстрационная",
-        ].map((item) => (
-          <label key={item} className="flex items-center gap-3 text-sm font-bold text-[var(--color-text-muted)]">
-            <input type="checkbox" readOnly checked className="size-5 accent-black" />
-            {item}
-          </label>
-        ))}
-      </div>
-      <button type="button" className="apple-glass-button rounded-full bg-black px-6 py-4 text-sm font-black text-white">
-        Создать тестовый профиль
-      </button>
-    </motion.div>
-  );
-}
-
-function ProfileHistory() {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 16, filter: "blur(8px)" }}
-      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-      exit={{ opacity: 0, y: -12, filter: "blur(8px)" }}
-      transition={{ duration: 0.36, ease: [0.16, 1, 0.3, 1] }}
-      className="grid gap-2"
-    >
-      {history.map(([date, title]) => (
-        <div key={title} className="apple-glass-card flex flex-col gap-3 rounded-[var(--radius-md)] border border-white/60 bg-white/34 p-4 backdrop-blur-2xl sm:flex-row sm:items-center sm:justify-between">
+    <section className="px-3 pb-14 pt-6 md:px-5 md:pb-24 md:pt-12">
+      <div className="mx-auto grid max-w-[1180px] gap-3 md:grid-cols-[0.88fr_1.12fr]">
+        <div className="brand-panel flex min-h-[500px] flex-col justify-between rounded-[var(--radius-xxl)] border border-white/18 p-6 text-white shadow-[var(--shadow-soft)] md:p-9">
           <div>
-            <p className="text-xs font-black uppercase text-[var(--color-text-soft)]">{date}</p>
-            <p className="mt-1 text-xl font-black">{title}</p>
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-white/48">Личный контекст</p>
+            <h1 className="mt-6 text-[clamp(3rem,6vw,6.4rem)] font-black leading-[0.88]">Профиль, который помнит главное</h1>
           </div>
-          <span className="w-fit rounded-full bg-black px-4 py-2 text-xs font-black uppercase text-white">Preview</span>
+          <div className="mt-16 grid gap-4 text-sm font-semibold leading-6 text-white/68">
+            <p>Аккаунт и аватар сохраняются на сервере проекта в России. Текст AI-запросов не связывается с email профиля.</p>
+            <div className="flex items-center gap-3"><ShieldCheck className="size-5" /><span>Пароль хранится только как криптографический хеш.</span></div>
+          </div>
         </div>
-      ))}
-    </motion.div>
+
+        <div className="liquid-glass rounded-[var(--radius-xxl)] border border-[var(--color-border)] bg-[var(--color-glass)] p-5 shadow-[var(--shadow-card)] backdrop-blur-3xl md:p-8">
+          <AnimatePresence mode="wait">
+            {user ? (
+              <motion.div key="account" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="flex min-h-[450px] flex-col">
+                <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
+                  <label className="group relative grid size-32 shrink-0 cursor-pointer place-items-center overflow-hidden rounded-full border border-[var(--color-border)] bg-[var(--color-powder-light)]">
+                    {user.avatarUrl ? <Image src={user.avatarUrl} alt="Аватар профиля" fill unoptimized className="object-cover" /> : <UserRound className="size-12 text-[var(--color-bordeaux)]" />}
+                    <span className="absolute inset-0 grid place-items-center bg-black/0 text-transparent transition group-hover:bg-black/40 group-hover:text-white"><Camera className="size-6" /></span>
+                    <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(event) => void uploadAvatar(event.target.files?.[0])} />
+                  </label>
+                  <div><p className="text-xs font-black uppercase text-[var(--color-text-soft)]">Ваш профиль</p><h2 className="mt-2 text-4xl font-black">{user.nickname}</h2><p className="mt-2 font-semibold text-[var(--color-text-muted)]">{user.email}</p></div>
+                </div>
+                <div className="mt-12 grid gap-3 sm:grid-cols-2">
+                  <Info label="Хранение" value="Российский сервер" />
+                  <Info label="Создан" value={new Date(user.createdAt).toLocaleDateString("ru-RU")} />
+                  <Info label="Следующий шаг" value="Заполнить параметры ухода" />
+                  <Info label="Изображение" value={user.avatarUrl ? "Аватар добавлен" : "Можно добавить JPG, PNG или WebP"} />
+                </div>
+                {message ? <p className="mt-5 text-sm font-semibold text-[var(--color-text-muted)]">{message}</p> : null}
+                <div className="mt-auto flex flex-wrap gap-2 pt-8">
+                  <button type="button" onClick={() => void logout()} className="apple-glass-button flex h-12 w-fit items-center gap-2 rounded-full border border-[var(--color-border)] bg-white/40 px-5 text-sm font-black"><LogOut className="size-4" />Выйти</button>
+                  <button type="button" onClick={() => void deleteAccount()} className="h-12 rounded-full px-5 text-sm font-black text-[var(--color-text-soft)] transition hover:bg-[var(--color-bordeaux)] hover:text-white">Удалить профиль</button>
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div key={mode} initial={{ opacity: 0, y: 18, filter: "blur(8px)" }} animate={{ opacity: 1, y: 0, filter: "blur(0px)" }} exit={{ opacity: 0, y: -12 }}>
+                <div className="flex gap-2">
+                  <ModeButton active={mode === "register"} onClick={() => setMode("register")}>Регистрация</ModeButton>
+                  <ModeButton active={mode === "login"} onClick={() => setMode("login")}>Войти</ModeButton>
+                </div>
+                <h2 className="mt-10 text-4xl font-black leading-none">{mode === "register" ? "Создать профиль" : "Вернуться в профиль"}</h2>
+                <form onSubmit={submit} className="mt-8 grid gap-3">
+                  {mode === "register" ? <Field name="nickname" label="Никнейм" autoComplete="nickname" minLength={2} /> : null}
+                  <Field name="email" label="Почта" type="email" autoComplete="email" />
+                  <Field name="password" label="Пароль" type="password" autoComplete={mode === "register" ? "new-password" : "current-password"} minLength={10} />
+                  {mode === "register" ? (
+                    <div className="mt-2 grid gap-3 rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-white/24 p-4">
+                      <Consent name="acceptedPrivacy">Я принимаю <Link href="/privacy">политику конфиденциальности</Link>.</Consent>
+                      <Consent name="acceptedTerms">Я принимаю <Link href="/terms">пользовательское соглашение</Link>.</Consent>
+                    </div>
+                  ) : null}
+                  {message ? <p className="mt-2 text-sm font-semibold text-[var(--color-bordeaux)]">{message}</p> : null}
+                  <button type="submit" className="apple-glass-button brand-action mt-4 h-14 rounded-full px-7 text-base font-black text-white">{mode === "register" ? "Создать профиль" : "Войти"}</button>
+                </form>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+    </section>
   );
 }
 
-function ArticleDraft() {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 16, filter: "blur(8px)" }}
-      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-      exit={{ opacity: 0, y: -12, filter: "blur(8px)" }}
-      transition={{ duration: 0.36, ease: [0.16, 1, 0.3, 1] }}
-      className="grid gap-3"
-    >
-      <div>
-        <p className="text-sm font-black uppercase text-[var(--color-text-soft)]">Пользовательская статья</p>
-        <h3 className="mt-3 text-3xl font-black leading-none md:text-4xl">Черновик для блога</h3>
-        <p className="mt-3 max-w-2xl text-sm font-semibold leading-6 text-[var(--color-text-muted)]">
-          Форма пока нерабочая, но показывает будущий формат авторских материалов: имя, заголовок, текст, оценки и комментарии.
-        </p>
-      </div>
-      <div className="grid gap-3 md:grid-cols-[0.7fr_1.3fr]">
-        <label className="apple-glass-card rounded-[var(--radius-md)] border border-white/60 bg-white/34 p-4 backdrop-blur-2xl">
-          <span className="text-xs font-black uppercase text-[var(--color-text-soft)]">Автор</span>
-          <input readOnly value="Анна, 29" className="mt-3 w-full bg-transparent text-2xl font-black outline-none" aria-label="Автор статьи" />
-        </label>
-        <label className="apple-glass-card rounded-[var(--radius-md)] border border-white/60 bg-white/34 p-4 backdrop-blur-2xl">
-          <span className="text-xs font-black uppercase text-[var(--color-text-soft)]">Заголовок</span>
-          <input readOnly value="Как я собрала спокойный уход без лишних банок" className="mt-3 w-full bg-transparent text-2xl font-black leading-tight outline-none" aria-label="Заголовок статьи" />
-        </label>
-      </div>
-      <label className="apple-glass-card rounded-[var(--radius-lg)] border border-white/60 bg-white/34 p-5 backdrop-blur-2xl">
-        <span className="text-xs font-black uppercase text-[var(--color-text-soft)]">Материал</span>
-        <textarea
-          readOnly
-          value="У меня комбинированная кожа, но раньше я покупала средства по трендам. В Красавице я описала бюджет, реакцию на кислоты и желание убрать липкость. Подбор получился коротким: мягкое очищение, крем для барьера и SPF без блеска."
-          className="mt-4 min-h-40 w-full resize-none bg-transparent text-base font-semibold leading-7 text-[var(--color-text-muted)] outline-none"
-          aria-label="Текст статьи"
-        />
-      </label>
-      <div className="grid gap-3 md:grid-cols-3">
-        {["Оценить", "Сохранить", "Комментировать"].map((item) => (
-          <button key={item} type="button" className="apple-glass-button rounded-full border border-black/10 bg-white/38 px-5 py-4 text-sm font-black text-[var(--color-text)] backdrop-blur-2xl hover:bg-black hover:text-white">
-            {item}
-          </button>
-        ))}
-      </div>
-    </motion.div>
-  );
+function ModeButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return <button type="button" onClick={onClick} className={`rounded-full border px-5 py-3 text-sm font-black transition ${active ? "border-transparent bg-[var(--color-bordeaux)] text-white" : "border-[var(--color-border)] bg-white/32"}`}>{children}</button>;
+}
+
+function Field({ label, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { label: string }) {
+  return <label className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-white/34 p-4 backdrop-blur-xl"><span className="text-xs font-black uppercase text-[var(--color-text-soft)]">{label}</span><input required {...props} className="mt-2 h-10 w-full bg-transparent text-lg font-bold outline-none" /></label>;
+}
+
+function Consent({ name, children }: { name: string; children: React.ReactNode }) {
+  return <label className="flex items-start gap-3 text-sm font-semibold leading-5 text-[var(--color-text-muted)]"><input required name={name} type="checkbox" className="mt-0.5 size-5 accent-[var(--color-bordeaux)]" /><span className="[&_a]:font-black [&_a]:underline">{children}</span></label>;
+}
+
+function Info({ label, value }: { label: string; value: string }) {
+  return <div className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-white/30 p-4"><p className="text-xs font-black uppercase text-[var(--color-text-soft)]">{label}</p><p className="mt-3 text-lg font-black">{value}</p></div>;
 }
