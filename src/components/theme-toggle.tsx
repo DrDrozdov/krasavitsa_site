@@ -59,7 +59,7 @@ export function ThemeToggle({ className }: { className?: string }) {
       )}
     >
       <span className="theme-toggle-thumb grid size-[38px] shrink-0 place-items-center rounded-full bg-white text-black shadow-[0_8px_22px_rgba(0,0,0,.18)] transition-transform duration-300 ease-[var(--ease-soft)]">
-        {theme === "dark" ? <Moon className="size-4" /> : <Sun className="size-4" />}
+        {theme === "dark" ? <Moon className="size-4 text-[#5c1f2d]" strokeWidth={2.6} /> : <Sun className="size-4 text-[#2a171c]" strokeWidth={2.6} />}
       </span>
     </button>
   );

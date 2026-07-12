@@ -206,7 +206,7 @@ export function BeautyFinder() {
                     </div>
                     <div className="flex items-start justify-between gap-4">
                       <div><p className="text-xs font-black uppercase text-[var(--color-text-soft)]">{product.category}</p><h3 className="mt-3 text-2xl font-black leading-tight">{product.name}</h3></div>
-                      <span className="shrink-0 rounded-full bg-[var(--color-bordeaux)] px-3 py-2 text-xs font-black text-white">★ {product.rating.toFixed(1)}</span>
+                      <span className="rating-badge shrink-0 rounded-full bg-[var(--color-bordeaux)] px-3 py-2 text-xs font-black text-white">★ {product.rating.toFixed(1)}</span>
                     </div>
                     <p className="mt-4 text-sm font-semibold leading-6 text-[var(--color-text-muted)]">{product.reason}</p>
                     {product.price ? <p className="mt-3 text-sm font-black text-[var(--color-bordeaux)]">Ориентир по цене: {product.price}</p> : null}

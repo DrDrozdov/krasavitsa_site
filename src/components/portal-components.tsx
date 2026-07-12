@@ -5,7 +5,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { ArrowRight, Menu, MessageCircle, UserRound, X } from "lucide-react";
+import { ArrowRight, Camera, Menu, MessageCircle, UserRound, X } from "lucide-react";
 import { motion } from "motion/react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LinkButton } from "@/components/ui/button";
@@ -320,10 +320,14 @@ export function TelegramCTA({
   title = "Продолжить в Telegram",
   text = "Красавица задаст пару уточняющих вопросов и сохранит рекомендации в чате.",
   href = "https://t.me/krasavitsa_ai_bot",
+  secondaryHref,
+  secondaryLabel,
 }: {
   title?: string;
   text?: string;
   href?: string;
+  secondaryHref?: string;
+  secondaryLabel?: string;
 }) {
   return (
     <div className="px-3 py-2 md:px-5">
@@ -333,10 +337,13 @@ export function TelegramCTA({
           <h2 className="mt-3 text-[clamp(2.1rem,3.4vw,3.6rem)] font-black leading-none">{title}</h2>
           <p className="mt-4 max-w-2xl text-sm font-semibold leading-6 text-[var(--color-text-muted)]">{text}</p>
         </div>
-        <LinkButton href={href} className="h-14 w-fit bg-black px-7 text-white hover:bg-neutral-800">
-          <MessageCircle className="size-5" />
-          Открыть бот
-        </LinkButton>
+        <div className="flex flex-wrap gap-2">
+          <LinkButton href={href} className="h-14 w-fit bg-black px-7 text-white hover:bg-neutral-800">
+            <MessageCircle className="size-5" />
+            {href.includes("krasavitsa_ai_bot") ? "Открыть бот" : "Открыть канал"}
+          </LinkButton>
+          {secondaryHref && secondaryLabel ? <LinkButton href={secondaryHref} className="h-14 w-fit bg-[var(--color-bordeaux)] px-7 text-white hover:bg-[var(--color-bordeaux-soft)]"><Camera className="size-5" />{secondaryLabel}</LinkButton> : null}
+        </div>
       </div>
     </div>
   );

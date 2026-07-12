@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowUpRight, Bot, Brain, CheckCircle2, Globe2, MessageCircle, Music2, Rocket, Send, Sparkles, Star, UserRound } from "lucide-react";
+import { ArrowUpRight, Bot, Brain, Camera, CheckCircle2, Globe2, MessageCircle, Music2, Rocket, Send, Sparkles, Star, UserRound } from "lucide-react";
 import { BeautyPageShell, BeautyPortalGrid, PortalPanel, TelegramCTA } from "@/components/portal-components";
 
 export const metadata: Metadata = {
@@ -13,6 +13,7 @@ export const metadata: Metadata = {
 const socials = [
   { title: "Telegram-бот", href: "https://t.me/krasavitsa_ai_bot", Icon: Bot },
   { title: "Telegram-канал", href: "https://t.me/krasavitsa_ai", Icon: Send },
+  { title: "Instagram", href: "https://www.instagram.com/krasavitsa_ai?utm_source=qr", Icon: Camera },
   { title: "TikTok", href: "https://www.tiktok.com/@krasavitsa_ai", Icon: Music2 },
   { title: "MAX", href: "https://max.ru/", Icon: MessageCircle },
 ];
@@ -182,6 +183,8 @@ export default function AboutPage() {
         title="Следить за развитием Красавицы"
         text="В Telegram-канале будут новости о запуске профиля, рейтинге доверия, парфюм-модуле и новых возможностях AI-подбора."
         href="https://t.me/krasavitsa_ai"
+        secondaryHref="https://www.instagram.com/krasavitsa_ai?utm_source=qr"
+        secondaryLabel="Instagram"
       />
     </BeautyPageShell>
   );

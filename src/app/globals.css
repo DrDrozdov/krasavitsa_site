@@ -485,6 +485,49 @@ a {
   transition: transform 420ms var(--ease-soft), background-color 300ms ease, color 300ms ease, box-shadow 300ms ease !important;
 }
 
+.theme-toggle::before {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border-radius: inherit;
+  background: linear-gradient(110deg, rgba(255, 255, 255, 0.26), transparent 36%, rgba(232, 199, 192, 0.24));
+  opacity: 0.72;
+  pointer-events: none;
+}
+
+.rating-badge {
+  position: relative;
+  cursor: help;
+}
+
+.rating-badge::after {
+  content: "Рейтинг по оценкам покупателей Яндекс Маркета";
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 0.65rem);
+  z-index: 20;
+  width: max-content;
+  max-width: min(18rem, 72vw);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 0.8rem;
+  background: rgba(29, 21, 24, 0.9);
+  padding: 0.55rem 0.65rem;
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1.35;
+  opacity: 0;
+  transform: translateY(4px) scale(0.98);
+  pointer-events: none;
+  transition: opacity 180ms ease, transform 220ms var(--ease-soft);
+}
+
+.rating-badge:hover::after,
+.rating-badge:focus-visible::after {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
 .theme-toggle.is-dark .theme-toggle-thumb {
   transform: translate(34px, -50%);
 }

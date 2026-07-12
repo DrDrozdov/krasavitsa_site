@@ -171,3 +171,22 @@ export async function buildMessagePayload(update: TelegramUpdate): Promise<SendM
     reply_markup: adminMenu,
   };
 }
+
+export async function sendDailyAnalyticsDigest() {
+  const recipients = [...getAdminIds()];
+  if (!recipients.length) throw new Error("TELEGRAM_ADMIN_IDS is not configured");
+  const analytics = await getAnalyticsSnapshot(1);
+  const text = [
+    "Красавица: ежедневная сводка",
+    "",
+    `Просмотры: ${analytics.totals.pageviews}`,
+    `Ключевые действия: ${analytics.totals.cta}`,
+    `Переходы в Telegram: ${analytics.totals.telegram}`,
+    `Поиски: ${analytics.totals.searches}`,
+    `Ошибки: ${analytics.totals.errors}`,
+    "",
+    "Данные агрегированы: без IP, текста запросов и постоянных идентификаторов.",
+  ].join("\n");
+  const delivery = await Promise.allSettled(recipients.map((chat_id) => sendTelegramMessage({ chat_id, text })));
+  return { recipients: recipients.length, delivered: delivery.filter((result) => result.status === "fulfilled").length };
+}

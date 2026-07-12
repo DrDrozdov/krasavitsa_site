@@ -74,10 +74,31 @@ function normalizeProducts(mode: SearchMode, products?: Product[]) {
     category: product.category || defaults[index % defaults.length].category,
     reason: product.reason || defaults[index % defaults.length].reason,
     rating: Math.min(5, Math.max(1, Number(product.rating) || 4.7)),
-    price: product.price || defaults[index % defaults.length].price,
-    image: product.image || defaults[index % defaults.length].image,
+    price: product.price,
+    image: product.image,
     marketplaces: marketplaceLinks(product.name || defaults[index % defaults.length].name, product.marketplaces),
   }));
+}
+
+async function verifyRecommendations(baseUrl: string, key: string, mode: SearchMode, query: string, candidates: Product[]) {
+  const candidateText = JSON.stringify(candidates.map(({ name, category, reason }) => ({ name, category, reason })));
+  const response = await fetch(`${baseUrl}/chat/completions`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: process.env.DEEPSEEK_MODEL ?? "deepseek-chat",
+      response_format: { type: "json_object" },
+      messages: [
+        { role: "system", content: `Ты второй агент-проверяющий платформы «Красавица». Проверь, что каждый кандидат реально существует, относится к направлению ${modeRules[mode].label} и соответствует запросу пользователя. Удали неподходящие, дублирующиеся или вымышленные варианты. Не выдумывай цену, рейтинг или ссылку на изображение. Верни только JSON формата {"products":[{"name":"точное название","category":"роль","reason":"краткое объяснение"}]}.` },
+        { role: "user", content: `Запрос: ${query}\nКандидаты первого агента: ${candidateText}` },
+      ],
+    }),
+    cache: "no-store",
+  });
+  if (!response.ok) return null;
+  const envelope = safeJson<{ choices?: Array<{ message?: { content?: string } }> }>(await response.text());
+  const content = envelope?.choices?.[0]?.message?.content?.replace(/^```json\s*/i, "").replace(/```$/i, "").trim();
+  return content ? safeJson<RecommendationPayload>(content) : null;
 }
 
 export async function POST(request: Request) {
@@ -114,7 +135,9 @@ export async function POST(request: Request) {
       const content = envelope?.choices?.[0]?.message?.content?.replace(/^```json\s*/i, "").replace(/```$/i, "").trim();
       const parsed = content ? safeJson<RecommendationPayload>(content) : null;
       if (!response.ok || !parsed) return NextResponse.json({ summary: "AI-провайдер временно недоступен. Показываю проверенный базовый набор.", products: normalizedFallback(mode), source: "catalog" });
-      return NextResponse.json({ summary: parsed.summary ?? "Собрала подборку по вашему запросу.", products: normalizeProducts(mode, parsed.products), source: "ai" });
+      const verified = await verifyRecommendations(baseUrl, key, mode, query, parsed.products ?? []);
+      const checkedProducts = verified?.products?.length ? verified.products : parsed.products;
+      return NextResponse.json({ summary: parsed.summary ?? "Собрала подборку по вашему запросу.", products: normalizeProducts(mode, checkedProducts), source: verified?.products?.length ? "ai-verified" : "ai" });
     } catch {
       return NextResponse.json({ summary: "AI-провайдер временно недоступен. Показываю проверенный базовый набор.", products: normalizedFallback(mode), source: "catalog" });
     }
