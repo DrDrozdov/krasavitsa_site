@@ -163,7 +163,7 @@ export function LandingPage() {
                     <p className="text-xs font-black uppercase text-black/45">{roadmap[selectedRoadmap].label}</p>
                     <h4 className="mt-1 text-xl font-black">{roadmap[selectedRoadmap].title}</h4>
                   </div>
-                  <span className="rounded-full bg-black px-3 py-2 text-xs font-black uppercase text-white">
+                  <span className="rounded-full bg-[var(--color-bordeaux)] px-3 py-2 text-xs font-black uppercase text-white">
                     {roadmap[selectedRoadmap].metric}
                   </span>
                 </div>
@@ -173,7 +173,7 @@ export function LandingPage() {
                   onClick={() => {
                     focusAi(roadmap[selectedRoadmap].action);
                   }}
-                  className="apple-glass-button mt-4 inline-flex h-10 items-center gap-2 rounded-full bg-black px-5 text-sm font-black text-white transition duration-300 hover:bg-black/85"
+                  className="apple-glass-button mt-4 inline-flex h-10 items-center gap-2 rounded-full bg-[var(--color-bordeaux)] px-5 text-sm font-black text-white transition duration-300 hover:bg-[var(--color-bordeaux-soft)]"
                 >
                   {roadmap[selectedRoadmap].action}
                   <ArrowRight className="size-4 -rotate-45" />
@@ -328,7 +328,7 @@ function Header({ onTry }: { onTry: () => void }) {
           </button>
           <ThemeToggle />
         </nav>
-        <button type="button" aria-label="Открыть меню" onClick={() => setOpen((value) => !value)} className="relative grid size-12 place-items-center rounded-full border border-white/20 bg-black text-white shadow-[0_14px_34px_rgba(0,0,0,.18)] md:hidden">
+        <button type="button" aria-label="Открыть меню" onClick={() => setOpen((value) => !value)} className="relative grid size-12 place-items-center rounded-full border border-white/20 bg-[var(--color-bordeaux)] text-white shadow-[0_14px_34px_rgba(92,31,45,.22)] md:hidden">
           {open ? <X className="size-6" /> : <Menu className="size-6" />}
         </button>
       </header>
@@ -388,16 +388,17 @@ function TelegramPortalPanel() {
 
       <div className="relative z-10 flex min-h-[480px] flex-col justify-center p-5 md:p-6">
         <div className="liquid-glass max-w-3xl rounded-[var(--radius-lg)] border border-white/60 bg-white/44 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,.86),0_24px_80px_rgba(29,29,31,.08)] backdrop-blur-2xl md:p-6">
-          <p className="text-xs font-black uppercase tracking-wide text-black/45">Telegram</p>
+          <p className="text-xs font-black uppercase tracking-wide text-[var(--color-text-soft)]">Сообщество</p>
           <h2 className="mt-4 max-w-2xl text-[clamp(2.25rem,4.4vw,4.6rem)] font-semibold leading-[0.96] tracking-tight">
-            Продолжайте подбор в удобном чате
+            Оставайтесь на связи с Красавицей
           </h2>
-          <p className="mt-4 max-w-xl text-sm font-semibold leading-6 text-black/55">
-            Бот и канал остаются быстрым входом в Красавицу, а сайт становится главным интерфейсом Beauty OS.
+          <p className="mt-4 max-w-xl text-sm font-semibold leading-6 text-[var(--color-text-muted)]">
+            Выбирайте удобный формат: диалог с ботом, новости в Telegram-канале или визуальные материалы в Instagram.
           </p>
-          <div className="mt-6 grid gap-2 md:grid-cols-2">
+          <div className="mt-6 grid gap-2 md:grid-cols-3">
             <TelegramCard href="https://t.me/krasavitsa_ai_bot" title="Telegram-бот" text="Запустить AI-подбор в чате." />
-            <TelegramCard href="https://t.me/krasavitsa_ai" title="Канал" text="Следить за обновлениями Beauty OS." />
+            <TelegramCard href="https://t.me/krasavitsa_ai" title="Telegram-канал" text="Следить за обновлениями проекта." />
+            <TelegramCard href="https://www.instagram.com/krasavitsa_ai?utm_source=qr" title="Instagram" text="Смотреть новые визуальные материалы." />
           </div>
         </div>
       </div>
@@ -441,25 +442,32 @@ function PortalTile({ children, className, delay = 0, hero = false }: { children
 
 function TelegramCard({ href, title, text }: { href: string; title: string; text: string }) {
   const isBot = title.toLowerCase().includes("бот");
+  const isInstagram = title.toLowerCase().includes("instagram");
 
   return (
     <motion.a href={href} target="_blank" rel="noreferrer" whileHover={{ y: -5, scale: 1.014 }} whileTap={{ scale: 0.982 }} transition={{ duration: 0.52, ease: [0.16, 1, 0.3, 1] }} className="apple-glass-card group rounded-2xl border border-white/62 bg-white/68 p-5 shadow-[var(--shadow-card)] backdrop-blur-2xl transition duration-500 hover:bg-white/82">
       <div className="mb-8 flex items-center justify-between">
-        <span className="grid size-11 place-items-center rounded-2xl border border-black/10 bg-white/72 shadow-[inset_0_1px_0_rgba(255,255,255,.86)] backdrop-blur-xl">
+        <span className="social-card-icon grid size-11 place-items-center rounded-2xl border border-[var(--color-border)] shadow-[inset_0_1px_0_rgba(255,255,255,.42)] backdrop-blur-xl">
           {isBot ? (
             <Image src="/telegram-bot-icon.png" alt="" width={28} height={28} className="size-7 object-contain" />
+          ) : isInstagram ? (
+            <InstagramIcon className="size-6" />
           ) : (
             <Send className="size-6 -rotate-12 stroke-[2.4]" />
           )}
         </span>
-        <span className="grid size-11 place-items-center rounded-full border border-black/20 bg-white/40 transition duration-500 group-hover:bg-black group-hover:text-white">
+        <span className="grid size-11 place-items-center rounded-full border border-[var(--color-border)] bg-white/40 transition duration-500 group-hover:bg-[var(--color-bordeaux)] group-hover:text-white">
           <ArrowRight className="size-5 -rotate-45" />
         </span>
       </div>
       <h3 className="text-2xl font-black">{title}</h3>
-      <p className="mt-2 text-sm font-semibold text-black/55">{text}</p>
+      <p className="mt-2 text-sm font-semibold text-[var(--color-text-muted)]">{text}</p>
     </motion.a>
   );
+}
+
+function InstagramIcon({ className }: { className?: string }) {
+  return <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}><rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" strokeWidth="2" /><circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="2" /><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" /></svg>;
 }
 
 function Footer() {
@@ -488,7 +496,7 @@ function Footer() {
               <a href="#features" className="hover:text-black">Возможности</a>
               <a href="https://t.me/krasavitsa_ai_bot" target="_blank" rel="noreferrer" className="hover:text-black">Telegram Bot</a>
               <a href="https://t.me/krasavitsa_ai" target="_blank" rel="noreferrer" className="hover:text-black">Telegram Channel</a>
-              <a href="https://www.instagram.com/" target="_blank" rel="noreferrer" className="hover:text-black">Instagram</a>
+              <a href="https://www.instagram.com/krasavitsa_ai?utm_source=qr" target="_blank" rel="noreferrer" className="hover:text-[var(--color-bordeaux)]">Instagram</a>
             </div>
           </div>
 

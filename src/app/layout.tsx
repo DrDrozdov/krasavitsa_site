@@ -66,7 +66,7 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: "#FCFAFB",
-  colorScheme: "light",
+  colorScheme: "light dark",
 };
 
 const bootLoaderScript = `
@@ -129,10 +129,12 @@ const themeScript = `
 (() => {
   try {
     const stored = window.localStorage.getItem("krasavitsa-theme");
-    const theme = stored === "dark" || stored === "light"
+    const source = window.localStorage.getItem("krasavitsa-theme-source");
+    const theme = source === "manual" && (stored === "dark" || stored === "light")
       ? stored
       : (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
     document.documentElement.dataset.theme = theme;
+    document.documentElement.dataset.themeSource = source === "manual" ? "manual" : "system";
   } catch {
     document.documentElement.dataset.theme = "light";
   }
@@ -146,8 +148,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ru" className="scroll-smooth">
-      <body>
+      <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
+      <body>
         <div id="boot-loader" aria-hidden="true">
           <div id="boot-loader-value" suppressHydrationWarning>
             0

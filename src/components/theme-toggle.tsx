@@ -9,7 +9,8 @@ type Theme = "light" | "dark";
 function getPreferredTheme(): Theme {
   if (typeof window === "undefined") return "light";
   const stored = window.localStorage.getItem("krasavitsa-theme");
-  if (stored === "dark" || stored === "light") return stored;
+  const source = window.localStorage.getItem("krasavitsa-theme-source");
+  if (source === "manual" && (stored === "dark" || stored === "light")) return stored;
   return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
@@ -21,14 +22,16 @@ export function ThemeToggle({ className }: { className?: string }) {
       const nextTheme = getPreferredTheme();
       setTheme(nextTheme);
       document.documentElement.dataset.theme = nextTheme;
+      document.documentElement.dataset.themeSource = window.localStorage.getItem("krasavitsa-theme-source") === "manual" ? "manual" : "system";
     });
 
     const media = window.matchMedia("(prefers-color-scheme: dark)");
     const syncSystemTheme = (event: MediaQueryListEvent) => {
-      if (window.localStorage.getItem("krasavitsa-theme")) return;
+      if (window.localStorage.getItem("krasavitsa-theme-source") === "manual") return;
       const nextTheme: Theme = event.matches ? "dark" : "light";
       setTheme(nextTheme);
       document.documentElement.dataset.theme = nextTheme;
+      document.documentElement.dataset.themeSource = "system";
     };
     media.addEventListener("change", syncSystemTheme);
 
@@ -43,6 +46,8 @@ export function ThemeToggle({ className }: { className?: string }) {
     setTheme(nextTheme);
     document.documentElement.dataset.theme = nextTheme;
     window.localStorage.setItem("krasavitsa-theme", nextTheme);
+    window.localStorage.setItem("krasavitsa-theme-source", "manual");
+    document.documentElement.dataset.themeSource = "manual";
   };
 
   return (
@@ -53,7 +58,7 @@ export function ThemeToggle({ className }: { className?: string }) {
       aria-label={theme === "dark" ? "Включить светлую тему" : "Включить темную тему"}
       onClick={toggleTheme}
       className={cn(
-        "apple-glass-button theme-toggle relative flex h-11 w-[78px] shrink-0 items-center overflow-hidden rounded-full border border-[var(--color-border)] bg-[rgba(255,255,255,.45)] p-[3px] text-[var(--color-text)] shadow-[inset_0_1px_0_rgba(255,255,255,.72),0_12px_30px_rgba(29,29,31,.08)] backdrop-blur-2xl transition duration-300 hover:bg-black hover:text-white",
+        "apple-glass-button theme-toggle relative flex h-11 w-[78px] shrink-0 items-center overflow-hidden rounded-full border border-[var(--color-border)] bg-[rgba(255,255,255,.45)] p-[3px] text-[var(--color-text)] shadow-[inset_0_1px_0_rgba(255,255,255,.72),0_12px_30px_rgba(29,29,31,.08)] backdrop-blur-2xl transition duration-300 hover:bg-[var(--color-bordeaux)] hover:text-white",
         theme === "dark" && "is-dark bg-[rgba(30,26,24,.82)] text-white",
         className,
       )}

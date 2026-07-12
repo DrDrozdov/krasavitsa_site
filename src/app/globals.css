@@ -138,7 +138,7 @@ body {
 }
 
 :root[data-theme="dark"] .portal-panel[data-has-image="true"] .portal-panel-overlay {
-  background: linear-gradient(115deg, rgba(20, 17, 15, 0.9), rgba(20, 17, 15, 0.76) 50%, rgba(20, 17, 15, 0.58)) !important;
+  background: linear-gradient(115deg, rgba(50, 19, 30, 0.94), rgba(62, 24, 38, 0.82) 50%, rgba(45, 18, 29, 0.66)) !important;
 }
 
 :root[data-theme="dark"] .portal-panel[data-has-image="true"] .portal-panel-image {
@@ -361,6 +361,34 @@ a {
   color: #fff;
 }
 
+/* Brand panels can also be PortalPanels. Their image overlay must preserve
+   the bordeaux contrast instead of washing white copy over a pale surface. */
+.portal-panel.brand-panel .portal-panel-overlay {
+  background: linear-gradient(125deg, rgba(92, 31, 45, 0.94), rgba(119, 49, 65, 0.88)) !important;
+}
+
+:root[data-theme="dark"] .portal-panel.brand-panel .portal-panel-overlay {
+  background: linear-gradient(125deg, rgba(58, 20, 31, 0.96), rgba(92, 31, 45, 0.9)) !important;
+}
+
+:root[data-theme="dark"] .portal-animated-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(120deg, rgba(35, 12, 21, 0.58), rgba(92, 31, 45, 0.28) 56%, rgba(35, 12, 21, 0.38));
+  pointer-events: none;
+}
+
+:root[data-theme="dark"] .portal-animated-bg > .relative {
+  position: relative;
+  z-index: 2;
+}
+
+:root[data-theme="dark"] .landing-page .hero-image-layer + div + div {
+  background: linear-gradient(110deg, rgba(55, 18, 31, 0.6), rgba(55, 18, 31, 0.16) 46%, rgba(55, 18, 31, 0.38)) !important;
+}
+
 .meaning-card {
   transition: transform 520ms var(--ease-soft), border-color 520ms ease, box-shadow 520ms ease, background-color 520ms ease;
 }
@@ -369,6 +397,13 @@ a {
   transform: translateY(-5px);
   border-color: rgba(92, 31, 45, 0.24);
   box-shadow: 0 24px 70px rgba(92, 31, 45, 0.1);
+}
+
+.portal-panel:not(.brand-panel) h1,
+.portal-panel:not(.brand-panel) h2,
+.portal-panel:not(.brand-panel) h3,
+.portal-panel:not(.brand-panel) p {
+  text-shadow: none;
 }
 
 :root[data-theme="dark"] .meaning-card:hover {
@@ -422,6 +457,26 @@ a {
   transform: translateY(-3px);
   border-color: rgba(255, 255, 255, 0.42);
   background: rgba(255, 255, 255, 0.16);
+}
+
+.social-card-icon {
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--color-bordeaux);
+}
+
+:root[data-theme="dark"] .social-card-icon {
+  background: rgba(92, 31, 45, 0.52);
+  border-color: rgba(232, 199, 192, 0.22);
+  color: var(--color-powder-light);
+}
+
+.theme-toggle {
+  align-items: center !important;
+}
+
+.theme-toggle-thumb {
+  top: 50% !important;
+  margin-top: 0 !important;
 }
 
 .apple-glass-card:hover::after {

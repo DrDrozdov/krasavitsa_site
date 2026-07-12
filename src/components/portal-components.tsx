@@ -5,7 +5,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { ArrowRight, Camera, Menu, MessageCircle, UserRound, X } from "lucide-react";
+import { ArrowRight, Menu, MessageCircle, Send, UserRound, X } from "lucide-react";
 import { motion } from "motion/react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LinkButton } from "@/components/ui/button";
@@ -54,7 +54,7 @@ export function SiteHeader() {
           aria-label={mobileOpen ? "Закрыть меню" : "Открыть меню"}
           aria-expanded={mobileOpen}
           onClick={() => setMobileOpen((current) => !current)}
-          className="apple-glass-button grid size-12 place-items-center rounded-full bg-black text-white shadow-[var(--shadow-card)] md:hidden"
+          className="apple-glass-button grid size-12 place-items-center rounded-full bg-[var(--color-bordeaux)] text-white shadow-[var(--shadow-card)] md:hidden"
         >
           {mobileOpen ? <X className="size-6" /> : <Menu className="size-6" />}
         </button>
@@ -126,7 +126,7 @@ function HeaderNavLink({ label, href, active }: { label: string; href: string; a
       href={href}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "apple-glass-button group rounded-full border border-[var(--color-border)] bg-[rgba(255,255,255,.48)] px-5 py-3 text-sm font-bold text-[var(--color-text)] shadow-[inset_0_1px_0_rgba(255,255,255,.72)] backdrop-blur-2xl transition duration-300 hover:border-black/20 hover:bg-black hover:text-white",
+        "apple-glass-button group rounded-full border border-[var(--color-border)] bg-[rgba(255,255,255,.48)] px-5 py-3 text-sm font-bold text-[var(--color-text)] shadow-[inset_0_1px_0_rgba(255,255,255,.72)] backdrop-blur-2xl transition duration-300 hover:border-[var(--color-bordeaux-soft)] hover:bg-[var(--color-bordeaux)] hover:text-white",
         active && "brand-action border-transparent text-white shadow-[0_18px_48px_rgba(92,31,45,.18)]",
       )}
     >
@@ -338,13 +338,17 @@ export function TelegramCTA({
           <p className="mt-4 max-w-2xl text-sm font-semibold leading-6 text-[var(--color-text-muted)]">{text}</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <LinkButton href={href} className="h-14 w-fit bg-black px-7 text-white hover:bg-neutral-800">
-            <MessageCircle className="size-5" />
-            {href.includes("krasavitsa_ai_bot") ? "Открыть бот" : "Открыть канал"}
+          <LinkButton href={href} className="h-14 w-fit bg-[var(--color-bordeaux)] px-7 text-white hover:bg-[var(--color-bordeaux-soft)]">
+            {href.includes("krasavitsa_ai_bot") ? <MessageCircle className="size-5" /> : <Send className="size-5 -rotate-12" />}
+            {href.includes("krasavitsa_ai_bot") ? "Telegram-бот" : "Telegram-канал"}
           </LinkButton>
-          {secondaryHref && secondaryLabel ? <LinkButton href={secondaryHref} className="h-14 w-fit bg-[var(--color-bordeaux)] px-7 text-white hover:bg-[var(--color-bordeaux-soft)]"><Camera className="size-5" />{secondaryLabel}</LinkButton> : null}
+          {secondaryHref && secondaryLabel ? <LinkButton href={secondaryHref} className="h-14 w-fit border border-[var(--color-border)] bg-white/52 px-7 text-[var(--color-text)] hover:bg-[var(--color-powder-light)]"><InstagramIcon className="size-5" />{secondaryLabel}</LinkButton> : null}
         </div>
       </div>
     </div>
   );
+}
+
+export function InstagramIcon({ className }: { className?: string }) {
+  return <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}><rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" strokeWidth="2" /><circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="2" /><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" /></svg>;
 }

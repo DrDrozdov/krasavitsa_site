@@ -84,11 +84,18 @@ export function BeautyFinder() {
   const [loading, setLoading] = useState(false);
   const [savedNames, setSavedNames] = useState<string[]>([]);
   const [examplePage, setExamplePage] = useState(0);
+  const [placeholderPage, setPlaceholderPage] = useState(0);
   const active = useMemo(() => modes.find((item) => item.id === mode)!, [mode]);
   const activeExamples = exampleSets[mode][examplePage % exampleSets[mode].length];
+  const activePlaceholder = [placeholders[mode], ...exampleSets[mode].flat()][placeholderPage % (exampleSets[mode].flat().length + 1)];
 
   useEffect(() => {
     const timer = window.setInterval(() => setExamplePage((page) => (page + 1) % exampleSets[mode].length), 6400);
+    return () => window.clearInterval(timer);
+  }, [mode]);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setPlaceholderPage((page) => page + 1), 4200);
     return () => window.clearInterval(timer);
   }, [mode]);
 
@@ -99,6 +106,7 @@ export function BeautyFinder() {
     setResults([]);
     setSummary("");
     setError("");
+    setPlaceholderPage(0);
   };
 
   const search = async (value = query) => {
@@ -194,12 +202,16 @@ export function BeautyFinder() {
               </div>
             </div>
             <div className="mt-8 grid gap-3 md:grid-cols-[1fr_auto]">
-              <textarea
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder={placeholders[mode]}
-                className="min-h-32 resize-none rounded-[var(--radius-lg)] border border-white/18 bg-white/10 p-5 text-base font-semibold leading-7 text-white outline-none backdrop-blur-2xl placeholder:text-white/42 focus:border-white/50"
-              />
+              <div className="relative min-h-32">
+                <textarea
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder=""
+                  aria-label="Опишите задачу для подбора"
+                  className="relative z-10 min-h-32 w-full resize-none rounded-[var(--radius-lg)] border border-white/18 bg-white/10 p-5 text-base font-semibold leading-7 text-white outline-none backdrop-blur-2xl focus:border-white/50"
+                />
+                {!query ? <AnimatePresence mode="wait" initial={false}><motion.span key={`${mode}-${placeholderPage}`} initial={{ opacity: 0, y: 12, filter: "blur(5px)" }} animate={{ opacity: 0.52, y: 0, filter: "blur(0px)" }} exit={{ opacity: 0, y: -9, filter: "blur(5px)" }} transition={{ duration: 0.44, ease: [0.16, 1, 0.3, 1] }} className="pointer-events-none absolute left-5 right-5 top-5 z-20 text-base font-semibold leading-7 text-white/70">{activePlaceholder}</motion.span></AnimatePresence> : null}
+              </div>
               <button type="button" onClick={() => void search()} disabled={loading} className="apple-glass-button min-h-14 rounded-[var(--radius-lg)] bg-white px-8 text-base font-black text-[var(--color-bordeaux)] disabled:opacity-60 md:min-h-full">
                 {loading ? "Собираю…" : "Подобрать"}
               </button>

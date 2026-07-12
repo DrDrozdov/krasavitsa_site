@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowUpRight, Bot, Brain, Camera, CheckCircle2, Globe2, MessageCircle, Music2, Rocket, Send, Sparkles, Star, UserRound } from "lucide-react";
-import { BeautyPageShell, BeautyPortalGrid, PortalPanel, TelegramCTA } from "@/components/portal-components";
+import { ArrowUpRight, Bot, Brain, CheckCircle2, Globe2, MessageCircle, Music2, Rocket, Send, Sparkles, Star, UserRound } from "lucide-react";
+import { BeautyPageShell, BeautyPortalGrid, InstagramIcon, PortalPanel, TelegramCTA } from "@/components/portal-components";
 
 export const metadata: Metadata = {
   title: "О проекте - Красавица",
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 const socials = [
   { title: "Telegram-бот", href: "https://t.me/krasavitsa_ai_bot", Icon: Bot },
   { title: "Telegram-канал", href: "https://t.me/krasavitsa_ai", Icon: Send },
-  { title: "Instagram", href: "https://www.instagram.com/krasavitsa_ai?utm_source=qr", Icon: Camera },
+  { title: "Instagram", href: "https://www.instagram.com/krasavitsa_ai?utm_source=qr", Icon: InstagramIcon },
   { title: "TikTok", href: "https://www.tiktok.com/@krasavitsa_ai", Icon: Music2 },
   { title: "MAX", href: "https://max.ru/", Icon: MessageCircle },
 ];
@@ -62,7 +62,7 @@ export default function AboutPage() {
                 </p>
               </div>
               <div className="mt-8 grid gap-2 sm:grid-cols-2">
-                <Link href="/care" className="apple-glass-button rounded-full bg-black px-5 py-4 text-center text-sm font-black text-white">
+                <Link href="/care" className="apple-glass-button rounded-full bg-[var(--color-bordeaux)] px-5 py-4 text-center text-sm font-black text-white">
                   Попробовать подбор <ArrowUpRight className="ml-2 inline size-4" />
                 </Link>
                 <Link href="/profile" className="apple-glass-button rounded-full border border-[var(--color-border)] bg-white/40 px-5 py-4 text-center text-sm font-black text-[var(--color-text)] backdrop-blur-2xl">
