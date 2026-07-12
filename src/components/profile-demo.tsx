@@ -2,11 +2,16 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Camera, LogOut, ShieldCheck, UserRound } from "lucide-react";
+import { Camera, Heart, History, LogOut, ShieldCheck, SlidersHorizontal, UserRound } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { FormEvent, useEffect, useState } from "react";
 
 type User = { id: string; email: string; nickname: string; avatarUrl?: string; createdAt: string };
+type Library = {
+  favorites: Array<{ id: string; name: string; category: string; image?: string }>;
+  history: Array<{ id: string; query: string; mode: string; createdAt: string }>;
+  consents: { privacy: boolean; terms: boolean; analytics: boolean; updatedAt: string };
+};
 type Mode = "register" | "login";
 
 export function ProfileDemo() {
@@ -14,6 +19,7 @@ export function ProfileDemo() {
   const [mode, setMode] = useState<Mode>("register");
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
+  const [library, setLibrary] = useState<Library | null>(null);
 
   useEffect(() => {
     void fetch("/api/profile/me", { cache: "no-store" })
@@ -21,6 +27,13 @@ export function ProfileDemo() {
       .then((data: { user?: User | null }) => setUser(data.user ?? null))
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    void fetch("/api/profile/library", { cache: "no-store" })
+      .then((response) => response.ok ? response.json() : null)
+      .then((data: Library | null) => setLibrary(data));
+  }, [user]);
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -51,6 +64,7 @@ export function ProfileDemo() {
   const logout = async () => {
     await fetch("/api/profile/logout", { method: "POST" });
     setUser(null);
+    setLibrary(null);
     setMode("login");
     setMessage("Вы вышли из профиля.");
   };
@@ -60,8 +74,22 @@ export function ProfileDemo() {
     const response = await fetch("/api/profile/me", { method: "DELETE" });
     if (!response.ok) return setMessage("Не удалось удалить профиль.");
     setUser(null);
+    setLibrary(null);
     setMode("register");
     setMessage("Профиль удалён.");
+  };
+
+  const setAnalyticsConsent = async (analytics: boolean) => {
+    const response = await fetch("/api/profile/library", {
+      method: "PATCH", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "consents", consents: { analytics } }),
+    });
+    const data = await response.json().catch(() => ({})) as { consents?: Library["consents"] };
+    if (data.consents) {
+      setLibrary((current) => current ? { ...current, consents: data.consents! } : current);
+      document.cookie = `krasavitsa_cookie_consent=${analytics ? "all" : "essential"}; Path=/; Max-Age=31536000; SameSite=Lax`;
+      window.dispatchEvent(new CustomEvent("krasavitsa-cookie-consent", { detail: analytics ? "all" : "essential" }));
+    }
   };
 
   if (loading) return <div className="mx-auto min-h-[520px] max-w-[1180px] animate-pulse rounded-[var(--radius-xxl)] bg-[var(--color-glass)]" />;
@@ -98,6 +126,7 @@ export function ProfileDemo() {
                   <Info label="Следующий шаг" value="Заполнить параметры ухода" />
                   <Info label="Изображение" value={user.avatarUrl ? "Аватар добавлен" : "Можно добавить JPG, PNG или WebP"} />
                 </div>
+                {library ? <ProfileLibrary library={library} onAnalyticsChange={setAnalyticsConsent} /> : null}
                 {message ? <p className="mt-5 text-sm font-semibold text-[var(--color-text-muted)]">{message}</p> : null}
                 <div className="mt-auto flex flex-wrap gap-2 pt-8">
                   <button type="button" onClick={() => void logout()} className="apple-glass-button flex h-12 w-fit items-center gap-2 rounded-full border border-[var(--color-border)] bg-white/40 px-5 text-sm font-black"><LogOut className="size-4" />Выйти</button>
@@ -130,6 +159,29 @@ export function ProfileDemo() {
         </div>
       </div>
     </section>
+  );
+}
+
+function ProfileLibrary({ library, onAnalyticsChange }: { library: Library; onAnalyticsChange: (next: boolean) => Promise<void> }) {
+  return (
+    <div className="mt-8 grid gap-3 lg:grid-cols-3">
+      <section className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-white/26 p-4 backdrop-blur-2xl">
+        <div className="flex items-center gap-2"><Heart className="size-4 text-[var(--color-bordeaux)]" /><p className="text-sm font-black">Избранное</p></div>
+        <p className="mt-3 text-xs font-semibold text-[var(--color-text-muted)]">{library.favorites.length ? library.favorites.map((item) => item.name).slice(0, 2).join(" · ") : "Сохраняйте средства из готовых подборок."}</p>
+      </section>
+      <section className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-white/26 p-4 backdrop-blur-2xl">
+        <div className="flex items-center gap-2"><History className="size-4 text-[var(--color-bordeaux)]" /><p className="text-sm font-black">История подборов</p></div>
+        <p className="mt-3 text-xs font-semibold text-[var(--color-text-muted)]">{library.history.length ? `${library.history.length} сохранённых сценария` : "Первый готовый подбор появится здесь."}</p>
+      </section>
+      <section className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-white/26 p-4 backdrop-blur-2xl">
+        <div className="flex items-center gap-2"><SlidersHorizontal className="size-4 text-[var(--color-bordeaux)]" /><p className="text-sm font-black">Согласия</p></div>
+        <label className="mt-3 flex cursor-pointer items-center justify-between gap-3 text-xs font-semibold text-[var(--color-text-muted)]">
+          Аналитика посещений
+          <input type="checkbox" checked={library.consents.analytics} onChange={(event) => void onAnalyticsChange(event.target.checked)} className="size-4 accent-[var(--color-bordeaux)]" />
+        </label>
+        <p className="mt-2 text-[11px] leading-4 text-[var(--color-text-soft)]">Обязательные согласия приняты при регистрации.</p>
+      </section>
+    </div>
   );
 }
 

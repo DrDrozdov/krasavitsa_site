@@ -1,13 +1,19 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
-import { Droplets, ExternalLink, Scissors, Sparkles } from "lucide-react";
+import { Droplets, ExternalLink, Heart, Scissors, Sparkles } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { trackAnalyticsEvent } from "@/lib/analytics-client";
 
 type Mode = "skin" | "hair" | "perfume";
 type Product = { name: string; category: string; reason: string; rating: number; price?: string; image?: string; marketplaces?: Array<{ label: string; href: string }> };
+
+const modeVisual: Record<Mode, string> = {
+  skin: "/recommendations/skin-packshot-v1.png",
+  hair: "/recommendations/hair-packshot-v1.png",
+  perfume: "/recommendations/perfume-packshot-v1.png",
+};
 
 const modes: Array<{ id: Mode; label: string; description: string; Icon: typeof Sparkles }> = [
   { id: "skin", label: "Уход за кожей", description: "Тип кожи, барьер, активы и SPF", Icon: Droplets },
@@ -76,6 +82,7 @@ export function BeautyFinder() {
   const [summary, setSummary] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [savedNames, setSavedNames] = useState<string[]>([]);
   const [examplePage, setExamplePage] = useState(0);
   const active = useMemo(() => modes.find((item) => item.id === mode)!, [mode]);
   const activeExamples = exampleSets[mode][examplePage % exampleSets[mode].length];
@@ -114,7 +121,15 @@ export function BeautyFinder() {
         setError(data.error ?? "Не удалось обработать запрос.");
       } else {
         setSummary(data.summary ?? "Подборка готова.");
-        setResults(data.products ?? []);
+        const nextProducts = data.products ?? [];
+        setResults(nextProducts);
+        if (nextProducts.length) {
+          void fetch("/api/profile/library", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "history", history: { query: next, mode, summary: data.summary, products: nextProducts } }),
+          });
+        }
         trackAnalyticsEvent("search_success", `unified_${mode}`);
       }
     } catch {
@@ -122,6 +137,16 @@ export function BeautyFinder() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const toggleFavorite = async (product: Product) => {
+    const response = await fetch("/api/profile/library", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "favorite", product }),
+    });
+    const data = await response.json().catch(() => ({})) as { favorites?: Array<{ name: string }> };
+    if (data.favorites) setSavedNames(data.favorites.map((item) => item.name));
   };
 
   return (
@@ -202,16 +227,17 @@ export function BeautyFinder() {
                 {results.map((product) => (
                   <article key={product.name} className="meaning-card liquid-glass overflow-hidden rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-glass)] p-3 backdrop-blur-2xl md:p-4">
                     <div className="relative mb-4 aspect-[16/7] overflow-hidden rounded-[calc(var(--radius-lg)-8px)] border border-white/30 bg-white/36">
-                      {product.image ? <Image src={product.image} alt={product.name} fill sizes="(min-width: 768px) 48vw, 100vw" className="object-cover p-3" /> : null}
+                      <Image src={product.image || modeVisual[mode]} alt={`Визуал для рекомендации: ${product.name}`} fill sizes="(min-width: 768px) 48vw, 100vw" className="object-cover p-3" />
                     </div>
                     <div className="flex items-start justify-between gap-4">
                       <div><p className="text-xs font-black uppercase text-[var(--color-text-soft)]">{product.category}</p><h3 className="mt-3 text-2xl font-black leading-tight">{product.name}</h3></div>
-                      <span className="rating-badge shrink-0 rounded-full bg-[var(--color-bordeaux)] px-3 py-2 text-xs font-black text-white">★ {product.rating.toFixed(1)}</span>
+                      <span className="rating-badge shrink-0 rounded-full bg-[var(--color-bordeaux)] px-3 py-2 text-xs font-black text-white" tabIndex={0}>★ {product.rating.toFixed(1)}</span>
                     </div>
                     <p className="mt-4 text-sm font-semibold leading-6 text-[var(--color-text-muted)]">{product.reason}</p>
                     {product.price ? <p className="mt-3 text-sm font-black text-[var(--color-bordeaux)]">Ориентир по цене: {product.price}</p> : null}
                     <div className="mt-5 flex flex-wrap gap-2">
                       {product.marketplaces?.map((link) => <a key={link.href} href={link.href} target="_blank" rel="noreferrer" className="apple-glass-button inline-flex items-center gap-1 rounded-full border border-[var(--color-border)] bg-white/48 px-3 py-2 text-xs font-black">{link.label}<ExternalLink className="size-3" /></a>)}
+                      <button type="button" onClick={() => void toggleFavorite(product)} aria-label="Сохранить в избранное" className={`apple-glass-button grid size-9 place-items-center rounded-full border border-[var(--color-border)] bg-white/48 ${savedNames.includes(product.name) ? "text-[var(--color-bordeaux)]" : "text-[var(--color-text-muted)]"}`}><Heart className={`size-4 ${savedNames.includes(product.name) ? "fill-current" : ""}`} /></button>
                     </div>
                   </article>
                 ))}

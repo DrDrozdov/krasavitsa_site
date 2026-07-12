@@ -501,7 +501,7 @@ a {
 }
 
 .rating-badge::after {
-  content: "Рейтинг по оценкам покупателей Яндекс Маркета";
+  content: "Оценка в подборке. Источник рейтинга указывается в карточке товара после подключения товарного API.";
   position: absolute;
   right: 0;
   bottom: calc(100% + 0.65rem);
@@ -551,7 +551,7 @@ a {
   background-color: rgba(39, 27, 32, 0.52);
 }
 
-:root[data-theme="dark"] .landing-page [class*="bg-white"],
+:root[data-theme="dark"] .landing-page [class*="bg-white"]:not(.theme-toggle-thumb),
 :root[data-theme="dark"] .landing-page [class*="bg-\[#FCFAFB\]"],
 :root[data-theme="dark"] .landing-page [class*="bg-\[#fff"] {
   background-color: rgba(42, 30, 34, 0.52) !important;
@@ -560,6 +560,11 @@ a {
 :root[data-theme="dark"] .landing-page [class*="text-black"],
 :root[data-theme="dark"] .landing-page [class*="text-\[#1d1d1f\]"] {
   color: var(--color-text) !important;
+}
+
+:root[data-theme="dark"] .landing-page .theme-toggle-thumb {
+  background-color: #fff !important;
+  color: #5c1f2d !important;
 }
 
 .liquid-glass {

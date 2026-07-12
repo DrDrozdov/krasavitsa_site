@@ -14,9 +14,15 @@ export type StoredUser = {
   createdAt: string;
   acceptedPrivacyAt: string;
   acceptedTermsAt: string;
+  favorites?: SavedProduct[];
+  recommendationHistory?: RecommendationHistory[];
+  consents?: UserConsents;
 };
 
 export type PublicUser = Pick<StoredUser, "id" | "email" | "nickname" | "avatarUrl" | "createdAt">;
+export type SavedProduct = { id: string; name: string; category: string; reason: string; image?: string; price?: string; rating?: number; savedAt: string };
+export type RecommendationHistory = { id: string; query: string; mode: "skin" | "hair" | "perfume"; summary: string; products: SavedProduct[]; createdAt: string };
+export type UserConsents = { privacy: boolean; terms: boolean; analytics: boolean; updatedAt: string };
 
 type UserState = { users: StoredUser[] };
 
@@ -39,6 +45,91 @@ async function writeState(state: UserState) {
 
 export function toPublicUser(user: StoredUser): PublicUser {
   return { id: user.id, email: user.email, nickname: user.nickname, avatarUrl: user.avatarUrl, createdAt: user.createdAt };
+}
+
+function safeProduct(input: Partial<SavedProduct>): SavedProduct | null {
+  if (!input.name || !input.category || !input.reason) return null;
+  return {
+    id: typeof input.id === "string" && input.id.length <= 180 ? input.id : randomUUID(),
+    name: input.name.slice(0, 180),
+    category: input.category.slice(0, 100),
+    reason: input.reason.slice(0, 700),
+    image: input.image?.startsWith("/") ? input.image.slice(0, 260) : undefined,
+    price: typeof input.price === "string" ? input.price.slice(0, 80) : undefined,
+    rating: Number.isFinite(input.rating) ? Math.max(1, Math.min(5, Number(input.rating))) : undefined,
+    savedAt: new Date().toISOString(),
+  };
+}
+
+export async function getUserLibrary(userId: string) {
+  const user = await findUserById(userId);
+  if (!user) return null;
+  return {
+    favorites: user.favorites ?? [],
+    history: user.recommendationHistory ?? [],
+    consents: user.consents ?? { privacy: true, terms: true, analytics: false, updatedAt: user.createdAt },
+  };
+}
+
+export async function toggleFavorite(userId: string, input: Partial<SavedProduct>) {
+  const product = safeProduct(input);
+  if (!product) return null;
+  let result: SavedProduct[] | null = null;
+  const task = writeQueue.then(async () => {
+    const state = await readState();
+    const user = state.users.find((item) => item.id === userId);
+    if (!user) return;
+    const favorites = user.favorites ?? [];
+    const existing = favorites.findIndex((item) => item.name.toLowerCase() === product.name.toLowerCase());
+    user.favorites = existing >= 0 ? favorites.filter((_, index) => index !== existing) : [product, ...favorites].slice(0, 40);
+    result = user.favorites;
+    await writeState(state);
+  });
+  writeQueue = task.catch(() => undefined);
+  await task;
+  return result;
+}
+
+export async function saveRecommendationHistory(userId: string, input: { query?: string; mode?: string; summary?: string; products?: Partial<SavedProduct>[] }) {
+  const mode = input.mode === "hair" || input.mode === "perfume" ? input.mode : "skin";
+  const products = (input.products ?? []).map(safeProduct).filter((item): item is SavedProduct => Boolean(item)).slice(0, 4);
+  if (!input.query || !products.length) return null;
+  let result: RecommendationHistory[] | null = null;
+  const task = writeQueue.then(async () => {
+    const state = await readState();
+    const user = state.users.find((item) => item.id === userId);
+    if (!user) return;
+    const entry: RecommendationHistory = {
+      id: randomUUID(), query: input.query!.slice(0, 1200), mode,
+      summary: (input.summary ?? "Подборка сохранена.").slice(0, 700), products, createdAt: new Date().toISOString(),
+    };
+    user.recommendationHistory = [entry, ...(user.recommendationHistory ?? [])].slice(0, 20);
+    result = user.recommendationHistory;
+    await writeState(state);
+  });
+  writeQueue = task.catch(() => undefined);
+  await task;
+  return result;
+}
+
+export async function updateUserConsents(userId: string, input: Partial<Pick<UserConsents, "privacy" | "terms" | "analytics">>) {
+  let result: UserConsents | null = null;
+  const task = writeQueue.then(async () => {
+    const state = await readState();
+    const user = state.users.find((item) => item.id === userId);
+    if (!user) return;
+    user.consents = {
+      privacy: typeof input.privacy === "boolean" ? input.privacy : user.consents?.privacy ?? true,
+      terms: typeof input.terms === "boolean" ? input.terms : user.consents?.terms ?? true,
+      analytics: typeof input.analytics === "boolean" ? input.analytics : user.consents?.analytics ?? false,
+      updatedAt: new Date().toISOString(),
+    };
+    result = user.consents;
+    await writeState(state);
+  });
+  writeQueue = task.catch(() => undefined);
+  await task;
+  return result;
 }
 
 export async function findUserByEmail(email: string) {
@@ -72,6 +163,9 @@ export async function createUser(input: { email: string; nickname: string; passw
       createdAt: now,
       acceptedPrivacyAt: now,
       acceptedTermsAt: now,
+      favorites: [],
+      recommendationHistory: [],
+      consents: { privacy: true, terms: true, analytics: false, updatedAt: now },
     };
     state.users.push(created);
     await writeState(state);

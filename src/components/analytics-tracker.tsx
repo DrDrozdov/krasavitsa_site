@@ -75,5 +75,17 @@ export function AnalyticsTracker() {
     return () => document.removeEventListener("click", click);
   }, []);
 
+  useEffect(() => {
+    // Only aggregate the occurrence and page of a client error. No message,
+    // stack trace, query text, address or other personal data is transmitted.
+    const report = () => send("form_error", "client_runtime");
+    window.addEventListener("error", report);
+    window.addEventListener("unhandledrejection", report);
+    return () => {
+      window.removeEventListener("error", report);
+      window.removeEventListener("unhandledrejection", report);
+    };
+  }, []);
+
   return null;
 }

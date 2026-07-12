@@ -1,6 +1,6 @@
 "use client";
 
-import { Heart, ImagePlus, PenLine, Trash2 } from "lucide-react";
+import { Heart, ImagePlus, MessageCircle, PenLine, Send, Trash2 } from "lucide-react";
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { trackAnalyticsEvent } from "@/lib/analytics-client";
@@ -12,11 +12,12 @@ type PersonalPost = {
   excerpt: string;
   content: string;
   image?: string;
-  liked: boolean;
+  likes: string[];
+  comments: Array<{ id: string; author: string; text: string; createdAt: string }>;
+  status?: "published" | "pending";
+  authorId?: string;
   createdAt: string;
 };
-
-const storageKey = "krasavitsa-personal-articles-v1";
 
 export function BlogStudio() {
   const [posts, setPosts] = useState<PersonalPost[]>([]);
@@ -26,46 +27,55 @@ export function BlogStudio() {
   const [content, setContent] = useState("");
   const [image, setImage] = useState<string>();
   const [notice, setNotice] = useState("");
+  const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      try {
-        const stored = window.localStorage.getItem(storageKey);
-        if (stored) setPosts(JSON.parse(stored) as PersonalPost[]);
-      } catch {
-        setPosts([]);
-      }
-    }, 0);
-    return () => window.clearTimeout(timer);
+    void fetch("/api/articles", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((data: { articles?: PersonalPost[] }) => setPosts(data.articles ?? []));
   }, []);
 
-  const persist = (next: PersonalPost[]) => {
-    setPosts(next);
-    window.localStorage.setItem(storageKey, JSON.stringify(next));
-  };
+  const replacePost = (updated: PersonalPost) => setPosts((current) => current.map((post) => post.id === updated.id ? updated : post));
 
-  const publish = () => {
+  const publish = async () => {
     if (title.trim().length < 8 || content.trim().length < 80) {
       setNotice("Добавьте понятный заголовок и не менее 80 символов основного текста.");
       return;
     }
-    const post: PersonalPost = {
-      id: window.crypto.randomUUID(),
-      title: title.trim(),
-      category,
-      excerpt: excerpt.trim() || content.trim().slice(0, 150),
-      content: content.trim(),
-      image,
-      liked: false,
-      createdAt: new Intl.DateTimeFormat("ru-RU", { dateStyle: "medium" }).format(new Date()),
-    };
-    persist([post, ...posts]);
+    const response = await fetch("/api/articles", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title, category, excerpt, content, image }) });
+    const data = await response.json().catch(() => ({})) as { article?: PersonalPost; error?: string };
+    if (!response.ok || !data.article) { setNotice(data.error ?? "Не удалось сохранить статью."); return; }
+    if (data.article.status === "published") setPosts((current) => [data.article!, ...current]);
     trackAnalyticsEvent("article_save", "personal_article");
     setTitle("");
     setExcerpt("");
     setContent("");
     setImage(undefined);
-    setNotice("Статья сохранена в вашем профиле на этом устройстве.");
+    setNotice(data.article.status === "published" ? "Статья опубликована после автоматической модерации." : "Материал отправлен на ручную проверку.");
+  };
+
+  const toggleLike = async (post: PersonalPost) => {
+    const response = await fetch(`/api/articles/${post.id}`, { method: "PATCH" });
+    const data = await response.json().catch(() => ({})) as { article?: PersonalPost; error?: string };
+    if (data.article) replacePost(data.article); else setNotice(data.error ?? "Войдите в профиль, чтобы оставить реакцию.");
+  };
+
+  const deletePost = async (post: PersonalPost) => {
+    const response = await fetch(`/api/articles/${post.id}`, { method: "DELETE" });
+    if (response.ok) setPosts((current) => current.filter((item) => item.id !== post.id));
+  };
+
+  const addComment = async (post: PersonalPost) => {
+    const text = commentDrafts[post.id]?.trim(); if (!text) return;
+    const response = await fetch(`/api/articles/${post.id}/comments`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }) });
+    const data = await response.json().catch(() => ({})) as { article?: PersonalPost; error?: string };
+    if (data.article) { replacePost(data.article); setCommentDrafts((current) => ({ ...current, [post.id]: "" })); } else setNotice(data.error ?? "Не удалось отправить комментарий.");
+  };
+
+  const deleteComment = async (post: PersonalPost, commentId: string) => {
+    const response = await fetch(`/api/articles/${post.id}/comments`, { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ commentId }) });
+    const data = await response.json().catch(() => ({})) as { article?: PersonalPost };
+    if (data.article) replacePost(data.article);
   };
 
   const loadImage = (file?: File) => {
@@ -138,8 +148,13 @@ export function BlogStudio() {
                 <p className="mt-3 text-sm font-semibold leading-6 text-[var(--color-text-muted)]">{post.excerpt}</p>
                 <p className="mt-5 line-clamp-4 text-base leading-7 text-[var(--color-text-muted)]">{post.content}</p>
                 <div className="mt-6 flex gap-2">
-                  <button type="button" onClick={() => { persist(posts.map((item) => item.id === post.id ? { ...item, liked: !item.liked } : item)); trackAnalyticsEvent("article_like", "personal_article"); }} className="apple-glass-button grid size-11 place-items-center rounded-full border border-[var(--color-border)] bg-white/34 text-[var(--color-bordeaux)]"><Heart className={`size-5 ${post.liked ? "fill-current" : ""}`} /></button>
-                  <button type="button" onClick={() => { persist(posts.filter((item) => item.id !== post.id)); trackAnalyticsEvent("article_delete", "personal_article"); }} className="apple-glass-button grid size-11 place-items-center rounded-full border border-[var(--color-border)] bg-white/34 text-[var(--color-text-muted)]"><Trash2 className="size-5" /></button>
+                  <button type="button" onClick={() => { void toggleLike(post); trackAnalyticsEvent("article_like", "article"); }} aria-label="Поставить реакцию" className="apple-glass-button inline-flex h-11 items-center gap-2 rounded-full border border-[var(--color-border)] bg-white/34 px-4 text-[var(--color-bordeaux)]"><Heart className="size-5" />{post.likes.length}</button>
+                  <button type="button" onClick={() => { void deletePost(post); trackAnalyticsEvent("article_delete", "article"); }} aria-label="Удалить свою статью" className="apple-glass-button grid size-11 place-items-center rounded-full border border-[var(--color-border)] bg-white/34 text-[var(--color-text-muted)]"><Trash2 className="size-5" /></button>
+                </div>
+                <div className="mt-6 border-t border-[var(--color-border)] pt-4">
+                  <p className="flex items-center gap-2 text-sm font-black"><MessageCircle className="size-4" />Комментарии</p>
+                  {post.comments.slice(-3).map((comment) => <div key={comment.id} className="mt-3 flex items-start justify-between gap-3 text-sm"><p><strong>{comment.author}</strong><span className="ml-2 text-[var(--color-text-muted)]">{comment.text}</span></p><button type="button" onClick={() => void deleteComment(post, comment.id)} className="text-xs font-black text-[var(--color-text-soft)]">Удалить</button></div>)}
+                  <div className="mt-4 flex gap-2"><input value={commentDrafts[post.id] ?? ""} onChange={(event) => setCommentDrafts((current) => ({ ...current, [post.id]: event.target.value }))} placeholder="Написать комментарий" className="min-w-0 flex-1 rounded-full border border-[var(--color-border)] bg-white/36 px-4 py-2 text-sm font-semibold outline-none" /><button type="button" onClick={() => void addComment(post)} className="apple-glass-button grid size-10 place-items-center rounded-full bg-[var(--color-bordeaux)] text-white"><Send className="size-4" /></button></div>
                 </div>
               </div>
             </motion.article>

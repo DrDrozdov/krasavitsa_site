@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 type SearchMode = "skin" | "hair" | "perfume";
 type MarketplaceLink = { label: string; href: string };
-type Product = { name: string; category: string; reason: string; rating: number; price?: string; image?: string; marketplaces?: MarketplaceLink[] };
+type Product = { name: string; category: string; reason: string; rating: number; price?: string; image?: string; imageKind?: "catalog" | "category-visual"; marketplaces?: MarketplaceLink[] };
 type RecommendationPayload = { summary?: string; products?: Product[] };
 
 const modeRules: Record<SearchMode, { label: string; intent: string[]; system: string }> = {
@@ -41,6 +41,19 @@ const fallback: Record<SearchMode, Product[]> = {
   ],
 };
 
+// AI is never allowed to invent image URLs. The verification pass approves the
+// recommendation text, then a local, curated visual is selected by direction.
+// This keeps every card visually coherent and prevents a wrong product photo.
+const modeVisual: Record<SearchMode, string> = {
+  skin: "/recommendations/skin-packshot-v1.png",
+  hair: "/recommendations/hair-packshot-v1.png",
+  perfume: "/recommendations/perfume-packshot-v1.png",
+};
+
+function safeProductVisual(mode: SearchMode) {
+  return modeVisual[mode];
+}
+
 function marketplaceLinks(name: string, provided?: MarketplaceLink[]) {
   const query = encodeURIComponent(name);
   const links = [
@@ -75,7 +88,8 @@ function normalizeProducts(mode: SearchMode, products?: Product[]) {
     reason: product.reason || defaults[index % defaults.length].reason,
     rating: Math.min(5, Math.max(1, Number(product.rating) || 4.7)),
     price: product.price,
-    image: product.image,
+    image: safeProductVisual(mode),
+    imageKind: "category-visual",
     marketplaces: marketplaceLinks(product.name || defaults[index % defaults.length].name, product.marketplaces),
   }));
 }
