@@ -5,7 +5,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { ArrowRight, Menu, MessageCircle, X } from "lucide-react";
+import { ArrowRight, Menu, MessageCircle, UserRound, X } from "lucide-react";
 import { motion } from "motion/react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LinkButton } from "@/components/ui/button";
@@ -44,7 +44,7 @@ export function SiteHeader() {
           {navLinks.map(([label, href]) => (
             <HeaderNavLink key={href} label={label} href={href} active={isActivePath(pathname, href)} />
           ))}
-          <LinkButton href="https://t.me/krasavitsa_ai_bot" className="h-11 px-5">
+          <LinkButton href="/care" className="h-11 px-5">
             Попробовать AI
           </LinkButton>
           <ThemeToggle />
@@ -98,10 +98,10 @@ export function SiteHeader() {
                   isActivePath(pathname, href) && "bg-white text-black",
                 )}
               >
-                {label}
+                {href === "/profile" ? <><UserRound className="mr-2 inline size-5" /><span className="sr-only">{label}</span></> : label}
               </Link>
             ))}
-            <LinkButton href="https://t.me/krasavitsa_ai_bot" className="mt-2 h-14 w-full bg-white px-6 text-black hover:bg-white/90">
+            <LinkButton href="/care" className="mt-2 h-14 w-full bg-white px-6 text-black hover:bg-white/90">
               Попробовать AI
             </LinkButton>
             <Link href="/#contacts" className="apple-glass-button rounded-full border border-white/16 bg-white/10 px-6 py-4 text-lg font-black text-white backdrop-blur-2xl transition duration-300 hover:bg-white hover:text-black">
@@ -131,7 +131,7 @@ function HeaderNavLink({ label, href, active }: { label: string; href: string; a
       )}
     >
       <span>{label}</span>
-      {active ? <span className="ml-2 inline-block size-1.5 rounded-full bg-current opacity-70" /> : null}
+      {active ? <span className="ml-2 inline-block size-1.5 rounded-full bg-[#74d58a] shadow-[0_0_14px_rgba(116,213,138,.9)]" /> : null}
     </Link>
   );
 }
@@ -159,8 +159,11 @@ export function SiteFooter() {
             title="Документы"
             links={[
               ["Политика конфиденциальности", "/privacy"],
+              ["Политика cookies", "/cookies"],
               ["Согласие на обработку данных", "/personal-data"],
               ["Пользовательское соглашение", "/terms"],
+              ["Telegram-канал", "https://t.me/krasavitsa_ai"],
+              ["Instagram", "https://www.instagram.com/"],
               ["Разработчик: @thesp3cial", "https://t.me/thesp3cial"],
             ]}
           />
@@ -236,7 +239,7 @@ export function PageHero({
   title,
   subtitle,
   cta = "Начать подбор",
-  ctaHref = "https://t.me/krasavitsa_ai_bot",
+  ctaHref = "/care",
   image = "/beauty-products-portal.png",
   tiles = [],
 }: {

@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
-import { adminCookieName, createAdminSessionValue, verifyAdminPassword } from "@/lib/admin-auth";
+import { adminConfiguration, adminCookieName, createAdminSessionValue, verifyAdminPassword } from "@/lib/admin-auth";
 
 export async function POST(request: Request) {
+  const configuration = adminConfiguration();
+  if (!configuration.passwordConfigured || !configuration.sessionConfigured) {
+    return NextResponse.redirect(new URL("/admin?error=config", request.url), 303);
+  }
   const form = await request.formData();
   const password = String(form.get("password") ?? "");
   if (!verifyAdminPassword(password)) {

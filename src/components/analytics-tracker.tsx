@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
+import { analyticsAllowed } from "@/components/cookie-consent";
 
 function deviceType() {
   if (window.innerWidth < 768) return "mobile";
@@ -32,6 +33,7 @@ function referrerGroup() {
 }
 
 function send(eventName: string, elementKey = "") {
+  if (!analyticsAllowed()) return;
   const params = new URLSearchParams(location.search);
   const payload = JSON.stringify({
     eventName,
@@ -54,6 +56,9 @@ export function AnalyticsTracker() {
 
   useEffect(() => {
     send("page_view");
+    const afterConsent = () => send("page_view");
+    window.addEventListener("krasavitsa-cookie-consent", afterConsent);
+    return () => window.removeEventListener("krasavitsa-cookie-consent", afterConsent);
   }, [pathname]);
 
   useEffect(() => {

@@ -10,6 +10,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ["/about", 0.65],
     ["/profile", 0.65],
     ["/privacy", 0.3],
+    ["/cookies", 0.3],
     ["/personal-data", 0.3],
     ["/terms", 0.3],
   ] as const;

@@ -25,6 +25,10 @@ export async function GET(_request: Request, context: RouteParams) {
   return NextResponse.json({
     ok: true,
     service: "krasavitsa-telegram-admin-bot",
+    configured: {
+      token: Boolean(process.env.TELEGRAM_ADMIN_BOT_TOKEN),
+      adminIds: Boolean(process.env.TELEGRAM_ADMIN_IDS),
+    },
   });
 }
 
@@ -44,7 +48,8 @@ export async function POST(request: Request, context: RouteParams) {
     }
 
     return NextResponse.json({ ok: true });
-  } catch {
+  } catch (error) {
+    console.error("Telegram admin webhook failed", error);
     return NextResponse.json({ ok: false }, { status: 200 });
   }
 }

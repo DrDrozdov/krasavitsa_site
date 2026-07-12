@@ -8,7 +8,8 @@ export const metadata: Metadata = { title: "Аналитика — Красав�
 
 export default async function AdminPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const authenticated = await isAdminSession();
-  if (!authenticated) return <AdminLogin error={Boolean((await searchParams).error)} />;
+  const error = (await searchParams).error;
+  if (!authenticated) return <AdminLogin error={error} />;
   const snapshot = await getAnalyticsSnapshot(30);
   const max = Math.max(1, ...snapshot.daily.map((day) => day.events.page_view ?? 0));
   const cards = [
@@ -52,7 +53,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   );
 }
 
-function AdminLogin({ error }: { error: boolean }) {
+function AdminLogin({ error }: { error?: string }) {
   return (
     <main className="grid min-h-screen place-items-center bg-[var(--color-bg)] p-4 text-[var(--color-text)]">
       <section className="brand-panel w-full max-w-lg rounded-[var(--radius-xxl)] p-6 shadow-[var(--shadow-soft)] md:p-10">

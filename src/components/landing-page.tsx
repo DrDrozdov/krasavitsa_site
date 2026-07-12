@@ -68,7 +68,7 @@ export function LandingPage() {
   }
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[var(--color-bg)] text-[var(--color-text)]">
+    <main className="landing-page min-h-screen overflow-hidden bg-[var(--color-bg)] text-[var(--color-text)]">
       <Header onTry={() => focusAi()} />
 
       <section id="home" className="grid min-h-[86svh] gap-2 px-3 pb-2 pt-18 md:min-h-screen md:px-5 md:pt-20">
@@ -302,6 +302,7 @@ function Header({ onTry }: { onTry: () => void }) {
     ["Главное", "#home"],
     ["AI-подбор", "/care"],
     ["Блог", "/blog"],
+    ["О проекте", "/about"],
     ["Профиль", "/profile"],
   ];
   const mobileLinks = [...links, ["Контакты", "#contacts"]];
@@ -487,6 +488,7 @@ function Footer() {
               <a href="#features" className="hover:text-black">Возможности</a>
               <a href="https://t.me/krasavitsa_ai_bot" target="_blank" rel="noreferrer" className="hover:text-black">Telegram Bot</a>
               <a href="https://t.me/krasavitsa_ai" target="_blank" rel="noreferrer" className="hover:text-black">Telegram Channel</a>
+              <a href="https://www.instagram.com/" target="_blank" rel="noreferrer" className="hover:text-black">Instagram</a>
             </div>
           </div>
 
@@ -494,6 +496,7 @@ function Footer() {
             <p className="text-xs font-black uppercase text-black/40">Документы</p>
             <div className="mt-4 grid gap-3">
               <a href="/privacy" className="hover:text-black">Политика конфиденциальности</a>
+              <a href="/cookies" className="hover:text-black">Политика cookies</a>
               <a href="/personal-data" className="hover:text-black">Согласие на обработку данных</a>
               <a href="/terms" className="hover:text-black">Пользовательское соглашение</a>
               <a href="https://t.me/thesp3cial" target="_blank" rel="noreferrer" className="hover:text-black">Разработчик: @thesp3cial</a>
