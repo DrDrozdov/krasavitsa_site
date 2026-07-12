@@ -23,7 +23,19 @@ export function ThemeToggle({ className }: { className?: string }) {
       document.documentElement.dataset.theme = nextTheme;
     });
 
-    return () => window.cancelAnimationFrame(frame);
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const syncSystemTheme = (event: MediaQueryListEvent) => {
+      if (window.localStorage.getItem("krasavitsa-theme")) return;
+      const nextTheme: Theme = event.matches ? "dark" : "light";
+      setTheme(nextTheme);
+      document.documentElement.dataset.theme = nextTheme;
+    };
+    media.addEventListener("change", syncSystemTheme);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      media.removeEventListener("change", syncSystemTheme);
+    };
   }, []);
 
   const toggleTheme = () => {

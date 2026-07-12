@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 
 type Consent = "all" | "essential" | "pending";
@@ -29,22 +30,30 @@ export function CookieConsent() {
     return () => window.cancelAnimationFrame(frame);
   }, []);
 
-  if (consent !== "pending") return null;
-
   const choose = (value: Exclude<Consent, "pending">) => {
     saveConsent(value);
     setConsent(value);
   };
 
   return (
-    <aside className="cookie-consent liquid-glass fixed bottom-4 left-4 right-4 z-[80] mx-auto max-w-xl rounded-[var(--radius-lg)] border border-[var(--color-border)] p-4 text-[var(--color-text)] shadow-[var(--shadow-hover)] backdrop-blur-3xl md:bottom-6 md:left-auto md:right-6">
-      <p className="text-sm font-black">Настройки cookies</p>
-      <p className="mt-2 text-sm leading-6 text-[var(--color-text-muted)]">Мы используем обязательные cookies для работы сайта. С согласия пользователя включаем обезличенную аналитику посещений.</p>
-      <p className="mt-2 text-xs font-semibold text-[var(--color-text-soft)]"><Link href="/cookies" className="underline underline-offset-4">Политика cookies</Link> · <Link href="/privacy" className="underline underline-offset-4">Политика конфиденциальности</Link></p>
-      <div className="mt-4 flex flex-wrap gap-2">
-        <button type="button" onClick={() => choose("all")} className="apple-glass-button brand-action rounded-full px-4 py-2.5 text-sm font-black">Принять все</button>
-        <button type="button" onClick={() => choose("essential")} className="apple-glass-button rounded-full border border-[var(--color-border)] bg-[var(--color-glass)] px-4 py-2.5 text-sm font-black text-[var(--color-text)]">Только необходимые</button>
-      </div>
-    </aside>
+    <AnimatePresence>
+      {consent === "pending" ? (
+        <motion.aside
+          initial={{ opacity: 0, y: 30, scale: 0.97, filter: "blur(10px)" }}
+          animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+          exit={{ opacity: 0, y: 18, scale: 0.98, filter: "blur(8px)" }}
+          transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
+          className="cookie-consent liquid-glass z-[80] mx-auto max-w-xl rounded-[var(--radius-lg)] border border-[var(--color-border)] p-4 text-[var(--color-text)] shadow-[var(--shadow-hover)] backdrop-blur-3xl"
+        >
+          <p className="text-sm font-black">Настройки cookies</p>
+          <p className="mt-2 text-sm leading-6 text-[var(--color-text-muted)]">Мы используем обязательные cookies для работы сайта. С согласия пользователя включаем обезличенную аналитику посещений.</p>
+          <p className="mt-2 text-xs font-semibold text-[var(--color-text-soft)]"><Link href="/cookies" className="underline underline-offset-4">Политика cookies</Link> · <Link href="/privacy" className="underline underline-offset-4">Политика конфиденциальности</Link></p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button type="button" onClick={() => choose("all")} className="apple-glass-button brand-action rounded-full px-4 py-2.5 text-sm font-black">Принять все</button>
+            <button type="button" onClick={() => choose("essential")} className="apple-glass-button rounded-full border border-[var(--color-border)] bg-[var(--color-glass)] px-4 py-2.5 text-sm font-black text-[var(--color-text)]">Только необходимые</button>
+          </div>
+        </motion.aside>
+      ) : null}
+    </AnimatePresence>
   );
 }

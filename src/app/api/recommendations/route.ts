@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 type SearchMode = "skin" | "hair" | "perfume";
 type MarketplaceLink = { label: string; href: string };
-type Product = { name: string; category: string; reason: string; rating: number; marketplaces?: MarketplaceLink[] };
+type Product = { name: string; category: string; reason: string; rating: number; price?: string; image?: string; marketplaces?: MarketplaceLink[] };
 type RecommendationPayload = { summary?: string; products?: Product[] };
 
 const modeRules: Record<SearchMode, { label: string; intent: string[]; system: string }> = {
@@ -25,19 +25,19 @@ const modeRules: Record<SearchMode, { label: string; intent: string[]; system: s
 
 const fallback: Record<SearchMode, Product[]> = {
   skin: [
-    { name: "Purito Oat-in Calming Gel Cream", category: "Увлажнение", reason: "Лёгкий крем для спокойного базового ухода без тяжёлого финиша.", rating: 4.8 },
-    { name: "COSRX Low pH Good Morning Gel Cleanser", category: "Очищение", reason: "Мягкое ежедневное очищение без ощущения плёнки.", rating: 4.7 },
-    { name: "Beauty of Joseon Relief Sun SPF50+", category: "Защита", reason: "Комфортный ежедневный SPF с лёгким финишем.", rating: 4.8 },
+    { name: "Purito Oat-in Calming Gel Cream", category: "Увлажнение", reason: "Лёгкий крем для спокойного базового ухода без тяжёлого финиша.", rating: 4.8, price: "1 600–2 300 ₽", image: "/beauty-products-portal.png" },
+    { name: "COSRX Low pH Good Morning Gel Cleanser", category: "Очищение", reason: "Мягкое ежедневное очищение без ощущения плёнки.", rating: 4.7, price: "900–1 500 ₽", image: "/beauty-products-portal.png" },
+    { name: "Beauty of Joseon Relief Sun SPF50+", category: "Защита", reason: "Комфортный ежедневный SPF с лёгким финишем.", rating: 4.8, price: "1 400–2 100 ₽", image: "/beauty-products-portal.png" },
   ],
   hair: [
-    { name: "Lador Dermatical Hair-Loss Shampoo", category: "Шампунь", reason: "Бережное очищение кожи головы без перегруза длины.", rating: 4.7 },
-    { name: "Olaplex No.5 Bond Maintenance Conditioner", category: "Кондиционер", reason: "Поддерживает повреждённую и окрашенную длину.", rating: 4.8 },
-    { name: "CHI 44 Iron Guard", category: "Термозащита", reason: "Помогает защитить длину при регулярной горячей укладке.", rating: 4.7 },
+    { name: "Lador Dermatical Hair-Loss Shampoo", category: "Шампунь", reason: "Бережное очищение кожи головы без перегруза длины.", rating: 4.7, price: "1 000–1 600 ₽", image: "/beauty-products-portal.png" },
+    { name: "Olaplex No.5 Bond Maintenance Conditioner", category: "Кондиционер", reason: "Поддерживает повреждённую и окрашенную длину.", rating: 4.8, price: "2 600–3 900 ₽", image: "/beauty-products-portal.png" },
+    { name: "CHI 44 Iron Guard", category: "Термозащита", reason: "Помогает защитить длину при регулярной горячей укладке.", rating: 4.7, price: "1 100–1 800 ₽", image: "/beauty-products-portal.png" },
   ],
   perfume: [
-    { name: "Maison Margiela Replica Lazy Sunday Morning", category: "Чистый мускус", reason: "Светлый хлопковый аромат для офиса и близкой дистанции.", rating: 4.7 },
-    { name: "Jo Malone Wood Sage & Sea Salt", category: "Минеральная свежесть", reason: "Соль, шалфей и прозрачная древесность без сладости.", rating: 4.8 },
-    { name: "Diptyque Eau Duelle", category: "Тёплая ваниль", reason: "Ваниль со специями без кондитерской тяжести.", rating: 4.8 },
+    { name: "Maison Margiela Replica Lazy Sunday Morning", category: "Чистый мускус", reason: "Светлый хлопковый аромат для офиса и близкой дистанции.", rating: 4.7, price: "7 500–13 000 ₽", image: "/perfume-margiela.svg" },
+    { name: "Jo Malone Wood Sage & Sea Salt", category: "Минеральная свежесть", reason: "Соль, шалфей и прозрачная древесность без сладости.", rating: 4.8, price: "8 000–14 500 ₽", image: "/perfume-jo-malone.svg" },
+    { name: "Diptyque Eau Duelle", category: "Тёплая ваниль", reason: "Ваниль со специями без кондитерской тяжести.", rating: 4.8, price: "11 000–18 000 ₽", image: "/perfume-diptyque.svg" },
   ],
 };
 
@@ -74,6 +74,8 @@ function normalizeProducts(mode: SearchMode, products?: Product[]) {
     category: product.category || defaults[index % defaults.length].category,
     reason: product.reason || defaults[index % defaults.length].reason,
     rating: Math.min(5, Math.max(1, Number(product.rating) || 4.7)),
+    price: product.price || defaults[index % defaults.length].price,
+    image: product.image || defaults[index % defaults.length].image,
     marketplaces: marketplaceLinks(product.name || defaults[index % defaults.length].name, product.marketplaces),
   }));
 }

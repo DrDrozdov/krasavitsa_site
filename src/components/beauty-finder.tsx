@@ -2,11 +2,12 @@
 
 import { AnimatePresence, motion } from "motion/react";
 import { Droplets, ExternalLink, Scissors, Sparkles } from "lucide-react";
-import { useMemo, useState } from "react";
+import Image from "next/image";
+import { useEffect, useMemo, useState } from "react";
 import { trackAnalyticsEvent } from "@/lib/analytics-client";
 
 type Mode = "skin" | "hair" | "perfume";
-type Product = { name: string; category: string; reason: string; rating: number; marketplaces?: Array<{ label: string; href: string }> };
+type Product = { name: string; category: string; reason: string; rating: number; price?: string; image?: string; marketplaces?: Array<{ label: string; href: string }> };
 
 const modes: Array<{ id: Mode; label: string; description: string; Icon: typeof Sparkles }> = [
   { id: "skin", label: "Уход за кожей", description: "Тип кожи, барьер, активы и SPF", Icon: Droplets },
@@ -32,6 +33,36 @@ const examples: Record<Mode, string[]> = {
   ],
 };
 
+const exampleSets: Record<Mode, string[][]> = {
+  skin: [examples.skin, [
+    "Сыворотка для обезвоженной кожи без липкого финиша до 2500 ₽",
+    "Мягкое очищение для реактивной кожи без отдушек",
+    "Нужен городской SPF, который не скатывается под макияжем",
+  ], [
+    "Собери вечерний уход с ретиноидом для новичка",
+    "Крем для жирной кожи с ослабленным барьером до 2000 ₽",
+    "Как уменьшить сухость после кислот без десятка банок",
+  ]],
+  hair: [examples.hair, [
+    "Шампунь для чувствительной кожи головы без сильной отдушки",
+    "Нужен уход для тонких волос, чтобы не потерять объём",
+    "Подбери несмываемый крем для осветлённой длины",
+  ], [
+    "Как собрать рутину для кудрявых пористых волос",
+    "Термозащита и кондиционер для частой укладки до 3000 ₽",
+    "Уход для жирных корней и ломких кончиков",
+  ]],
+  perfume: [examples.perfume, [
+    "Хочу спокойный аромат с чаем и древесностью на каждый день",
+    "Подбери подарок: чистый, универсальный, без сладкого шлейфа",
+    "Нужен аромат для вечера с ирисом и мягким мускусом",
+  ], [
+    "Ищу прохладный цитрус без резкой бытовой свежести",
+    "Подбери ванильный аромат без кондитерской тяжести",
+    "Хочу лёгкий офисный парфюм до 6000 ₽",
+  ]],
+};
+
 const placeholders: Record<Mode, string> = {
   skin: "Например: чувствительная кожа, сухость после умывания, бюджет 3000 ₽",
   hair: "Например: жирная кожа головы, окрашенная длина, нужна термозащита",
@@ -45,7 +76,14 @@ export function BeautyFinder() {
   const [summary, setSummary] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [examplePage, setExamplePage] = useState(0);
   const active = useMemo(() => modes.find((item) => item.id === mode)!, [mode]);
+  const activeExamples = exampleSets[mode][examplePage % exampleSets[mode].length];
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setExamplePage((page) => (page + 1) % exampleSets[mode].length), 6400);
+    return () => window.clearInterval(timer);
+  }, [mode]);
 
   const changeMode = (next: Mode) => {
     if (next === mode) return;
@@ -141,12 +179,16 @@ export function BeautyFinder() {
                 {loading ? "Собираю…" : "Подобрать"}
               </button>
             </div>
-            <div className="mt-4 grid gap-2 md:grid-cols-3">
-              {examples[mode].map((item) => (
-                <button key={item} type="button" onClick={() => { setQuery(item); void search(item); }} className="example-chip rounded-[var(--radius-md)] border border-white/14 bg-white/8 p-4 text-left text-sm font-bold leading-5 text-white/78 backdrop-blur-xl">
-                  {item}
-                </button>
-              ))}
+            <div className="relative mt-4 min-h-[196px] md:min-h-[82px]">
+              <AnimatePresence initial={false} mode="sync">
+                <motion.div key={`${mode}-${examplePage}`} initial={{ opacity: 0, y: 26, filter: "blur(8px)" }} animate={{ opacity: 1, y: 0, filter: "blur(0px)" }} exit={{ opacity: 0, y: -26, filter: "blur(7px)" }} transition={{ duration: 0.52, ease: [0.16, 1, 0.3, 1] }} className="absolute inset-0 grid gap-2 md:grid-cols-3">
+                  {activeExamples.map((item) => (
+                    <button key={item} type="button" onClick={() => { setQuery(item); void search(item); }} className="example-chip rounded-[var(--radius-md)] border border-white/14 bg-white/8 p-4 text-left text-sm font-bold leading-5 text-white/78 backdrop-blur-xl">
+                      {item}
+                    </button>
+                  ))}
+                </motion.div>
+              </AnimatePresence>
             </div>
             {error ? <p className="mt-5 rounded-[var(--radius-md)] bg-white/12 p-4 text-sm font-semibold text-white/80">{error}</p> : null}
           </motion.div>
@@ -158,12 +200,16 @@ export function BeautyFinder() {
               <p className="mx-auto max-w-3xl py-7 text-center text-xl font-bold leading-8 text-[var(--color-text-muted)]">{summary}</p>
               <div className="grid gap-3 md:grid-cols-2">
                 {results.map((product) => (
-                  <article key={product.name} className="meaning-card liquid-glass rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-glass)] p-5 backdrop-blur-2xl md:p-6">
+                  <article key={product.name} className="meaning-card liquid-glass overflow-hidden rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-glass)] p-3 backdrop-blur-2xl md:p-4">
+                    <div className="relative mb-4 aspect-[16/7] overflow-hidden rounded-[calc(var(--radius-lg)-8px)] border border-white/30 bg-white/36">
+                      {product.image ? <Image src={product.image} alt={product.name} fill sizes="(min-width: 768px) 48vw, 100vw" className="object-cover p-3" /> : null}
+                    </div>
                     <div className="flex items-start justify-between gap-4">
                       <div><p className="text-xs font-black uppercase text-[var(--color-text-soft)]">{product.category}</p><h3 className="mt-3 text-2xl font-black leading-tight">{product.name}</h3></div>
                       <span className="shrink-0 rounded-full bg-[var(--color-bordeaux)] px-3 py-2 text-xs font-black text-white">★ {product.rating.toFixed(1)}</span>
                     </div>
                     <p className="mt-4 text-sm font-semibold leading-6 text-[var(--color-text-muted)]">{product.reason}</p>
+                    {product.price ? <p className="mt-3 text-sm font-black text-[var(--color-bordeaux)]">Ориентир по цене: {product.price}</p> : null}
                     <div className="mt-5 flex flex-wrap gap-2">
                       {product.marketplaces?.map((link) => <a key={link.href} href={link.href} target="_blank" rel="noreferrer" className="apple-glass-button inline-flex items-center gap-1 rounded-full border border-[var(--color-border)] bg-white/48 px-3 py-2 text-xs font-black">{link.label}<ExternalLink className="size-3" /></a>)}
                     </div>

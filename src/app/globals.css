@@ -480,11 +480,13 @@ a {
 .theme-toggle-thumb {
   position: absolute;
   left: 3px;
-  top: 3px;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: transform 420ms var(--ease-soft), background-color 300ms ease, color 300ms ease, box-shadow 300ms ease !important;
 }
 
 .theme-toggle.is-dark .theme-toggle-thumb {
-  transform: translateX(34px);
+  transform: translate(34px, -50%);
 }
 
 :root[data-theme="dark"] .liquid-glass [class*="bg-white/"],
@@ -602,11 +604,23 @@ a {
 }
 
 .cookie-consent {
+  position: fixed !important;
+  bottom: max(1rem, env(safe-area-inset-bottom)) !important;
+  left: 1rem !important;
+  right: 1rem !important;
   background: rgba(255, 250, 249, 0.54);
 }
 
 :root[data-theme="dark"] .cookie-consent {
   background: rgba(40, 27, 32, 0.74);
+}
+
+@media (min-width: 768px) {
+  .cookie-consent {
+    bottom: 1.5rem !important;
+    left: auto !important;
+    right: 1.5rem !important;
+  }
 }
 
 .page-transition {
