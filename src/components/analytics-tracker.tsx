@@ -47,8 +47,8 @@ function send(eventName: string, elementKey = "") {
     utmMedium: params.get("utm_medium") ?? "",
     utmCampaign: params.get("utm_campaign") ?? "",
   });
-  if (navigator.sendBeacon) navigator.sendBeacon("/api/analytics/events", new Blob([payload], { type: "application/json" }));
-  else void fetch("/api/analytics/events", { method: "POST", headers: { "Content-Type": "application/json" }, body: payload, keepalive: true });
+  const queued = navigator.sendBeacon?.("/api/analytics/events", new Blob([payload], { type: "application/json" }));
+  if (!queued) void fetch("/api/analytics/events", { method: "POST", headers: { "Content-Type": "application/json" }, body: payload, keepalive: true, cache: "no-store" });
 }
 
 export function AnalyticsTracker() {
@@ -59,6 +59,27 @@ export function AnalyticsTracker() {
     const afterConsent = () => send("page_view");
     window.addEventListener("krasavitsa-cookie-consent", afterConsent);
     return () => window.removeEventListener("krasavitsa-cookie-consent", afterConsent);
+  }, [pathname]);
+
+  useEffect(() => {
+    const reached = new Set<number>();
+    const engagedTimer = window.setTimeout(() => send("engaged_visit", "15s"), 15000);
+    const onScroll = () => {
+      const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+      if (scrollable <= 0) return;
+      const percent = Math.round((window.scrollY / scrollable) * 100);
+      for (const threshold of [50, 90]) {
+        if (percent >= threshold && !reached.has(threshold)) {
+          reached.add(threshold);
+          send("scroll_depth", `${threshold}%`);
+        }
+      }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.clearTimeout(engagedTimer);
+      window.removeEventListener("scroll", onScroll);
+    };
   }, [pathname]);
 
   useEffect(() => {

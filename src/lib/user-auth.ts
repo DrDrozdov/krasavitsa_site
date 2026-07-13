@@ -43,9 +43,9 @@ export async function getCurrentUserId() {
 }
 
 export function setUserSession(response: Response, value: string) {
-  response.headers.append("Set-Cookie", `${cookieName}=${value}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${maxAge}; Secure`);
+  response.headers.append("Set-Cookie", `${cookieName}=${value}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${maxAge}${process.env.NODE_ENV === "production" ? "; Secure" : ""}`);
 }
 
 export function clearUserSession(response: Response) {
-  response.headers.append("Set-Cookie", `${cookieName}=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0; Secure`);
+  response.headers.append("Set-Cookie", `${cookieName}=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0${process.env.NODE_ENV === "production" ? "; Secure" : ""}`);
 }

@@ -30,8 +30,12 @@ export function SiteHeader() {
     };
   }, [mobileOpen]);
 
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
   return (
-    <header className="liquid-glass sticky top-0 z-40 border-b border-[var(--color-border)] bg-[rgba(250,247,243,.62)] px-4 py-3 backdrop-blur-2xl md:px-6">
+    <header className="liquid-glass sticky top-0 z-[200] border-b border-[var(--color-border)] bg-[rgba(250,247,243,.62)] px-4 py-3 backdrop-blur-2xl md:px-6">
       <div className="mx-auto flex max-w-[1480px] items-center justify-between gap-3">
         <Link href="/" className="flex items-center gap-3">
           <Image src="/krasavitsa-logo.png" alt="Красавица" width={46} height={46} className="rounded-full" priority />
@@ -61,7 +65,7 @@ export function SiteHeader() {
       </div>
       <div
         className={cn(
-          "fixed inset-0 top-[73px] z-50 bg-black/28 opacity-0 backdrop-blur-sm transition duration-300 md:hidden",
+          "fixed inset-0 top-[73px] z-[210] bg-black/28 opacity-0 backdrop-blur-sm transition duration-200 ease-out md:hidden",
           mobileOpen ? "pointer-events-auto opacity-100" : "pointer-events-none",
         )}
         onClick={() => setMobileOpen(false)}
@@ -69,9 +73,9 @@ export function SiteHeader() {
         <motion.aside
           initial={false}
           animate={mobileOpen ? { x: 0, opacity: 1, filter: "blur(0px)" } : { x: 34, opacity: 0, filter: "blur(10px)" }}
-          transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
           onClick={(event) => event.stopPropagation()}
-          className="ml-auto h-[calc(100svh-73px)] w-[min(86vw,380px)] overflow-y-auto border-l border-white/12 bg-[rgba(31,28,26,.88)] p-5 text-white shadow-[-24px_0_80px_rgba(0,0,0,.28)] backdrop-blur-3xl"
+          className="ml-auto h-[calc(100svh-73px)] w-[min(88vw,380px)] overflow-y-auto border-l border-white/12 bg-[rgba(49,22,31,.94)] p-5 pb-[max(2rem,env(safe-area-inset-bottom))] text-white shadow-[-24px_0_80px_rgba(0,0,0,.28)] backdrop-blur-3xl"
         >
           <div className="mb-5 flex items-center justify-between gap-3">
             <div>
@@ -101,7 +105,7 @@ export function SiteHeader() {
                 {href === "/profile" ? <><UserRound className="mr-2 inline size-5" /><span className="sr-only">{label}</span></> : label}
               </Link>
             ))}
-            <LinkButton href="/care" className="mt-2 h-14 w-full bg-white px-6 text-black hover:bg-white/90">
+            <LinkButton href="/care" onClick={() => setMobileOpen(false)} className="mt-2 h-14 w-full bg-white px-6 text-black hover:bg-white/90">
               Попробовать AI
             </LinkButton>
             <Link href="/#contacts" className="apple-glass-button rounded-full border border-white/16 bg-white/10 px-6 py-4 text-lg font-black text-white backdrop-blur-2xl transition duration-300 hover:bg-white hover:text-black">
@@ -163,7 +167,8 @@ export function SiteFooter() {
               ["Согласие на обработку данных", "/personal-data"],
               ["Пользовательское соглашение", "/terms"],
               ["Telegram-канал", "https://t.me/krasavitsa_ai"],
-              ["Instagram", "https://www.instagram.com/"],
+              ["Instagram", "https://www.instagram.com/krasavitsa_ai?utm_source=qr"],
+              ["VK", "https://vk.ru/krasavitsa_ai"],
               ["Разработчик: @thesp3cial", "https://t.me/thesp3cial"],
             ]}
           />

@@ -1,19 +1,22 @@
 import type { Metadata } from "next";
 import { Download, LogOut, ShieldCheck } from "lucide-react";
-import { isAdminSession } from "@/lib/admin-auth";
+import { isAdminSession, verifyAdminAccessKey } from "@/lib/admin-auth";
+import { notFound } from "next/navigation";
 import { getAnalyticsSnapshot } from "@/lib/analytics-store";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Аналитика — Красавица", robots: { index: false, follow: false } };
 
-export default async function AdminPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+export default async function AdminPage({ searchParams }: { searchParams: Promise<{ error?: string; access?: string }> }) {
+  const params = await searchParams;
+  if (!verifyAdminAccessKey(params.access ?? "")) notFound();
   const authenticated = await isAdminSession();
-  const error = (await searchParams).error;
-  if (!authenticated) return <AdminLogin error={error} />;
+  const error = params.error;
+  if (!authenticated) return <AdminLogin error={error} access={params.access ?? ""} />;
   const snapshot = await getAnalyticsSnapshot(30);
   const max = Math.max(1, ...snapshot.daily.map((day) => day.events.page_view ?? 0));
   const cards = [
-    ["Просмотры", snapshot.totals.pageviews], ["Действия", snapshot.totals.cta], ["Переходы в Telegram", snapshot.totals.telegram], ["Поиски", snapshot.totals.searches], ["Ошибки", snapshot.totals.errors],
+    ["Просмотры", snapshot.totals.pageviews], ["Вовлеченные визиты", snapshot.totals.engaged], ["Действия", snapshot.totals.cta], ["Поиски", snapshot.totals.searches], ["Ошибки", snapshot.totals.errors],
   ];
 
   return (
@@ -53,7 +56,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   );
 }
 
-function AdminLogin({ error }: { error?: string }) {
+function AdminLogin({ error, access }: { error?: string; access: string }) {
   return (
     <main className="grid min-h-screen place-items-center bg-[var(--color-bg)] p-4 text-[var(--color-text)]">
       <section className="brand-panel w-full max-w-lg rounded-[var(--radius-xxl)] p-6 shadow-[var(--shadow-soft)] md:p-10">
@@ -61,6 +64,7 @@ function AdminLogin({ error }: { error?: string }) {
         <p className="mt-10 text-xs font-black uppercase text-white/52">Только для администратора</p>
         <h1 className="mt-3 text-5xl font-black leading-none">Красавица Аналитик</h1>
         <form action="/api/admin/login" method="post" className="mt-8">
+          <input type="hidden" name="access" value={access} />
           <label className="block rounded-full border border-white/18 bg-white/10 px-5 py-4 backdrop-blur-2xl"><span className="sr-only">Пароль</span><input name="password" type="password" required autoComplete="current-password" placeholder="Пароль администратора" className="w-full bg-transparent font-bold text-white outline-none placeholder:text-white/42" /></label>
           {error ? <p className="mt-3 text-sm font-bold text-[#ffd0d6]">Пароль не принят.</p> : null}
           <button className="apple-glass-button mt-4 w-full rounded-full bg-white px-6 py-4 text-sm font-black text-[var(--color-bordeaux)]">Открыть дашборд</button>

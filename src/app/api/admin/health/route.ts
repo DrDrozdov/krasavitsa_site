@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   const admin = adminConfiguration();
   return NextResponse.json({
-    ok: admin.passwordConfigured && admin.sessionConfigured,
+    ok: admin.passwordConfigured && admin.sessionConfigured && admin.accessConfigured,
     admin,
     analyticsDataDirectory: Boolean(process.env.ANALYTICS_DATA_DIR),
     telegram: {

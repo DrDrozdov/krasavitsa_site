@@ -12,10 +12,17 @@ function sessionSecret() {
 export function adminConfiguration() {
   const password = process.env.KRASAVITSA_ADMIN_PASSWORD ?? "";
   const secret = sessionSecret();
+  const accessKey = process.env.KRASAVITSA_ADMIN_ACCESS_KEY ?? "";
   return {
     passwordConfigured: password.length >= 12,
     sessionConfigured: secret.length >= 32,
+    accessConfigured: accessKey.length >= 32,
   };
+}
+
+export function verifyAdminAccessKey(value: string) {
+  const configured = process.env.KRASAVITSA_ADMIN_ACCESS_KEY ?? "";
+  return configured.length >= 32 && safeEqual(value, configured);
 }
 
 function expectedCookie() {

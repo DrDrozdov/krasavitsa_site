@@ -399,6 +399,7 @@ function TelegramPortalPanel() {
             <TelegramCard href="https://t.me/krasavitsa_ai_bot" title="Telegram-бот" text="Запустить AI-подбор в чате." />
             <TelegramCard href="https://t.me/krasavitsa_ai" title="Telegram-канал" text="Следить за обновлениями проекта." />
             <TelegramCard href="https://www.instagram.com/krasavitsa_ai?utm_source=qr" title="Instagram" text="Смотреть новые визуальные материалы." />
+            <TelegramCard href="https://vk.ru/krasavitsa_ai" title="VK" text="Читать новости и сохранять материалы." />
           </div>
         </div>
       </div>
@@ -443,6 +444,7 @@ function PortalTile({ children, className, delay = 0, hero = false }: { children
 function TelegramCard({ href, title, text }: { href: string; title: string; text: string }) {
   const isBot = title.toLowerCase().includes("бот");
   const isInstagram = title.toLowerCase().includes("instagram");
+  const isVk = title.toLowerCase() === "vk";
 
   return (
     <motion.a href={href} target="_blank" rel="noreferrer" whileHover={{ y: -5, scale: 1.014 }} whileTap={{ scale: 0.982 }} transition={{ duration: 0.52, ease: [0.16, 1, 0.3, 1] }} className="apple-glass-card group rounded-2xl border border-white/62 bg-white/68 p-5 shadow-[var(--shadow-card)] backdrop-blur-2xl transition duration-500 hover:bg-white/82">
@@ -452,6 +454,8 @@ function TelegramCard({ href, title, text }: { href: string; title: string; text
             <Image src="/telegram-bot-icon.png" alt="" width={28} height={28} className="size-7 object-contain" />
           ) : isInstagram ? (
             <InstagramIcon className="size-6" />
+          ) : isVk ? (
+            <VkIcon className="size-6" />
           ) : (
             <Send className="size-6 -rotate-12 stroke-[2.4]" />
           )}
@@ -468,6 +472,10 @@ function TelegramCard({ href, title, text }: { href: string; title: string; text
 
 function InstagramIcon({ className }: { className?: string }) {
   return <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}><rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" strokeWidth="2" /><circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="2" /><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" /></svg>;
+}
+
+function VkIcon({ className }: { className?: string }) {
+  return <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}><path d="M4 7.6c.16 4.88 2.45 7.81 6.38 7.81h.22v-2.8c1.58.16 2.77 1.3 3.25 2.8H16c-.6-2.2-2.15-3.42-3.12-3.9.97-.57 2.33-1.95 2.65-3.91h-1.87c-.42 1.6-1.68 2.98-3.06 3.11V7.6H8.73v3.7C7.33 10.95 5.57 9.45 5.49 7.6H4Z" fill="currentColor" /></svg>;
 }
 
 function Footer() {
@@ -497,6 +505,7 @@ function Footer() {
               <a href="https://t.me/krasavitsa_ai_bot" target="_blank" rel="noreferrer" className="hover:text-black">Telegram Bot</a>
               <a href="https://t.me/krasavitsa_ai" target="_blank" rel="noreferrer" className="hover:text-black">Telegram Channel</a>
               <a href="https://www.instagram.com/krasavitsa_ai?utm_source=qr" target="_blank" rel="noreferrer" className="hover:text-[var(--color-bordeaux)]">Instagram</a>
+              <a href="https://vk.ru/krasavitsa_ai" target="_blank" rel="noreferrer" className="hover:text-[var(--color-bordeaux)]">VK</a>
             </div>
           </div>
 

@@ -26,18 +26,30 @@ export function ThemeToggle({ className }: { className?: string }) {
     });
 
     const media = window.matchMedia("(prefers-color-scheme: dark)");
-    const syncSystemTheme = (event: MediaQueryListEvent) => {
+    const syncStoredTheme = () => {
+      const nextTheme = getPreferredTheme();
+      setTheme(nextTheme);
+      document.documentElement.dataset.theme = nextTheme;
+      document.documentElement.dataset.themeSource = window.localStorage.getItem("krasavitsa-theme-source") === "manual" ? "manual" : "system";
+    };
+    const syncSystemTheme = () => {
       if (window.localStorage.getItem("krasavitsa-theme-source") === "manual") return;
-      const nextTheme: Theme = event.matches ? "dark" : "light";
+      const nextTheme: Theme = media.matches ? "dark" : "light";
       setTheme(nextTheme);
       document.documentElement.dataset.theme = nextTheme;
       document.documentElement.dataset.themeSource = "system";
     };
     media.addEventListener("change", syncSystemTheme);
+    window.addEventListener("pageshow", syncSystemTheme);
+    document.addEventListener("visibilitychange", syncSystemTheme);
+    window.addEventListener("krasavitsa-theme-change", syncStoredTheme);
 
     return () => {
       window.cancelAnimationFrame(frame);
       media.removeEventListener("change", syncSystemTheme);
+      window.removeEventListener("pageshow", syncSystemTheme);
+      document.removeEventListener("visibilitychange", syncSystemTheme);
+      window.removeEventListener("krasavitsa-theme-change", syncStoredTheme);
     };
   }, []);
 
@@ -48,6 +60,7 @@ export function ThemeToggle({ className }: { className?: string }) {
     window.localStorage.setItem("krasavitsa-theme", nextTheme);
     window.localStorage.setItem("krasavitsa-theme-source", "manual");
     document.documentElement.dataset.themeSource = "manual";
+    window.dispatchEvent(new CustomEvent("krasavitsa-theme-change"));
   };
 
   return (

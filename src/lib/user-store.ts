@@ -1,6 +1,6 @@
 import "server-only";
 
-import { randomUUID, scryptSync, timingSafeEqual } from "node:crypto";
+import { createHash, randomUUID, scryptSync, timingSafeEqual } from "node:crypto";
 import { mkdir, readFile, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 
@@ -14,6 +14,9 @@ export type StoredUser = {
   createdAt: string;
   acceptedPrivacyAt: string;
   acceptedTermsAt: string;
+  emailVerifiedAt?: string;
+  emailVerificationHash?: string;
+  emailVerificationExpiresAt?: string;
   favorites?: SavedProduct[];
   recommendationHistory?: RecommendationHistory[];
   consents?: UserConsents;
@@ -142,9 +145,10 @@ export async function findUserById(id: string) {
   return state.users.find((user) => user.id === id) ?? null;
 }
 
-export async function createUser(input: { email: string; nickname: string; password: string }): Promise<{ user: StoredUser | null; duplicate: boolean }> {
+export async function createUser(input: { email: string; nickname: string; password: string }): Promise<{ user: StoredUser | null; duplicate: boolean; verificationToken?: string }> {
   let created: StoredUser | null = null;
   let duplicate = false;
+  const verificationToken = randomUUID().replaceAll("-", "");
   const task = writeQueue.then(async () => {
     const state = await readState();
     const email = input.email.trim().toLowerCase();
@@ -163,6 +167,8 @@ export async function createUser(input: { email: string; nickname: string; passw
       createdAt: now,
       acceptedPrivacyAt: now,
       acceptedTermsAt: now,
+      emailVerificationHash: createHash("sha256").update(verificationToken).digest("hex"),
+      emailVerificationExpiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString(),
       favorites: [],
       recommendationHistory: [],
       consents: { privacy: true, terms: true, analytics: false, updatedAt: now },
@@ -172,7 +178,23 @@ export async function createUser(input: { email: string; nickname: string; passw
   });
   writeQueue = task.catch(() => undefined);
   await task;
-  return { user: created, duplicate };
+  return { user: created, duplicate, verificationToken: created ? verificationToken : undefined };
+}
+
+export async function verifyUserEmail(token: string) {
+  const tokenHash = createHash("sha256").update(token).digest("hex");
+  const task = writeQueue.then(async () => {
+    const state = await readState();
+    const user = state.users.find((item) => item.emailVerificationHash === tokenHash);
+    if (!user || !user.emailVerificationExpiresAt || new Date(user.emailVerificationExpiresAt).getTime() < Date.now()) return null;
+    user.emailVerifiedAt = new Date().toISOString();
+    delete user.emailVerificationHash;
+    delete user.emailVerificationExpiresAt;
+    await writeState(state);
+    return user;
+  });
+  writeQueue = task.then(() => undefined, () => undefined);
+  return task;
 }
 
 export function verifyPassword(user: StoredUser, password: string) {

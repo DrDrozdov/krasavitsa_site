@@ -1,5 +1,6 @@
 export function trackAnalyticsEvent(eventName: string, elementKey = "") {
   if (typeof window === "undefined") return;
+  if (!document.cookie.includes("krasavitsa_cookie_consent=all")) return;
   const payload = JSON.stringify({
     eventName,
     elementKey,
@@ -7,5 +8,5 @@ export function trackAnalyticsEvent(eventName: string, elementKey = "") {
     pageGroup: window.location.pathname === "/" ? "home" : window.location.pathname.split("/")[1],
     deviceType: window.innerWidth < 768 ? "mobile" : window.innerWidth < 1100 ? "tablet" : "desktop",
   });
-  void fetch("/api/analytics/events", { method: "POST", headers: { "Content-Type": "application/json" }, body: payload, keepalive: true });
+  void fetch("/api/analytics/events", { method: "POST", headers: { "Content-Type": "application/json" }, body: payload, keepalive: true, cache: "no-store" });
 }

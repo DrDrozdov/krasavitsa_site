@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
-import { authIsConfigured, createUserSessionValue, setUserSession } from "@/lib/user-auth";
-import { createUser, toPublicUser } from "@/lib/user-store";
+import { authIsConfigured } from "@/lib/user-auth";
+import { registrationEmailConfigured, sendRegistrationEmail } from "@/lib/registration-email";
+import { createUser } from "@/lib/user-store";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
+  if (!registrationEmailConfigured()) return NextResponse.json({ error: "Регистрация временно недоступна: не настроена отправка почты." }, { status: 503 });
   if (!authIsConfigured()) return NextResponse.json({ error: "Регистрация временно недоступна: не настроен секрет сессии." }, { status: 503 });
   const body = (await request.json()) as Record<string, unknown>;
   const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
@@ -16,8 +18,7 @@ export async function POST(request: Request) {
   if (password.length < 10 || password.length > 128) return NextResponse.json({ error: "Пароль должен содержать не меньше 10 символов." }, { status: 400 });
   const result = await createUser({ email, nickname, password });
   if (result.duplicate || !result.user) return NextResponse.json({ error: "Профиль с такой почтой уже существует." }, { status: 409 });
-  const createdUser = result.user;
-  const response = NextResponse.json({ user: toPublicUser(createdUser) });
-  setUserSession(response, createUserSessionValue(createdUser.id));
-  return response;
+  const delivered = await sendRegistrationEmail(result.user.email, result.user.nickname, result.verificationToken!);
+  if (!delivered) return NextResponse.json({ error: "Не удалось отправить письмо. Повторите попытку позже." }, { status: 502 });
+  return NextResponse.json({ ok: true, message: "Письмо для подтверждения отправлено. Проверьте почту." }, { status: 201 });
 }

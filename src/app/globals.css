@@ -1046,6 +1046,50 @@ a {
   .hero-image-layer {
     transform: scale(1.08) translate3d(0, 0, 0);
   }
+
+  /* Mobile keeps one decision per screen: modes are compact controls, not cards. */
+  .ai-finder .direction-card {
+    min-height: 106px;
+    overflow: hidden;
+  }
+
+  .ai-finder .direction-card span {
+    overflow-wrap: anywhere;
+  }
+
+  .ai-finder .brand-panel {
+    border-radius: 26px;
+  }
+
+  .ai-finder .example-chip {
+    min-height: 64px;
+  }
+
+  .about-hero .about-visual {
+    min-height: 350px;
+  }
+
+  .about-hero .about-float-card {
+    display: none;
+  }
+
+  .about-hero .about-visual > div:last-child {
+    right: 1rem;
+    bottom: 1rem;
+    max-width: calc(100% - 2rem);
+    padding: 1rem;
+  }
+}
+
+:root[data-theme="dark"] .social-card-icon,
+:root[data-theme="dark"] .social-card-icon img,
+:root[data-theme="dark"] .social-card-icon svg {
+  background: transparent !important;
+}
+
+:root[data-theme="dark"] .social-card-icon {
+  background-color: rgba(125, 48, 66, 0.42) !important;
+  border-color: rgba(255, 235, 231, 0.22) !important;
 }
 
 @keyframes portal-layer-pan {

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowUpRight, Bot, Brain, CheckCircle2, Globe2, MessageCircle, Music2, Rocket, Send, Sparkles, Star, UserRound } from "lucide-react";
+import { ArrowUpRight, Bot, Brain, CheckCircle2, Globe2, Rocket, Send, Sparkles, Star, UserRound } from "lucide-react";
 import { BeautyPageShell, BeautyPortalGrid, InstagramIcon, PortalPanel, TelegramCTA } from "@/components/portal-components";
 
 export const metadata: Metadata = {
@@ -14,9 +14,12 @@ const socials = [
   { title: "Telegram-бот", href: "https://t.me/krasavitsa_ai_bot", Icon: Bot },
   { title: "Telegram-канал", href: "https://t.me/krasavitsa_ai", Icon: Send },
   { title: "Instagram", href: "https://www.instagram.com/krasavitsa_ai?utm_source=qr", Icon: InstagramIcon },
-  { title: "TikTok", href: "https://www.tiktok.com/@krasavitsa_ai", Icon: Music2 },
-  { title: "MAX", href: "https://max.ru/", Icon: MessageCircle },
+  { title: "VK", href: "https://vk.ru/krasavitsa_ai", Icon: VkIcon },
 ];
+
+function VkIcon({ className }: { className?: string }) {
+  return <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}><path d="M4 7.6c.16 4.88 2.45 7.81 6.38 7.81h.22v-2.8c1.58.16 2.77 1.3 3.25 2.8H16c-.6-2.2-2.15-3.42-3.12-3.9.97-.57 2.33-1.95 2.65-3.91h-1.87c-.42 1.6-1.68 2.98-3.06 3.11V7.6H8.73v3.7C7.33 10.95 5.57 9.45 5.49 7.6H4Z" fill="currentColor" /></svg>;
+}
 
 const doneItems = [
   { title: "AI-подбор в Telegram", text: "Пользователь описывает задачу, бюджет и ограничения, а бот собирает понятную подборку.", Icon: Bot },
@@ -49,14 +52,14 @@ export default function AboutPage() {
       <section className="px-3 pb-2 pt-5 md:px-5">
         <div className="about-hero liquid-glass relative overflow-hidden rounded-[var(--radius-xxl)] border border-[var(--color-border)] bg-white/28 p-3 shadow-[var(--shadow-soft)] backdrop-blur-2xl">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,.86),transparent_26rem),radial-gradient(circle_at_78%_12%,rgba(245,198,207,.34),transparent_24rem)]" />
-          <div className="relative z-10 grid min-h-[720px] gap-3 lg:grid-cols-[0.92fr_1.08fr]">
-            <div className="flex flex-col justify-between rounded-[var(--radius-xl)] border border-white/55 bg-white/34 p-6 text-[var(--color-text)] shadow-[var(--shadow-card)] backdrop-blur-2xl md:p-8">
+          <div className="relative z-10 grid gap-3 lg:min-h-[660px] lg:grid-cols-[0.92fr_1.08fr]">
+            <div className="flex flex-col justify-between rounded-[var(--radius-xl)] border border-white/55 bg-white/34 p-5 text-[var(--color-text)] shadow-[var(--shadow-card)] backdrop-blur-2xl md:p-8">
               <div>
                 <p className="text-sm font-black uppercase text-[var(--color-text-soft)]">О проекте</p>
-                <h1 className="mt-6 max-w-4xl text-[clamp(3.1rem,7.2vw,7.4rem)] font-black leading-[0.88] tracking-tight">
+                <h1 className="mt-5 max-w-4xl text-[clamp(3rem,7.2vw,7.4rem)] font-black leading-[0.9] tracking-tight">
                   Выбор ухода без шума
                 </h1>
-                <p className="mt-6 max-w-2xl text-lg font-semibold leading-8 text-[var(--color-text-muted)]">
+                <p className="mt-5 max-w-2xl text-base font-semibold leading-7 text-[var(--color-text-muted)] md:text-lg md:leading-8">
                   Красавица - единая AI-платформа для персонального подбора ухода за кожей, волосами и ароматов.
                   Мы строим не магазин, а спокойный маршрут выбора: от задачи и бюджета до объяснимой рекомендации.
                 </p>
@@ -78,24 +81,24 @@ export default function AboutPage() {
               </div>
             </div>
 
-            <div className="about-visual relative min-h-[560px] overflow-hidden rounded-[var(--radius-xl)] border border-white/55 bg-white/22 shadow-[var(--shadow-card)] backdrop-blur-2xl">
-              <Image src="/about-ai-hero.svg" alt="" fill priority sizes="(min-width: 1024px) 54vw, 100vw" className="about-visual-image object-cover" />
+            <div className="about-visual relative min-h-[340px] overflow-hidden rounded-[var(--radius-xl)] border border-white/55 bg-white/22 shadow-[var(--shadow-card)] backdrop-blur-2xl md:min-h-[560px]">
+              <Image src="/about/about-beauty-path-v2.png" alt="Абстрактная композиция Красавицы: пудровые beauty-объекты и бордовые линии" fill priority sizes="(min-width: 1024px) 54vw, 100vw" className="about-visual-image object-cover" />
               <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,.72),transparent_42%,rgba(255,255,255,.12))]" />
-              <div className="about-float-card left-5 top-6">
+              <div className="about-float-card left-4 top-4 md:left-5 md:top-6">
                 <span>04.2026</span>
                 <b>старт идеи</b>
               </div>
-              <div className="about-float-card right-5 top-20 animation-delay-2">
+              <div className="about-float-card right-4 top-16 animation-delay-2 md:right-5 md:top-20">
                 <span>AI</span>
                 <b>личный подбор</b>
               </div>
-              <div className="about-float-card bottom-24 left-8 animation-delay-3">
+              <div className="about-float-card bottom-20 left-5 animation-delay-3 md:bottom-24 md:left-8">
                 <span>Profile</span>
                 <b>контекст кожи</b>
               </div>
-              <div className="absolute bottom-6 right-6 max-w-sm rounded-[2rem] border border-white/60 bg-white/44 p-5 text-[var(--color-text)] shadow-[var(--shadow-card)] backdrop-blur-2xl">
+              <div className="absolute bottom-4 right-4 max-w-[15rem] rounded-[1.5rem] border border-white/60 bg-white/44 p-4 text-[var(--color-text)] shadow-[var(--shadow-card)] backdrop-blur-2xl md:bottom-6 md:right-6 md:max-w-sm md:rounded-[2rem] md:p-5">
                 <p className="text-xs font-black uppercase text-[var(--color-text-soft)]">Beauty-платформа</p>
-                <p className="mt-2 text-2xl font-black leading-tight">Запрос, подбор, объяснение, профиль и доверие в одном сценарии.</p>
+                <p className="mt-2 text-lg font-black leading-tight md:text-2xl">Запрос, подбор, объяснение, профиль и доверие в одном сценарии.</p>
               </div>
             </div>
           </div>
@@ -151,7 +154,7 @@ export default function AboutPage() {
 
       <section className="px-3 py-2 md:px-5">
         <div className="liquid-glass relative overflow-hidden rounded-[var(--radius-xxl)] border border-[var(--color-border)] bg-white/26 p-4 shadow-[var(--shadow-soft)] backdrop-blur-2xl md:p-6">
-          <div className="absolute inset-0 bg-[url('/about-ai-hero.svg')] bg-cover bg-center opacity-[0.18]" />
+          <div className="absolute inset-0 bg-[url('/about/about-beauty-path-v2.png')] bg-cover bg-center opacity-[0.18]" />
           <div className="relative z-10 grid gap-4 lg:grid-cols-[0.45fr_0.55fr]">
             <div className="flex flex-col justify-between rounded-[var(--radius-xl)] border border-white/48 bg-white/26 p-6 backdrop-blur-2xl">
               <div>

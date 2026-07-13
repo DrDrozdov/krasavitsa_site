@@ -158,7 +158,7 @@ export function BeautyFinder() {
   };
 
   return (
-    <section className="px-3 pb-6 pt-4 md:px-5 md:pb-12">
+    <section className="ai-finder px-3 pb-6 pt-4 md:px-5 md:pb-12">
       <div className="mx-auto max-w-[1320px]">
         <div className="text-center">
           <p className="text-xs font-black uppercase tracking-[0.18em] text-[var(--color-text-soft)]">Единый AI-подбор</p>
@@ -166,7 +166,7 @@ export function BeautyFinder() {
           <p className="mx-auto mt-6 max-w-2xl text-base font-semibold leading-7 text-[var(--color-text-muted)]">Выберите направление. Правила, примеры и контекст AI изменятся вместе с ним.</p>
         </div>
 
-        <div className="mt-10 grid gap-3 md:grid-cols-3">
+        <div className="mt-6 grid grid-cols-3 gap-2 md:mt-10 md:gap-3">
           {modes.map(({ id, label, description, Icon }) => (
             <motion.button
               key={id}
@@ -176,11 +176,11 @@ export function BeautyFinder() {
               whileHover={{ y: -4, scale: 1.012 }}
               whileTap={{ scale: 0.98 }}
               transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
-              className={`direction-card rounded-[var(--radius-xl)] border p-5 text-left backdrop-blur-2xl ${mode === id ? "direction-card-active" : "border-[var(--color-border)] bg-[var(--color-glass)]"}`}
+              className={`direction-card min-h-[112px] rounded-[var(--radius-lg)] border p-3 text-left backdrop-blur-2xl md:min-h-0 md:rounded-[var(--radius-xl)] md:p-5 ${mode === id ? "direction-card-active" : "border-[var(--color-border)] bg-[var(--color-glass)]"}`}
             >
-              <Icon className="size-6" />
-              <span className="mt-8 block text-2xl font-black">{label}</span>
-              <span className="mt-2 block text-sm font-semibold text-[var(--color-text-muted)]">{description}</span>
+              <Icon className="size-5 md:size-6" />
+              <span className="mt-5 block text-base font-black leading-tight md:mt-8 md:text-2xl">{label}</span>
+              <span className="mt-2 hidden text-sm font-semibold text-[var(--color-text-muted)] md:block">{description}</span>
             </motion.button>
           ))}
         </div>
@@ -192,7 +192,7 @@ export function BeautyFinder() {
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             exit={{ opacity: 0, y: -12, filter: "blur(8px)" }}
             transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
-            className="brand-panel mt-5 overflow-hidden rounded-[var(--radius-xxl)] border border-white/25 p-4 shadow-[var(--shadow-soft)] backdrop-blur-3xl md:p-7"
+            className="brand-panel mt-4 overflow-hidden rounded-[var(--radius-xl)] border border-white/25 p-4 shadow-[var(--shadow-soft)] backdrop-blur-3xl md:mt-5 md:rounded-[var(--radius-xxl)] md:p-7"
           >
             <div className="flex items-center gap-3">
               <active.Icon className="size-6" />
@@ -201,14 +201,14 @@ export function BeautyFinder() {
                 <h2 className="text-2xl font-black text-white">{active.label}</h2>
               </div>
             </div>
-            <div className="mt-8 grid gap-3 md:grid-cols-[1fr_auto]">
-              <div className="relative min-h-32">
+            <div className="mt-5 grid gap-3 md:mt-8 md:grid-cols-[1fr_auto]">
+              <div className="relative min-h-28 md:min-h-32">
                 <textarea
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
                   placeholder=""
                   aria-label="Опишите задачу для подбора"
-                  className="relative z-10 min-h-32 w-full resize-none rounded-[var(--radius-lg)] border border-white/18 bg-white/10 p-5 text-base font-semibold leading-7 text-white outline-none backdrop-blur-2xl focus:border-white/50"
+                  className="relative z-10 min-h-28 w-full resize-none rounded-[var(--radius-lg)] border border-white/18 bg-white/10 p-4 text-sm font-semibold leading-6 text-white outline-none backdrop-blur-2xl focus:border-white/50 md:min-h-32 md:p-5 md:text-base md:leading-7"
                 />
                 {!query ? <AnimatePresence mode="wait" initial={false}><motion.span key={`${mode}-${placeholderPage}`} initial={{ opacity: 0, y: 12, filter: "blur(5px)" }} animate={{ opacity: 0.52, y: 0, filter: "blur(0px)" }} exit={{ opacity: 0, y: -9, filter: "blur(5px)" }} transition={{ duration: 0.44, ease: [0.16, 1, 0.3, 1] }} className="pointer-events-none absolute left-5 right-5 top-5 z-20 text-base font-semibold leading-7 text-white/70">{activePlaceholder}</motion.span></AnimatePresence> : null}
               </div>
@@ -216,11 +216,11 @@ export function BeautyFinder() {
                 {loading ? "Собираю…" : "Подобрать"}
               </button>
             </div>
-            <div className="relative mt-4 min-h-[196px] md:min-h-[82px]">
+            <div className="relative mt-3 min-h-[70px] md:mt-4 md:min-h-[82px]">
               <AnimatePresence initial={false} mode="sync">
-                <motion.div key={`${mode}-${examplePage}`} initial={{ opacity: 0, y: 26, filter: "blur(8px)" }} animate={{ opacity: 1, y: 0, filter: "blur(0px)" }} exit={{ opacity: 0, y: -26, filter: "blur(7px)" }} transition={{ duration: 0.52, ease: [0.16, 1, 0.3, 1] }} className="absolute inset-0 grid gap-2 md:grid-cols-3">
+                <motion.div key={`${mode}-${examplePage}`} initial={{ opacity: 0, y: 26, filter: "blur(8px)" }} animate={{ opacity: 1, y: 0, filter: "blur(0px)" }} exit={{ opacity: 0, y: -26, filter: "blur(7px)" }} transition={{ duration: 0.52, ease: [0.16, 1, 0.3, 1] }} className="absolute inset-0 flex gap-2 overflow-x-auto pb-1 md:grid md:grid-cols-3 md:overflow-visible">
                   {activeExamples.map((item) => (
-                    <button key={item} type="button" onClick={() => { setQuery(item); void search(item); }} className="example-chip rounded-[var(--radius-md)] border border-white/14 bg-white/8 p-4 text-left text-sm font-bold leading-5 text-white/78 backdrop-blur-xl">
+                    <button key={item} type="button" onClick={() => { setQuery(item); void search(item); }} className="example-chip w-[86%] shrink-0 rounded-[var(--radius-md)] border border-white/14 bg-white/8 p-3 text-left text-xs font-bold leading-5 text-white/78 backdrop-blur-xl md:w-auto md:p-4 md:text-sm">
                       {item}
                     </button>
                   ))}

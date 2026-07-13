@@ -35,7 +35,7 @@ type AnalyticsState = {
 };
 
 const allowedEvents = new Set([
-  "page_view", "page_leave", "cta_click", "telegram_click", "navigation_click", "search_submit", "search_success", "search_rejected", "article_save", "article_like", "article_delete", "form_error", "bot_action", "bot_error",
+  "page_view", "page_leave", "engaged_visit", "scroll_depth", "cta_click", "telegram_click", "navigation_click", "search_submit", "search_success", "search_rejected", "article_save", "article_like", "article_delete", "profile_register", "profile_login", "form_error", "bot_action", "bot_error",
 ]);
 
 const storePath = process.env.ANALYTICS_DATA_DIR
@@ -103,9 +103,10 @@ export async function getAnalyticsSnapshot(days = 30) {
     acc.cta += day.events.cta_click ?? 0;
     acc.telegram += day.events.telegram_click ?? 0;
     acc.searches += day.events.search_submit ?? 0;
+    acc.engaged += day.events.engaged_visit ?? 0;
     acc.errors += day.errors;
     return acc;
-  }, { events: 0, pageviews: 0, cta: 0, telegram: 0, searches: 0, errors: 0 });
+  }, { events: 0, pageviews: 0, cta: 0, telegram: 0, searches: 0, engaged: 0, errors: 0 });
   return { updatedAt: state.updatedAt, daily, totals };
 }
 

@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Camera, Heart, History, LogOut, ShieldCheck, SlidersHorizontal, UserRound } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { FormEvent, useEffect, useState } from "react";
+import { trackAnalyticsEvent } from "@/lib/analytics-client";
 
 type User = { id: string; email: string; nickname: string; avatarUrl?: string; createdAt: string };
 type Library = {
@@ -45,10 +46,16 @@ export function ProfileDemo() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...payload, acceptedPrivacy: form.get("acceptedPrivacy") === "on", acceptedTerms: form.get("acceptedTerms") === "on" }),
     });
-    const data = (await response.json()) as { user?: User; error?: string };
-    if (!response.ok || !data.user) return setMessage(data.error ?? "Не удалось сохранить профиль.");
+    const data = (await response.json()) as { user?: User; error?: string; message?: string };
+    if (!response.ok) return setMessage(data.error ?? "Не удалось сохранить профиль.");
+    if (mode === "register") {
+      trackAnalyticsEvent("profile_register", "profile_form");
+      return setMessage(data.message ?? "Проверьте почту и подтвердите регистрацию.");
+    }
+    if (!data.user) return setMessage("Не удалось войти в профиль.");
     setUser(data.user);
-    setMessage(mode === "register" ? "Профиль создан." : "Вы вошли в профиль.");
+    trackAnalyticsEvent("profile_login", "profile_form");
+    setMessage("Вы вошли в профиль.");
   };
 
   const uploadAvatar = async (file?: File) => {
