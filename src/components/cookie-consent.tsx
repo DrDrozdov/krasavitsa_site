@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useState } from "react";
 
 type Consent = "all" | "essential" | "pending";
@@ -24,6 +24,7 @@ export function analyticsAllowed() {
 
 export function CookieConsent() {
   const [consent, setConsent] = useState<Consent>("pending");
+  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => setConsent(readConsent()));
@@ -39,10 +40,10 @@ export function CookieConsent() {
     <AnimatePresence>
       {consent === "pending" ? (
         <motion.aside
-          initial={{ opacity: 0, y: 30, scale: 0.97, filter: "blur(10px)" }}
+          initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 30, scale: 0.97, filter: "blur(10px)" }}
           animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
-          exit={{ opacity: 0, y: 18, scale: 0.98, filter: "blur(8px)" }}
-          transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
+          exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 18, scale: 0.98, filter: "blur(8px)" }}
+          transition={{ duration: reduceMotion ? 0 : 0.42, ease: [0.16, 1, 0.3, 1] }}
           className="cookie-consent liquid-glass z-[80] mx-auto max-w-xl rounded-[var(--radius-lg)] border border-[var(--color-border)] p-4 text-[var(--color-text)] shadow-[var(--shadow-hover)] backdrop-blur-3xl"
         >
           <p className="text-sm font-black">Настройки cookies</p>

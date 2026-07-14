@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { Droplets, ExternalLink, Heart, LoaderCircle, ScanSearch, Scissors, Sparkles } from "lucide-react";
+import { Droplets, ExternalLink, Heart, Scissors, Sparkles } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { trackAnalyticsEvent } from "@/lib/analytics-client";
@@ -16,9 +16,9 @@ const modeVisual: Record<Mode, string> = {
 };
 
 const modes: Array<{ id: Mode; label: string; description: string; Icon: typeof Sparkles }> = [
-  { id: "skin", label: "Уход за кожей", description: "Тип кожи, барьер, активы и SPF", Icon: Droplets },
+  { id: "skin", label: "Кожа", description: "Тип кожи, барьер, активы и SPF", Icon: Droplets },
   { id: "hair", label: "Волосы", description: "Кожа головы, длина и укладка", Icon: Scissors },
-  { id: "perfume", label: "Парфюм", description: "Ноты, настроение, повод и шлейф", Icon: Sparkles },
+  { id: "perfume", label: "Ароматы", description: "Ноты, настроение, повод и шлейф", Icon: Sparkles },
 ];
 
 const examples: Record<Mode, string[]> = {
@@ -117,7 +117,7 @@ export function BeautyFinder() {
 
   useEffect(() => {
     if (!loading) return;
-    const timer = window.setTimeout(() => setSearchFactStep(1), 1900);
+    const timer = window.setTimeout(() => setSearchFactStep(1), 1800);
     return () => window.clearTimeout(timer);
   }, [loading, mode]);
 
@@ -158,8 +158,6 @@ export function BeautyFinder() {
         body: JSON.stringify({ query: next, mode }),
       });
       const data = (await response.json()) as { summary?: string; products?: Product[]; error?: string };
-      const remainingAnimationTime = 1000 - (Date.now() - startedAt);
-      if (remainingAnimationTime > 0) await new Promise((resolve) => window.setTimeout(resolve, remainingAnimationTime));
       if (!response.ok) {
         setResults([]);
         setSummary("");
@@ -182,6 +180,10 @@ export function BeautyFinder() {
       setError("Связь с подбором прервалась. Попробуйте ещё раз.");
       trackAnalyticsEvent("form_error", `recommendations_${mode}`);
     } finally {
+      const remainingAnimationTime = 1450 - (Date.now() - startedAt);
+      if (remainingAnimationTime > 0) {
+        await new Promise((resolve) => window.setTimeout(resolve, remainingAnimationTime));
+      }
       setLoading(false);
     }
   };
@@ -281,19 +283,18 @@ export function BeautyFinder() {
               aria-live="polite"
               className="search-discovery mt-5 overflow-hidden rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-glass)] p-5 text-center shadow-[var(--shadow-soft)] backdrop-blur-2xl md:mt-7 md:rounded-[var(--radius-xxl)] md:p-8"
             >
-              <div className="search-orbit-stage" aria-hidden="true">
-                <div className="search-orbit-scene">
-                  <span className="search-orbit-ring search-orbit-ring-a"><i /></span>
-                  <span className="search-orbit-ring search-orbit-ring-b"><i /></span>
-                  <span className="search-orbit-ring search-orbit-ring-c"><i /></span>
-                  <span className="search-orbit-core">
-                    <LoaderCircle className="search-orbit-loader" strokeWidth={1.8} />
-                    <ScanSearch className="search-orbit-icon" strokeWidth={2.5} />
-                  </span>
-                </div>
+              <div className="search-prism-stage" aria-hidden="true">
+                <span className="search-prism-halo" />
+                <span className="search-prism-orbit" />
+                <span className="search-prism">
+                  <i className="search-prism-face" />
+                  <i className="search-prism-face" />
+                  <i className="search-prism-face" />
+                  <Sparkles className="search-prism-core" strokeWidth={1.8} />
+                </span>
               </div>
-              <p className="mt-5 text-xs font-black uppercase tracking-[0.14em] text-[var(--color-text-soft)]">Подбираем с заботой о вас</p>
-              <h2 className="mt-2 text-2xl font-black tracking-tight md:text-3xl">Собираю ваш сценарий ухода</h2>
+              <p className="mt-5 text-xs font-black uppercase tracking-[0.14em] text-[var(--color-text-soft)]">Подбор уже в процессе</p>
+              <h2 className="mt-2 text-2xl font-black tracking-tight md:text-3xl">Сверяю детали вашего запроса</h2>
               <AnimatePresence mode="wait" initial={false}>
                 <motion.p
                   key={`${mode}-${searchFactIndices[searchFactStep]}`}

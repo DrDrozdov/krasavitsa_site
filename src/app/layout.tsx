@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { PointerGlow } from "@/components/pointer-glow";
 import { AnalyticsTracker } from "@/components/analytics-tracker";
 import { CookieConsent } from "@/components/cookie-consent";
-import { RouteTransition } from "@/components/route-transition";
 import "./globals.css";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://krasavitsa.ai";
@@ -71,79 +70,30 @@ export const viewport: Viewport = {
   colorScheme: "light dark",
 };
 
-const bootLoaderScript = `
-(() => {
-  const root = document.getElementById("boot-loader");
-  const value = document.getElementById("boot-loader-value");
-  if (!root || !value) return;
-
-  const isHome = window.location.pathname === "/" || window.location.pathname === "";
-  if (!isHome) {
-    root.remove();
-    return;
-  }
-
-  root.classList.add("is-active");
-  root.removeAttribute("aria-hidden");
-
-  let count = 0;
-  let appReady = false;
-  let countReady = false;
-  const startedAt = Date.now();
-  const minDuration = 2200;
-
-  const finish = () => {
-    if (!appReady || !countReady) return;
-    const remaining = Math.max(0, minDuration - (Date.now() - startedAt));
-    window.setTimeout(() => {
-      root.classList.add("is-complete");
-      window.setTimeout(() => root.remove(), 720);
-    }, remaining);
-  };
-
-  window.__krasavitsaAppReady = () => {
-    appReady = true;
-    finish();
-  };
-
-  window.setTimeout(() => {
-    appReady = true;
-    finish();
-  }, 6500);
-
-  const tick = () => {
-    count = Math.min(100, count + 1 + Math.floor(Math.random() * 3));
-    value.textContent = String(count);
-    if (count >= 100) {
-      countReady = true;
-      value.textContent = "100";
-      finish();
-      return;
-    }
-    window.setTimeout(tick, 18 + Math.floor(Math.random() * 22));
-  };
-
-  window.setTimeout(tick, 40);
-})();
-`;
-
 const themeScript = `
 (() => {
-  const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-  let theme = systemTheme;
-  let themeSource = "system";
+  const preferenceKey = "krasavitsa-theme-preference";
+  const schemaKey = "krasavitsa-theme-schema";
+  const schemaVersion = "3";
+  let preference = "system";
   try {
-    const stored = window.localStorage.getItem("krasavitsa-theme");
-    const source = window.localStorage.getItem("krasavitsa-theme-source");
-    if (source === "manual" && (stored === "dark" || stored === "light")) {
-      theme = stored;
-      themeSource = "manual";
+    if (window.localStorage.getItem(schemaKey) !== schemaVersion) {
+      window.localStorage.removeItem("krasavitsa-theme");
+      window.localStorage.removeItem("krasavitsa-theme-source");
+      window.localStorage.removeItem(preferenceKey);
+      window.localStorage.setItem(schemaKey, schemaVersion);
     }
+    const stored = window.localStorage.getItem(preferenceKey);
+    if (stored === "light" || stored === "dark") preference = stored;
   } catch {}
-  document.documentElement.dataset.theme = theme;
-  document.documentElement.dataset.themeSource = themeSource;
-  document.documentElement.style.colorScheme = theme;
-  document.querySelector("#krasavitsa-theme-color")?.setAttribute("content", theme === "dark" ? "#1d1417" : "#fcfafb");
+  const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  const theme = preference === "system" ? systemTheme : preference;
+  const root = document.documentElement;
+  root.dataset.theme = theme;
+  root.dataset.themePreference = preference;
+  root.dataset.themeSource = preference === "system" ? "system" : "manual";
+  root.style.colorScheme = theme;
+  document.querySelector("#krasavitsa-theme-color")?.setAttribute("content", theme === "dark" ? "#160b11" : "#fff8f6");
 })();
 `;
 
@@ -155,20 +105,14 @@ export default function RootLayout({
   return (
     <html lang="ru" className="scroll-smooth" suppressHydrationWarning>
       <head>
-        <meta id="krasavitsa-theme-color" name="theme-color" content="#fcfafb" />
+        <meta name="color-scheme" content="light dark" />
+        <meta id="krasavitsa-theme-color" name="theme-color" content="#fff8f6" />
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body>
-        <div id="boot-loader" aria-hidden="true">
-          <div id="boot-loader-value" suppressHydrationWarning>
-            0
-          </div>
-        </div>
-        <script dangerouslySetInnerHTML={{ __html: bootLoaderScript }} />
         <PointerGlow />
         <AnalyticsTracker />
         <CookieConsent />
-        <RouteTransition />
         {children}
       </body>
     </html>

@@ -1,14 +1,23 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
+import Image from "next/image";
 import type { ReactNode } from "react";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
-import { ArrowRight, Menu, MessageCircle, Send, UserRound, X } from "lucide-react";
-import { motion } from "motion/react";
-import { ThemeToggle } from "@/components/theme-toggle";
+import {
+  ArrowRight,
+  Bot,
+  Menu,
+  MessageCircle,
+  Send,
+  Sparkles,
+  UserRound,
+  X,
+} from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
+import { ThemePreferences, ThemeToggle } from "@/components/theme-toggle";
 import { LinkButton } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -20,112 +29,169 @@ export const navLinks = [
   ["Профиль", "/profile"],
 ];
 
+const headerLinks = navLinks.filter(([, href]) => href !== "/profile");
+
 export function SiteHeader() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const reduceMotion = useReducedMotion();
   const mounted = useSyncExternalStore(() => () => undefined, () => true, () => false);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    if (!mobileOpen) return;
+    const scrollY = window.scrollY;
+    const body = document.body;
+    const trigger = triggerRef.current;
+    body.style.position = "fixed";
+    body.style.inset = `-${scrollY}px 0 0`;
+    body.style.width = "100%";
+    closeButtonRef.current?.focus();
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMobileOpen(false);
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const panel = document.querySelector<HTMLElement>("#mobile-navigation-panel");
+      const focusable = panel?.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      );
+      if (!focusable?.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
     return () => {
-      document.body.style.overflow = "";
+      window.removeEventListener("keydown", onKeyDown);
+      body.style.position = "";
+      body.style.inset = "";
+      body.style.width = "";
+      window.scrollTo(0, scrollY);
+      trigger?.focus();
     };
   }, [mobileOpen]);
 
   return (
-    <header className="liquid-glass sticky top-0 z-[200] border-b border-[var(--color-border)] bg-[rgba(250,247,243,.62)] px-4 py-3 backdrop-blur-2xl md:px-6">
-      <div className="mx-auto flex max-w-[1480px] items-center justify-between gap-3">
-        <Link href="/" className="flex items-center gap-3">
-          <Image src="/krasavitsa-logo.png" alt="Красавица" width={46} height={46} className="rounded-full" priority />
-          <span className="flex flex-col">
-            <span className="text-xl font-black uppercase leading-none tracking-tight">Красавица</span>
-            <span className="mt-1 text-[10px] font-normal uppercase leading-none text-[var(--color-text-soft)]">Beauty OS</span>
-          </span>
+    <header className="site-header">
+      <div className="site-chrome">
+        <Link href="/" className="brand-mark" aria-label="Красавица, на главную">
+          <span>К</span>
+          <Sparkles aria-hidden="true" />
         </Link>
-        <nav className="hidden items-center justify-end gap-2 md:flex">
-          {navLinks.map(([label, href]) => (
+
+        <nav className="desktop-nav" aria-label="Основная навигация">
+          {headerLinks.map(([label, href]) => (
             <HeaderNavLink key={href} label={label} href={href} active={isActivePath(pathname, href)} />
           ))}
-          <LinkButton href="/care" className="h-11 px-5">
-            Попробовать AI
-          </LinkButton>
-          <ThemeToggle />
         </nav>
-        <div className="flex items-center gap-2 md:hidden">
+
+        <div className="header-actions">
           <Link
             href="/profile"
             aria-label="Открыть профиль"
             aria-current={isActivePath(pathname, "/profile") ? "page" : undefined}
-            className={cn(
-              "apple-glass-button grid size-11 place-items-center rounded-full border border-[var(--color-border)] bg-[var(--color-glass-strong)] text-[var(--color-bordeaux)]",
-              isActivePath(pathname, "/profile") && "bg-[var(--color-bordeaux)] text-white",
-            )}
+            className={cn("header-icon-button", isActivePath(pathname, "/profile") && "is-active")}
           >
-            <UserRound className="size-5" />
+            <UserRound aria-hidden="true" />
           </Link>
+          <ThemeToggle className="header-theme-toggle" />
+          <LinkButton href="/care" className="header-cta">
+            Начать подбор
+            <ArrowRight aria-hidden="true" />
+          </LinkButton>
           <button
+            ref={triggerRef}
             type="button"
             aria-label={mobileOpen ? "Закрыть меню" : "Открыть меню"}
             aria-expanded={mobileOpen}
+            aria-controls="mobile-navigation-panel"
             onClick={() => setMobileOpen((current) => !current)}
-            className="apple-glass-button grid size-11 place-items-center rounded-full bg-[var(--color-bordeaux)] text-white md:hidden"
+            className="header-icon-button menu-trigger"
           >
-            {mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+            {mobileOpen ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
           </button>
         </div>
       </div>
-      {mounted ? createPortal(<div
-        className={cn(
-          "fixed inset-0 z-[2147483647] bg-black/42 opacity-0 backdrop-blur-sm transition duration-200 ease-out md:hidden",
-          mobileOpen ? "pointer-events-auto opacity-100" : "pointer-events-none",
-        )}
-        onClick={() => setMobileOpen(false)}
-      >
-        <motion.aside
-          initial={false}
-          animate={mobileOpen ? { x: 0, opacity: 1, filter: "blur(0px)" } : { x: 34, opacity: 0, filter: "blur(10px)" }}
-          transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
-          onClick={(event) => event.stopPropagation()}
-          className="ml-auto h-[100dvh] w-[min(88vw,380px)] overflow-y-auto border-l border-white/12 bg-[rgba(49,22,31,.97)] p-5 pt-[max(1.25rem,env(safe-area-inset-top))] pb-[max(2rem,env(safe-area-inset-bottom))] text-white shadow-[-24px_0_80px_rgba(0,0,0,.4)] backdrop-blur-3xl"
-        >
-          <div className="mb-5 flex items-center justify-between gap-3">
-            <div>
-              <p className="text-xs font-black uppercase text-white/42">Меню</p>
-              <p className="mt-1 text-2xl font-black uppercase">Красавица</p>
-            </div>
-            <button
-              type="button"
-              aria-label="Закрыть меню"
-              onClick={() => setMobileOpen(false)}
-              className="apple-glass-button grid size-12 shrink-0 place-items-center rounded-full bg-white text-black"
+
+      {mounted
+        ? createPortal(
+            <div
+              className={cn("mobile-menu-root", mobileOpen && "is-open")}
+              aria-hidden={!mobileOpen}
             >
-              <X className="size-6" />
-            </button>
-          </div>
-          <nav className="grid gap-3">
-            {navLinks.map(([label, href]) => (
-              <Link
-                key={href}
-                href={href}
+              <button
+                type="button"
+                className="mobile-menu-backdrop"
+                aria-label="Закрыть меню"
                 onClick={() => setMobileOpen(false)}
-                className={cn(
-                  "apple-glass-button rounded-full border border-white/16 bg-white/10 px-6 py-4 text-lg font-black text-white backdrop-blur-2xl transition duration-300 hover:bg-white hover:text-black",
-                  isActivePath(pathname, href) && "bg-white text-black",
-                )}
+                tabIndex={mobileOpen ? 0 : -1}
+              />
+              <motion.aside
+                id="mobile-navigation-panel"
+                role="dialog"
+                aria-modal="true"
+                aria-label="Меню сайта"
+                initial={false}
+                animate={mobileOpen ? { x: 0, opacity: 1 } : { x: reduceMotion ? 0 : "100%", opacity: 0 }}
+                transition={{ duration: reduceMotion ? 0 : 0.28, ease: [0.16, 1, 0.3, 1] }}
+                className="mobile-menu-panel"
               >
-                {href === "/profile" ? <span className="flex items-center gap-3"><UserRound className="size-5" />{label}</span> : label}
-              </Link>
-            ))}
-            <LinkButton href="/care" onClick={() => setMobileOpen(false)} className="mt-2 h-14 w-full bg-white px-6 text-black hover:bg-white/90">
-              Попробовать AI
-            </LinkButton>
-            <Link href="/#contacts" className="apple-glass-button rounded-full border border-white/16 bg-white/10 px-6 py-4 text-lg font-black text-white backdrop-blur-2xl transition duration-300 hover:bg-white hover:text-black">
-              Контакты
-            </Link>
-            <ThemeToggle className="mt-1 border-white/18 bg-white/10 text-white hover:bg-white hover:text-black" />
-          </nav>
-        </motion.aside>
-      </div>, document.body) : null}
+                <div className="mobile-menu-head">
+                  <div>
+                    <p className="eyebrow-inverse">Красавица</p>
+                    <p className="mobile-menu-title">Выберите, куда идти</p>
+                  </div>
+                  <button
+                    ref={closeButtonRef}
+                    type="button"
+                    aria-label="Закрыть меню"
+                    onClick={() => setMobileOpen(false)}
+                    className="mobile-menu-close"
+                  >
+                    <X aria-hidden="true" />
+                  </button>
+                </div>
+
+                <nav className="mobile-nav" aria-label="Мобильная навигация">
+                  {navLinks.map(([label, href], index) => (
+                    <Link
+                      key={href}
+                      href={href}
+                      tabIndex={mobileOpen ? 0 : -1}
+                      onClick={() => setMobileOpen(false)}
+                      className={cn("mobile-nav-link", isActivePath(pathname, href) && "is-active")}
+                    >
+                      <span>{String(index + 1).padStart(2, "0")}</span>
+                      <strong>{label}</strong>
+                      {href === "/profile" ? <UserRound aria-hidden="true" /> : <ArrowRight aria-hidden="true" />}
+                    </Link>
+                  ))}
+                </nav>
+
+                <div className="mobile-menu-foot">
+                  <p>Тема интерфейса</p>
+                  <ThemePreferences />
+                  <LinkButton href="/care" className="mobile-menu-cta" tabIndex={mobileOpen ? 0 : -1}>
+                    Начать AI-подбор
+                    <ArrowRight aria-hidden="true" />
+                  </LinkButton>
+                </div>
+              </motion.aside>
+            </div>,
+            document.body,
+          )
+        : null}
     </header>
   );
 }
@@ -137,68 +203,54 @@ function isActivePath(pathname: string, href: string) {
 
 function HeaderNavLink({ label, href, active }: { label: string; href: string; active: boolean }) {
   return (
-    <Link
-      href={href}
-      aria-current={active ? "page" : undefined}
-      className={cn(
-        "apple-glass-button group rounded-full border border-[var(--color-border)] bg-[rgba(255,255,255,.48)] px-5 py-3 text-sm font-bold text-[var(--color-text)] shadow-[inset_0_1px_0_rgba(255,255,255,.72)] backdrop-blur-2xl transition duration-300 hover:border-[var(--color-bordeaux-soft)] hover:bg-[var(--color-bordeaux)] hover:text-white",
-        active && "brand-action border-transparent text-white shadow-[0_18px_48px_rgba(92,31,45,.18)]",
-      )}
-    >
-      <span className="inline-flex items-center gap-2">{href === "/profile" ? <UserRound className="size-4" /> : null}{label}</span>
-      {active ? <span className="ml-2 inline-block size-1.5 rounded-full bg-[#74d58a] shadow-[0_0_14px_rgba(116,213,138,.9)]" /> : null}
+    <Link href={href} aria-current={active ? "page" : undefined} className={cn("desktop-nav-link", active && "is-active")}>
+      {label}
     </Link>
   );
 }
 
 export function SiteFooter() {
   return (
-    <footer id="contacts" className="px-3 pb-5 pt-2 md:px-5">
-      <div className="liquid-glass mx-auto max-w-none rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-glass-strong)] p-6 text-sm font-semibold text-[var(--color-text-muted)] shadow-[var(--shadow-soft)] backdrop-blur-2xl md:p-8">
-        <div className="grid gap-8 md:grid-cols-[1.1fr_0.9fr_0.9fr]">
-          <div>
-            <div className="flex items-center gap-3">
-              <Image src="/krasavitsa-logo.png" alt="Красавица" width={42} height={42} className="rounded-full" />
-              <div>
-                <p className="text-lg font-black uppercase text-[var(--color-text)]">Красавица</p>
-                <p className="mt-1 text-xs font-normal uppercase text-[var(--color-text-soft)]">Beauty OS</p>
-              </div>
-            </div>
-            <p className="mt-5 max-w-xl leading-6">
-              Единый AI-подбор ухода за кожей, волосами и ароматов. Рекомендации носят информационный характер и не заменяют консультацию специалиста.
-            </p>
-            <p className="mt-4 text-xs text-[var(--color-text-soft)]">© 2026 Красавица</p>
-          </div>
-          <FooterColumn title="Разделы" links={navLinks} />
-          <FooterColumn
-            title="Документы"
-            links={[
-              ["Политика конфиденциальности", "/privacy"],
-              ["Политика cookies", "/cookies"],
-              ["Согласие на обработку данных", "/personal-data"],
-              ["Пользовательское соглашение", "/terms"],
-              ["Telegram-канал", "https://t.me/krasavitsa_ai"],
-              ["Instagram", "https://www.instagram.com/krasavitsa_ai?utm_source=qr"],
-              ["VK", "https://vk.ru/krasavitsa_ai"],
-              ["Разработчик: @thesp3cial", "https://t.me/thesp3cial"],
-            ]}
-          />
+    <footer id="contacts" className="site-footer">
+      <div className="footer-lead">
+        <p className="eyebrow">Красавица</p>
+        <h2>Красота без лишнего шума.</h2>
+        <p>AI-подбор ухода, волос и ароматов с понятным объяснением каждого шага.</p>
+        <div className="footer-socials" aria-label="Социальные сети">
+          <SocialIcon href="https://t.me/krasavitsa_ai_bot" label="Telegram-бот"><Bot /></SocialIcon>
+          <SocialIcon href="https://t.me/krasavitsa_ai" label="Telegram-канал"><Send /></SocialIcon>
+          <SocialIcon href="https://www.instagram.com/krasavitsa_ai?utm_source=qr" label="Instagram"><InstagramIcon /></SocialIcon>
+          <SocialIcon href="https://vk.ru/krasavitsa_ai" label="VK"><VkIcon /></SocialIcon>
         </div>
+      </div>
+      <FooterColumn title="Разделы" links={navLinks} />
+      <FooterColumn
+        title="Документы"
+        links={[
+          ["Конфиденциальность", "/privacy"],
+          ["Cookies", "/cookies"],
+          ["Обработка данных", "/personal-data"],
+          ["Соглашение", "/terms"],
+        ]}
+      />
+      <div className="footer-meta">
+        <span>© 2026 Красавица</span>
+        <span>Информационный сервис. Не заменяет консультацию специалиста.</span>
       </div>
     </footer>
   );
 }
 
+function SocialIcon({ href, label, children }: { href: string; label: string; children: ReactNode }) {
+  return <a href={href} target="_blank" rel="noreferrer" aria-label={label}>{children}</a>;
+}
+
 function FooterColumn({ title, links }: { title: string; links: string[][] }) {
   return (
-    <div>
-      <p className="text-xs font-black uppercase text-[var(--color-text-soft)]">{title}</p>
-      <div className="mt-4 grid gap-3">
-        {links.map(([label, href]) => (
-          <Link key={href} href={href} className="hover:text-[var(--color-text)]">
-            {label}
-          </Link>
-        ))}
+    <div className="footer-column">
+      <p>{title}</p>
+      <div>
+        {links.map(([label, href]) => <Link key={href} href={href}>{label}</Link>)}
       </div>
     </div>
   );
@@ -206,7 +258,7 @@ function FooterColumn({ title, links }: { title: string; links: string[][] }) {
 
 export function BeautyPageShell({ children }: { children: ReactNode }) {
   return (
-    <main className="min-h-screen overflow-hidden bg-[var(--color-bg)] text-[var(--color-text)]">
+    <main className="site-shell">
       <SiteHeader />
       {children}
       <SiteFooter />
@@ -215,11 +267,7 @@ export function BeautyPageShell({ children }: { children: ReactNode }) {
 }
 
 export function BeautyPortalGrid({ children, className }: { children: ReactNode; className?: string }) {
-  return (
-    <section className={cn("liquid-glass mx-auto grid w-full max-w-none gap-2 overflow-hidden rounded-[var(--radius-xxl)] border border-[var(--color-border)] bg-[rgba(255,253,251,.68)] p-2 shadow-[var(--shadow-soft)] md:grid-cols-12", className)}>
-      {children}
-    </section>
-  );
+  return <section className={cn("portal-grid", className)}>{children}</section>;
 }
 
 export function PortalPanel({
@@ -233,19 +281,17 @@ export function PortalPanel({
   image?: string;
   priority?: boolean;
 }) {
+  const reduceMotion = useReducedMotion();
   return (
     <motion.div
-      whileHover={{ y: -4, scale: 1.006 }}
-      whileTap={{ scale: 0.986 }}
-      transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
+      whileHover={reduceMotion ? undefined : { y: -3 }}
+      transition={{ duration: reduceMotion ? 0 : 0.24, ease: [0.16, 1, 0.3, 1] }}
       data-has-image={image ? "true" : "false"}
-      className={cn("liquid-glass apple-glass-card meaning-card portal-panel relative min-h-[220px] overflow-hidden rounded-[var(--radius-lg)] border border-white/55 bg-[var(--color-glass)] p-5 backdrop-blur-2xl md:p-6", className)}
+      className={cn("portal-panel", className)}
     >
-      {image ? (
-        <Image src={image} alt="" fill priority={priority} sizes="(min-width: 1024px) 50vw, 100vw" className="portal-panel-image object-cover object-center" />
-      ) : null}
-      <div className={cn("portal-panel-overlay absolute inset-0", image ? "bg-[linear-gradient(115deg,rgba(250,247,243,.88),rgba(250,247,243,.42)_48%,rgba(250,247,243,.2))]" : "bg-[radial-gradient(circle_at_18%_10%,rgba(255,255,255,.9),transparent_34%),linear-gradient(135deg,rgba(255,255,255,.72),rgba(247,228,218,.34))]")} />
-      <div className="relative z-10 h-full">{children}</div>
+      {image ? <Image src={image} alt="" fill priority={priority} sizes="(min-width: 1024px) 50vw, 100vw" className="portal-panel-image" /> : null}
+      {image ? <div className="portal-panel-overlay" /> : null}
+      <div className="portal-panel-content">{children}</div>
     </motion.div>
   );
 }
@@ -256,7 +302,7 @@ export function PageHero({
   subtitle,
   cta = "Начать подбор",
   ctaHref = "/care",
-  image = "/beauty-products-portal.png",
+  image = "/krasavitsa-editorial-hero.png",
   tiles = [],
 }: {
   eyebrow: string;
@@ -268,68 +314,27 @@ export function PageHero({
   tiles?: string[];
 }) {
   return (
-    <div className="px-3 pb-2 pt-5 md:px-5">
-      <BeautyPortalGrid className="min-h-[390px] md:min-h-[520px]">
-        <PortalPanel className="md:col-span-7 md:row-span-2" image={image} priority>
-          <div className="flex min-h-[330px] flex-col justify-between md:min-h-[430px]">
-            <div>
-              <p className="text-sm font-black uppercase text-[var(--color-text-soft)]">{eyebrow}</p>
-              <h1 className="mt-5 max-w-4xl text-[clamp(2.7rem,5.7vw,5.8rem)] font-black leading-[0.94] tracking-tight">{title}</h1>
-            </div>
-            <p className="max-w-2xl text-base font-semibold leading-7 text-[var(--color-text-muted)]">{subtitle}</p>
-          </div>
-        </PortalPanel>
-        <PortalPanel className="md:col-span-5">
-          <div className="flex h-full flex-col justify-between gap-8">
-            <p className="max-w-md text-xl font-black leading-tight">Без хаоса, случайных советов и лишних покупок.</p>
-            <LinkButton href={ctaHref} className="h-12 w-fit px-6">
-              {cta}
-              <ArrowRight className="size-4 -rotate-45" />
-            </LinkButton>
-          </div>
-        </PortalPanel>
-        <PortalPanel className="md:col-span-5">
-          <div className="grid h-full gap-3 sm:grid-cols-2">
-            {tiles.map((tile, index) => (
-              <div key={tile} className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-white/54 p-4 text-sm font-black text-[var(--color-text-muted)] backdrop-blur-xl">
-                <span className="text-[var(--color-text-soft)]">0{index + 1}</span>
-                <p className="mt-2 text-[var(--color-text)]">{tile}</p>
-              </div>
-            ))}
-          </div>
-        </PortalPanel>
-      </BeautyPortalGrid>
-    </div>
+    <section className="page-hero section-shell">
+      <div className="page-hero-copy">
+        <p className="eyebrow">{eyebrow}</p>
+        <h1>{title}</h1>
+        <p>{subtitle}</p>
+        <LinkButton href={ctaHref}>{cta}<ArrowRight /></LinkButton>
+      </div>
+      <div className="page-hero-visual">
+        <Image src={image} alt="" fill priority sizes="(min-width: 900px) 48vw, 100vw" />
+        {tiles.length ? <div className="page-hero-tags">{tiles.slice(0, 3).map((tile) => <span key={tile}>{tile}</span>)}</div> : null}
+      </div>
+    </section>
   );
 }
 
 export function SectionIntro({ kicker, title, text }: { kicker: string; title: string; text: string }) {
-  return (
-    <div className="mx-auto max-w-none px-3 py-8 md:px-5 md:py-10">
-      <p className="text-sm font-black uppercase text-[var(--color-text-soft)]">{kicker}</p>
-      <h2 className="mt-4 max-w-4xl text-[clamp(2.1rem,3.8vw,3.9rem)] font-black leading-[0.98] tracking-tight">{title}</h2>
-      <p className="mt-4 max-w-3xl text-base font-semibold leading-7 text-[var(--color-text-muted)]">{text}</p>
-    </div>
-  );
+  return <div className="section-intro section-shell"><p className="eyebrow">{kicker}</p><h2>{title}</h2><p>{text}</p></div>;
 }
 
 export function SoftCards({ items }: { items: Array<{ title: string; text: string }> }) {
-  return (
-    <div className="mx-auto grid max-w-none gap-2 px-3 pb-2 md:grid-cols-3 md:px-5">
-      {items.map((item) => (
-        <motion.article
-          key={item.title}
-          whileHover={{ y: -5, scale: 1.008 }}
-          whileTap={{ scale: 0.986 }}
-          transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
-          className="liquid-glass apple-glass-card rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-glass)] p-5 shadow-[var(--shadow-card)] backdrop-blur-2xl"
-        >
-          <h3 className="text-2xl font-black leading-tight">{item.title}</h3>
-          <p className="mt-3 text-sm font-semibold leading-6 text-[var(--color-text-muted)]">{item.text}</p>
-        </motion.article>
-      ))}
-    </div>
-  );
+  return <div className="soft-list section-shell">{items.map((item, index) => <article key={item.title}><span>{String(index + 1).padStart(2, "0")}</span><div><h3>{item.title}</h3><p>{item.text}</p></div></article>)}</div>;
 }
 
 export function TelegramCTA({
@@ -346,25 +351,20 @@ export function TelegramCTA({
   secondaryLabel?: string;
 }) {
   return (
-    <div className="px-3 py-2 md:px-5">
-      <div className="liquid-glass apple-glass-card mx-auto flex max-w-none flex-col justify-between gap-6 rounded-[var(--radius-xl)] border border-black/10 bg-white/42 p-5 text-[var(--color-text)] shadow-[var(--shadow-soft)] backdrop-blur-2xl md:flex-row md:items-center md:p-6">
-        <div>
-          <p className="text-sm font-black uppercase text-[var(--color-text-soft)]">Telegram</p>
-          <h2 className="mt-3 text-[clamp(2.1rem,3.4vw,3.6rem)] font-black leading-none">{title}</h2>
-          <p className="mt-4 max-w-2xl text-sm font-semibold leading-6 text-[var(--color-text-muted)]">{text}</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <LinkButton href={href} className="h-14 w-fit bg-[var(--color-bordeaux)] px-7 text-white hover:bg-[var(--color-bordeaux-soft)]">
-            {href.includes("krasavitsa_ai_bot") ? <MessageCircle className="size-5" /> : <Send className="size-5 -rotate-12" />}
-            {href.includes("krasavitsa_ai_bot") ? "Telegram-бот" : "Telegram-канал"}
-          </LinkButton>
-          {secondaryHref && secondaryLabel ? <LinkButton href={secondaryHref} className="h-14 w-fit border border-[var(--color-border)] bg-white/52 px-7 text-[var(--color-text)] hover:bg-[var(--color-powder-light)]"><InstagramIcon className="size-5" />{secondaryLabel}</LinkButton> : null}
-        </div>
+    <section className="telegram-cta section-shell">
+      <div><p className="eyebrow-inverse">Диалог без лишних экранов</p><h2>{title}</h2><p>{text}</p></div>
+      <div className="telegram-cta-actions">
+        <LinkButton href={href} className="button-light"><MessageCircle />{href.includes("_bot") ? "Открыть бота" : "Открыть канал"}</LinkButton>
+        {secondaryHref && secondaryLabel ? <LinkButton href={secondaryHref} tone="ghost"><InstagramIcon />{secondaryLabel}</LinkButton> : null}
       </div>
-    </div>
+    </section>
   );
 }
 
 export function InstagramIcon({ className }: { className?: string }) {
   return <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}><rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" strokeWidth="2" /><circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="2" /><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" /></svg>;
+}
+
+export function VkIcon({ className }: { className?: string }) {
+  return <svg viewBox="3 7 13 9" fill="none" aria-hidden="true" className={className}><path d="M4 7.6c.16 4.88 2.45 7.81 6.38 7.81h.22v-2.8c1.58.16 2.77 1.3 3.25 2.8H16c-.6-2.2-2.15-3.42-3.12-3.9.97-.57 2.33-1.95 2.65-3.91h-1.87c-.42 1.6-1.68 2.98-3.06 3.11V7.6H8.73v3.7C7.33 10.95 5.57 9.45 5.49 7.6H4Z" fill="currentColor" /></svg>;
 }

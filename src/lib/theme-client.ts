@@ -1,61 +1,113 @@
 "use client";
 
 export type Theme = "light" | "dark";
-export type ThemeSource = "system" | "manual";
+export type ThemePreference = "system" | Theme;
 
-const themeKey = "krasavitsa-theme";
-const sourceKey = "krasavitsa-theme-source";
+const preferenceKey = "krasavitsa-theme-preference";
+const schemaKey = "krasavitsa-theme-schema";
+const schemaVersion = "3";
+const legacyThemeKey = "krasavitsa-theme";
+const legacySourceKey = "krasavitsa-theme-source";
 const changeEvent = "krasavitsa-theme-change";
-let memoryOverride: Theme | null = null;
 
-export function getThemePreference(): { theme: Theme; source: ThemeSource } {
-  try {
-    const stored = window.localStorage.getItem(themeKey);
-    const source = window.localStorage.getItem(sourceKey);
-    if (source === "manual" && (stored === "light" || stored === "dark")) return { theme: stored, source: "manual" };
-    memoryOverride = null;
-  } catch {
-    if (memoryOverride) return { theme: memoryOverride, source: "manual" };
-  }
-  return { theme: window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light", source: "system" };
+let memoryPreference: ThemePreference = "system";
+
+function systemTheme(): Theme {
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
-export function applyTheme(theme: Theme, source: ThemeSource) {
+function migrateOnce() {
+  try {
+    if (window.localStorage.getItem(schemaKey) === schemaVersion) return;
+    // Previous releases could save a dark override without exposing its source.
+    // Reset that ambiguous state once, then persist all new choices explicitly.
+    window.localStorage.removeItem(legacyThemeKey);
+    window.localStorage.removeItem(legacySourceKey);
+    window.localStorage.removeItem(preferenceKey);
+    window.localStorage.setItem(schemaKey, schemaVersion);
+  } catch {
+    // Storage can be unavailable in Safari private/restricted contexts.
+    // Keep the in-memory preference intact for the current session.
+  }
+}
+
+export function getThemeState(): { theme: Theme; preference: ThemePreference } {
+  migrateOnce();
+  let preference = memoryPreference;
+
+  try {
+    const stored = window.localStorage.getItem(preferenceKey);
+    preference = stored === "light" || stored === "dark" ? stored : "system";
+  } catch {
+    // Safari private/restricted contexts can deny storage. Session memory still works.
+  }
+
+  memoryPreference = preference;
+  return {
+    preference,
+    theme: preference === "system" ? systemTheme() : preference,
+  };
+}
+
+export function applyTheme(theme: Theme, preference: ThemePreference) {
   const root = document.documentElement;
   root.dataset.theme = theme;
-  root.dataset.themeSource = source;
+  root.dataset.themePreference = preference;
+  root.dataset.themeSource = preference === "system" ? "system" : "manual";
   root.style.colorScheme = theme;
-  document.querySelector("#krasavitsa-theme-color")?.setAttribute("content", theme === "dark" ? "#1d1417" : "#fcfafb");
+  document
+    .querySelector<HTMLMetaElement>("#krasavitsa-theme-color")
+    ?.setAttribute("content", theme === "dark" ? "#160b11" : "#fff8f6");
 }
 
-export function setManualTheme(theme: Theme) {
-  memoryOverride = theme;
+export function setThemePreference(preference: ThemePreference) {
+  memoryPreference = preference;
   try {
-    window.localStorage.setItem(themeKey, theme);
-    window.localStorage.setItem(sourceKey, "manual");
+    if (preference === "system") window.localStorage.removeItem(preferenceKey);
+    else window.localStorage.setItem(preferenceKey, preference);
+    window.localStorage.setItem(schemaKey, schemaVersion);
   } catch {
-    // Safari can deny localStorage in restricted contexts. The in-memory
-    // override still keeps the controls and page synchronized for the session.
+    // Keep the selected preference in memory for this browser session.
   }
-  applyTheme(theme, "manual");
+
+  const state = getThemeState();
+  applyTheme(state.theme, state.preference);
   window.dispatchEvent(new CustomEvent(changeEvent));
 }
 
 export function subscribeTheme(callback: () => void) {
   const media = window.matchMedia("(prefers-color-scheme: dark)");
-  const onSystemChange = () => {
-    const preference = getThemePreference();
-    if (preference.source === "system") applyTheme(preference.theme, preference.source);
-    callback();
+  let frame = 0;
+
+  const sync = () => {
+    window.cancelAnimationFrame(frame);
+    frame = window.requestAnimationFrame(() => {
+      const state = getThemeState();
+      applyTheme(state.theme, state.preference);
+      callback();
+    });
   };
-  media.addEventListener("change", onSystemChange);
-  window.addEventListener(changeEvent, callback);
-  window.addEventListener("storage", onSystemChange);
-  window.addEventListener("pageshow", onSystemChange);
+
+  const onVisibility = () => {
+    if (document.visibilityState === "visible") sync();
+  };
+
+  if (typeof media.addEventListener === "function") media.addEventListener("change", sync);
+  else media.addListener(sync);
+  window.addEventListener(changeEvent, sync);
+  window.addEventListener("storage", sync);
+  window.addEventListener("pageshow", sync);
+  window.addEventListener("focus", sync);
+  document.addEventListener("visibilitychange", onVisibility);
+
   return () => {
-    media.removeEventListener("change", onSystemChange);
-    window.removeEventListener(changeEvent, callback);
-    window.removeEventListener("storage", onSystemChange);
-    window.removeEventListener("pageshow", onSystemChange);
+    window.cancelAnimationFrame(frame);
+    if (typeof media.removeEventListener === "function") media.removeEventListener("change", sync);
+    else media.removeListener(sync);
+    window.removeEventListener(changeEvent, sync);
+    window.removeEventListener("storage", sync);
+    window.removeEventListener("pageshow", sync);
+    window.removeEventListener("focus", sync);
+    document.removeEventListener("visibilitychange", onVisibility);
   };
 }

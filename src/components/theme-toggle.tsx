@@ -1,45 +1,83 @@
 "use client";
 
-import { Moon, Sun } from "lucide-react";
+import { Check, Laptop, Moon, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
-import { applyTheme, getThemePreference, setManualTheme, subscribeTheme, type Theme } from "@/lib/theme-client";
+import {
+  applyTheme,
+  getThemeState,
+  setThemePreference,
+  subscribeTheme,
+  type Theme,
+  type ThemePreference,
+} from "@/lib/theme-client";
 import { cn } from "@/lib/utils";
 
 export function ThemeToggle({ className }: { className?: string }) {
-  const [theme, setTheme] = useState<Theme>("light");
+  const [theme, setTheme] = useState<Theme>(() => "light");
+  const [preference, setPreference] = useState<ThemePreference>("system");
 
   useEffect(() => {
     const sync = () => {
-      const preference = getThemePreference();
-      applyTheme(preference.theme, preference.source);
-      setTheme(preference.theme);
+      const state = getThemeState();
+      applyTheme(state.theme, state.preference);
+      setTheme(state.theme);
+      setPreference(state.preference);
     };
     sync();
     return subscribeTheme(sync);
   }, []);
 
-  const toggleTheme = () => {
-    const nextTheme = theme === "dark" ? "light" : "dark";
-    setManualTheme(nextTheme);
-  };
+  const toggleTheme = () => setThemePreference(theme === "dark" ? "light" : "dark");
 
   return (
     <button
       type="button"
       role="switch"
       aria-checked={theme === "dark"}
-      aria-label={theme === "dark" ? "Включить светлую тему" : "Включить темную тему"}
+      aria-label={theme === "dark" ? "Включить светлую тему" : "Включить тёмную тему"}
+      title={preference === "system" ? "Тема устройства" : "Тема выбрана вручную"}
       onClick={toggleTheme}
-      className={cn(
-        "apple-glass-button theme-toggle relative flex h-11 w-[78px] shrink-0 items-center overflow-hidden rounded-full border border-[var(--color-border)] bg-[rgba(255,255,255,.45)] p-[3px] text-[var(--color-text)] shadow-[inset_0_1px_0_rgba(255,255,255,.72),0_12px_30px_rgba(29,29,31,.08)] backdrop-blur-2xl transition duration-300 hover:bg-[var(--color-bordeaux)] hover:text-white",
-        theme === "dark" && "is-dark bg-[rgba(30,26,24,.82)] text-white",
-        className,
-      )}
+      className={cn("theme-switch apple-glass-button", theme === "dark" && "is-dark", className)}
     >
-      <span className="theme-toggle-thumb grid size-[38px] shrink-0 place-items-center rounded-full bg-white text-black shadow-[0_8px_22px_rgba(0,0,0,.18)] transition-transform duration-300 ease-[var(--ease-soft)]">
-        <Sun className="theme-toggle-sun size-4 text-[#2a171c]" strokeWidth={2.6} />
-        <Moon className="theme-toggle-moon absolute size-4 text-[#5c1f2d]" strokeWidth={2.6} />
+      <span className="theme-switch-thumb" aria-hidden="true">
+        <Sun className="theme-switch-sun" />
+        <Moon className="theme-switch-moon" />
       </span>
+      <span className="sr-only">{preference === "system" ? "Авто" : "Вручную"}</span>
     </button>
+  );
+}
+
+const choices: Array<{ value: ThemePreference; label: string; Icon: typeof Sun }> = [
+  { value: "system", label: "Авто", Icon: Laptop },
+  { value: "light", label: "Светлая", Icon: Sun },
+  { value: "dark", label: "Тёмная", Icon: Moon },
+];
+
+export function ThemePreferences({ className }: { className?: string }) {
+  const [preference, setPreference] = useState<ThemePreference>("system");
+
+  useEffect(() => {
+    const sync = () => setPreference(getThemeState().preference);
+    sync();
+    return subscribeTheme(sync);
+  }, []);
+
+  return (
+    <div className={cn("theme-preferences", className)} role="group" aria-label="Настройка темы">
+      {choices.map(({ value, label, Icon }) => (
+        <button
+          key={value}
+          type="button"
+          onClick={() => setThemePreference(value)}
+          className={cn("theme-preference", preference === value && "is-active")}
+          aria-pressed={preference === value}
+        >
+          <Icon aria-hidden="true" />
+          <span>{label}</span>
+          {preference === value ? <Check className="theme-preference-check" aria-hidden="true" /> : null}
+        </button>
+      ))}
+    </div>
   );
 }
