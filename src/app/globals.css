@@ -146,6 +146,24 @@ body {
   opacity: 0.94;
 }
 
+:root[data-theme="dark"] .about-hero,
+:root[data-theme="dark"] .about-visual,
+:root[data-theme="dark"] .about-proof-card,
+:root[data-theme="dark"] .about-focus-row,
+:root[data-theme="dark"] .about-timeline-item {
+  background-color: rgba(48, 25, 34, 0.76);
+  border-color: rgba(232, 199, 192, 0.2);
+}
+
+:root[data-theme="dark"] .about-hero::after,
+:root[data-theme="dark"] .about-visual::after {
+  opacity: 0.16;
+}
+
+:root[data-theme="dark"] .about-visual > .absolute.inset-0 {
+  background: linear-gradient(115deg, rgba(34, 15, 24, 0.76), rgba(67, 28, 42, 0.52)) !important;
+}
+
 :root[data-theme="dark"] .perfume-product-image {
   filter: brightness(1.08) contrast(0.96);
 }
@@ -955,7 +973,7 @@ a {
 
 @media (max-width: 768px) {
   .about-hero .about-visual {
-    min-height: 520px;
+    min-height: 260px;
   }
 
   .about-float-card {
@@ -1066,7 +1084,7 @@ a {
   }
 
   .about-hero .about-visual {
-    min-height: 350px;
+    min-height: 260px;
   }
 
   .about-hero .about-float-card {
@@ -1074,10 +1092,37 @@ a {
   }
 
   .about-hero .about-visual > div:last-child {
-    right: 1rem;
-    bottom: 1rem;
-    max-width: calc(100% - 2rem);
+    display: none;
+  }
+
+  .about-hero h1,
+  .about-hero h2 {
+    font-size: clamp(2.35rem, 11vw, 3.25rem);
+    line-height: 0.94;
+  }
+
+  .about-hero + section .portal-panel,
+  .about-hero ~ section .portal-panel {
+    min-height: auto;
+  }
+
+  .about-hero + section .portal-panel h2,
+  .about-hero ~ section .portal-panel h2 {
+    font-size: clamp(2rem, 9.5vw, 2.75rem);
+    line-height: 0.96;
+  }
+
+  .about-proof-card {
     padding: 1rem;
+  }
+
+  .about-proof-card h3 {
+    margin-top: 0.75rem;
+    font-size: 1.25rem;
+  }
+
+  .about-proof-card p {
+    margin-top: 0.5rem;
   }
 }
 

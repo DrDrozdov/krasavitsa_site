@@ -65,7 +65,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#FCFAFB",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#FCFAFB" },
+    { media: "(prefers-color-scheme: dark)", color: "#1d1417" },
+  ],
   colorScheme: "light dark",
 };
 
@@ -135,6 +138,8 @@ const themeScript = `
       : (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
     document.documentElement.dataset.theme = theme;
     document.documentElement.dataset.themeSource = source === "manual" ? "manual" : "system";
+    const color = theme === "dark" ? "#1d1417" : "#fcfafb";
+    document.querySelector("#krasavitsa-theme-color")?.setAttribute("content", color);
   } catch {
     document.documentElement.dataset.theme = "light";
   }
@@ -149,6 +154,8 @@ export default function RootLayout({
   return (
     <html lang="ru" className="scroll-smooth">
       <head>
+        <meta name="color-scheme" content="light dark" />
+        <meta id="krasavitsa-theme-color" name="theme-color" content="#fcfafb" />
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body>

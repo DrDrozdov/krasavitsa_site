@@ -3,6 +3,7 @@
 import Image from "next/image";
 import {
   ArrowRight,
+  Bot,
   Menu,
   MessageCircle,
   Send,
@@ -395,7 +396,7 @@ function TelegramPortalPanel() {
           <p className="mt-4 max-w-xl text-sm font-semibold leading-6 text-[var(--color-text-muted)]">
             Выбирайте удобный формат: диалог с ботом, новости в Telegram-канале или визуальные материалы в Instagram.
           </p>
-          <div className="mt-6 grid gap-2 md:grid-cols-3">
+          <div className="mt-5 grid grid-cols-4 gap-2 md:mt-6 md:grid-cols-4">
             <TelegramCard href="https://t.me/krasavitsa_ai_bot" title="Telegram-бот" text="Запустить AI-подбор в чате." />
             <TelegramCard href="https://t.me/krasavitsa_ai" title="Telegram-канал" text="Следить за обновлениями проекта." />
             <TelegramCard href="https://www.instagram.com/krasavitsa_ai?utm_source=qr" title="Instagram" text="Смотреть новые визуальные материалы." />
@@ -447,11 +448,11 @@ function TelegramCard({ href, title, text }: { href: string; title: string; text
   const isVk = title.toLowerCase() === "vk";
 
   return (
-    <motion.a href={href} target="_blank" rel="noreferrer" whileHover={{ y: -5, scale: 1.014 }} whileTap={{ scale: 0.982 }} transition={{ duration: 0.52, ease: [0.16, 1, 0.3, 1] }} className="apple-glass-card group rounded-2xl border border-white/62 bg-white/68 p-5 shadow-[var(--shadow-card)] backdrop-blur-2xl transition duration-500 hover:bg-white/82">
-      <div className="mb-8 flex items-center justify-between">
+    <motion.a aria-label={title} href={href} target="_blank" rel="noreferrer" whileHover={{ y: -5, scale: 1.014 }} whileTap={{ scale: 0.982 }} transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }} className="apple-glass-card group grid aspect-square place-items-center rounded-2xl border border-white/62 bg-white/68 p-2 shadow-[var(--shadow-card)] backdrop-blur-2xl transition duration-200 hover:bg-white/82 md:block md:aspect-auto md:p-5">
+      <div className="flex items-center justify-center md:mb-8 md:justify-between">
         <span className="social-card-icon grid size-11 place-items-center rounded-2xl border border-[var(--color-border)] shadow-[inset_0_1px_0_rgba(255,255,255,.42)] backdrop-blur-xl">
           {isBot ? (
-            <Image src="/telegram-bot-icon.png" alt="" width={28} height={28} className="size-7 object-contain" />
+            <Bot className="size-6" strokeWidth={2.2} />
           ) : isInstagram ? (
             <InstagramIcon className="size-6" />
           ) : isVk ? (
@@ -460,12 +461,12 @@ function TelegramCard({ href, title, text }: { href: string; title: string; text
             <Send className="size-6 -rotate-12 stroke-[2.4]" />
           )}
         </span>
-        <span className="grid size-11 place-items-center rounded-full border border-[var(--color-border)] bg-white/40 transition duration-500 group-hover:bg-[var(--color-bordeaux)] group-hover:text-white">
+        <span className="hidden size-11 place-items-center rounded-full border border-[var(--color-border)] bg-white/40 transition duration-200 group-hover:bg-[var(--color-bordeaux)] group-hover:text-white md:grid">
           <ArrowRight className="size-5 -rotate-45" />
         </span>
       </div>
-      <h3 className="text-2xl font-black">{title}</h3>
-      <p className="mt-2 text-sm font-semibold text-[var(--color-text-muted)]">{text}</p>
+      <h3 className="hidden text-2xl font-black md:block">{title}</h3>
+      <p className="mt-2 hidden text-sm font-semibold text-[var(--color-text-muted)] md:block">{text}</p>
     </motion.a>
   );
 }

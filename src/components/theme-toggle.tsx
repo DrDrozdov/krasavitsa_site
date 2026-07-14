@@ -2,65 +2,25 @@
 
 import { Moon, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
+import { applyTheme, getThemePreference, setManualTheme, subscribeTheme, type Theme } from "@/lib/theme-client";
 import { cn } from "@/lib/utils";
-
-type Theme = "light" | "dark";
-
-function getPreferredTheme(): Theme {
-  if (typeof window === "undefined") return "light";
-  const stored = window.localStorage.getItem("krasavitsa-theme");
-  const source = window.localStorage.getItem("krasavitsa-theme-source");
-  if (source === "manual" && (stored === "dark" || stored === "light")) return stored;
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-}
 
 export function ThemeToggle({ className }: { className?: string }) {
   const [theme, setTheme] = useState<Theme>("light");
 
   useEffect(() => {
-    const frame = window.requestAnimationFrame(() => {
-      const nextTheme = getPreferredTheme();
-      setTheme(nextTheme);
-      document.documentElement.dataset.theme = nextTheme;
-      document.documentElement.dataset.themeSource = window.localStorage.getItem("krasavitsa-theme-source") === "manual" ? "manual" : "system";
-    });
-
-    const media = window.matchMedia("(prefers-color-scheme: dark)");
-    const syncStoredTheme = () => {
-      const nextTheme = getPreferredTheme();
-      setTheme(nextTheme);
-      document.documentElement.dataset.theme = nextTheme;
-      document.documentElement.dataset.themeSource = window.localStorage.getItem("krasavitsa-theme-source") === "manual" ? "manual" : "system";
+    const sync = () => {
+      const preference = getThemePreference();
+      applyTheme(preference.theme, preference.source);
+      setTheme(preference.theme);
     };
-    const syncSystemTheme = () => {
-      if (window.localStorage.getItem("krasavitsa-theme-source") === "manual") return;
-      const nextTheme: Theme = media.matches ? "dark" : "light";
-      setTheme(nextTheme);
-      document.documentElement.dataset.theme = nextTheme;
-      document.documentElement.dataset.themeSource = "system";
-    };
-    media.addEventListener("change", syncSystemTheme);
-    window.addEventListener("pageshow", syncSystemTheme);
-    document.addEventListener("visibilitychange", syncSystemTheme);
-    window.addEventListener("krasavitsa-theme-change", syncStoredTheme);
-
-    return () => {
-      window.cancelAnimationFrame(frame);
-      media.removeEventListener("change", syncSystemTheme);
-      window.removeEventListener("pageshow", syncSystemTheme);
-      document.removeEventListener("visibilitychange", syncSystemTheme);
-      window.removeEventListener("krasavitsa-theme-change", syncStoredTheme);
-    };
+    sync();
+    return subscribeTheme(sync);
   }, []);
 
   const toggleTheme = () => {
     const nextTheme = theme === "dark" ? "light" : "dark";
-    setTheme(nextTheme);
-    document.documentElement.dataset.theme = nextTheme;
-    window.localStorage.setItem("krasavitsa-theme", nextTheme);
-    window.localStorage.setItem("krasavitsa-theme-source", "manual");
-    document.documentElement.dataset.themeSource = "manual";
-    window.dispatchEvent(new CustomEvent("krasavitsa-theme-change"));
+    setManualTheme(nextTheme);
   };
 
   return (

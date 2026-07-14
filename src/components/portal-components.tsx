@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 import { ArrowRight, Menu, MessageCircle, Send, UserRound, X } from "lucide-react";
 import { motion } from "motion/react";
@@ -22,6 +23,9 @@ export const navLinks = [
 export function SiteHeader() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? "hidden" : "";
@@ -63,9 +67,9 @@ export function SiteHeader() {
           {mobileOpen ? <X className="size-6" /> : <Menu className="size-6" />}
         </button>
       </div>
-      <div
+      {mounted ? createPortal(<div
         className={cn(
-          "fixed inset-0 top-[73px] z-[210] bg-black/28 opacity-0 backdrop-blur-sm transition duration-200 ease-out md:hidden",
+          "fixed inset-0 z-[2147483647] bg-black/42 opacity-0 backdrop-blur-sm transition duration-200 ease-out md:hidden",
           mobileOpen ? "pointer-events-auto opacity-100" : "pointer-events-none",
         )}
         onClick={() => setMobileOpen(false)}
@@ -75,7 +79,7 @@ export function SiteHeader() {
           animate={mobileOpen ? { x: 0, opacity: 1, filter: "blur(0px)" } : { x: 34, opacity: 0, filter: "blur(10px)" }}
           transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
           onClick={(event) => event.stopPropagation()}
-          className="ml-auto h-[calc(100svh-73px)] w-[min(88vw,380px)] overflow-y-auto border-l border-white/12 bg-[rgba(49,22,31,.94)] p-5 pb-[max(2rem,env(safe-area-inset-bottom))] text-white shadow-[-24px_0_80px_rgba(0,0,0,.28)] backdrop-blur-3xl"
+          className="ml-auto h-[100dvh] w-[min(88vw,380px)] overflow-y-auto border-l border-white/12 bg-[rgba(49,22,31,.97)] p-5 pt-[max(1.25rem,env(safe-area-inset-top))] pb-[max(2rem,env(safe-area-inset-bottom))] text-white shadow-[-24px_0_80px_rgba(0,0,0,.4)] backdrop-blur-3xl"
         >
           <div className="mb-5 flex items-center justify-between gap-3">
             <div>
@@ -114,7 +118,7 @@ export function SiteHeader() {
             <ThemeToggle className="mt-1 border-white/18 bg-white/10 text-white hover:bg-white hover:text-black" />
           </nav>
         </motion.aside>
-      </div>
+      </div>, document.body) : null}
     </header>
   );
 }
