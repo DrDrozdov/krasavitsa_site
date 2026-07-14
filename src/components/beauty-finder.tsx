@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Droplets, ExternalLink, Heart, LoaderCircle, ScanSearch, Scissors, Sparkles } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
@@ -100,10 +100,12 @@ export function BeautyFinder() {
   const [summary, setSummary] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [factIndex, setFactIndex] = useState(0);
+  const [searchFactIndices, setSearchFactIndices] = useState([0, 1]);
+  const [searchFactStep, setSearchFactStep] = useState(0);
   const [savedNames, setSavedNames] = useState<string[]>([]);
   const [examplePage, setExamplePage] = useState(0);
   const [placeholderPage, setPlaceholderPage] = useState(0);
+  const reduceMotion = useReducedMotion();
   const active = useMemo(() => modes.find((item) => item.id === mode)!, [mode]);
   const activeExamples = exampleSets[mode][examplePage % exampleSets[mode].length];
   const activePlaceholder = [placeholders[mode], ...exampleSets[mode].flat()][placeholderPage % (exampleSets[mode].flat().length + 1)];
@@ -115,8 +117,8 @@ export function BeautyFinder() {
 
   useEffect(() => {
     if (!loading) return;
-    const timer = window.setInterval(() => setFactIndex((index) => (index + 1) % searchFacts[mode].length), 1300);
-    return () => window.clearInterval(timer);
+    const timer = window.setTimeout(() => setSearchFactStep(1), 1900);
+    return () => window.clearTimeout(timer);
   }, [loading, mode]);
 
   useEffect(() => {
@@ -131,7 +133,7 @@ export function BeautyFinder() {
     setResults([]);
     setSummary("");
     setError("");
-    setFactIndex(0);
+    setSearchFactStep(0);
     setPlaceholderPage(0);
   };
 
@@ -144,7 +146,10 @@ export function BeautyFinder() {
     setLoading(true);
     setResults([]);
     setSummary("");
-    setFactIndex(Math.floor(Math.random() * searchFacts[mode].length));
+    setSearchFactStep(0);
+    const firstFact = Math.floor(Math.random() * searchFacts[mode].length);
+    const secondFact = (firstFact + 1 + Math.floor(Math.random() * (searchFacts[mode].length - 1))) % searchFacts[mode].length;
+    setSearchFactIndices([firstFact, secondFact]);
     trackAnalyticsEvent("search_submit", `unified_${mode}`);
     try {
       const response = await fetch("/api/recommendations", {
@@ -159,6 +164,7 @@ export function BeautyFinder() {
         setResults([]);
         setSummary("");
         setError(data.error ?? "Не удалось обработать запрос.");
+        trackAnalyticsEvent("search_rejected", `unified_${mode}`);
       } else {
         setSummary(data.summary ?? "Подборка готова.");
         const nextProducts = data.products ?? [];
@@ -174,6 +180,7 @@ export function BeautyFinder() {
       }
     } catch {
       setError("Связь с подбором прервалась. Попробуйте ещё раз.");
+      trackAnalyticsEvent("form_error", `recommendations_${mode}`);
     } finally {
       setLoading(false);
     }
@@ -248,11 +255,11 @@ export function BeautyFinder() {
                 {loading ? "Собираю…" : "Подобрать"}
               </button>
             </div>
-            <div className="relative mt-3 min-h-[70px] md:mt-4 md:min-h-[82px]">
-              <AnimatePresence initial={false} mode="sync">
-                <motion.div key={`${mode}-${examplePage}`} initial={{ opacity: 0, y: 26, filter: "blur(8px)" }} animate={{ opacity: 1, y: 0, filter: "blur(0px)" }} exit={{ opacity: 0, y: -26, filter: "blur(7px)" }} transition={{ duration: 0.52, ease: [0.16, 1, 0.3, 1] }} className="absolute inset-0 flex gap-2 overflow-x-auto pb-1 md:grid md:grid-cols-3 md:overflow-visible">
+            <div className="mt-3 md:mt-4">
+              <AnimatePresence initial={false} mode="wait">
+                <motion.div key={`${mode}-${examplePage}`} initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 26, filter: "blur(8px)" }} animate={{ opacity: 1, y: 0, filter: "blur(0px)" }} exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -26, filter: "blur(7px)" }} transition={{ duration: 0.52, ease: [0.16, 1, 0.3, 1] }} className="flex items-stretch gap-2 overflow-x-auto pb-1 md:grid md:grid-cols-3 md:overflow-visible">
                   {activeExamples.map((item) => (
-                    <button key={item} type="button" onClick={() => { setQuery(item); void search(item); }} className="example-chip w-[86%] shrink-0 rounded-[var(--radius-md)] border border-white/14 bg-white/8 p-3 text-left text-xs font-bold leading-5 text-white/78 backdrop-blur-xl md:w-auto md:p-4 md:text-sm">
+                    <button key={item} type="button" onClick={() => { setQuery(item); void search(item); }} className="example-chip min-h-[5.75rem] w-[88%] shrink-0 whitespace-normal rounded-[var(--radius-md)] border border-white/14 bg-white/8 p-3 text-left text-xs font-bold leading-5 text-white/78 backdrop-blur-xl md:min-h-[6.5rem] md:w-auto md:p-4 md:text-sm md:leading-6">
                       {item}
                     </button>
                   ))}
@@ -274,24 +281,30 @@ export function BeautyFinder() {
               aria-live="polite"
               className="search-discovery mt-5 overflow-hidden rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-glass)] p-5 text-center shadow-[var(--shadow-soft)] backdrop-blur-2xl md:mt-7 md:rounded-[var(--radius-xxl)] md:p-8"
             >
-              <div className="relative mx-auto grid size-16 place-items-center rounded-full border border-[var(--color-bordeaux)]/20 bg-[var(--color-blush)]/45 md:size-20">
-                <span className="absolute inset-[-7px] rounded-full border border-dashed border-[var(--color-bordeaux)]/30 animate-[spin_7s_linear_infinite]" />
-                <LoaderCircle className="size-7 animate-spin text-[var(--color-bordeaux)] md:size-8" strokeWidth={2.4} />
-                <ScanSearch className="absolute size-4 text-[var(--color-bordeaux)] md:size-5" strokeWidth={2.6} />
+              <div className="search-orbit-stage" aria-hidden="true">
+                <div className="search-orbit-scene">
+                  <span className="search-orbit-ring search-orbit-ring-a"><i /></span>
+                  <span className="search-orbit-ring search-orbit-ring-b"><i /></span>
+                  <span className="search-orbit-ring search-orbit-ring-c"><i /></span>
+                  <span className="search-orbit-core">
+                    <LoaderCircle className="search-orbit-loader" strokeWidth={1.8} />
+                    <ScanSearch className="search-orbit-icon" strokeWidth={2.5} />
+                  </span>
+                </div>
               </div>
-              <p className="mt-5 text-xs font-black uppercase tracking-[0.18em] text-[var(--color-text-soft)]">Красавица ищет совпадения</p>
+              <p className="mt-5 text-xs font-black uppercase tracking-[0.14em] text-[var(--color-text-soft)]">Подбираем с заботой о вас</p>
               <h2 className="mt-2 text-2xl font-black tracking-tight md:text-3xl">Собираю ваш сценарий ухода</h2>
               <AnimatePresence mode="wait" initial={false}>
                 <motion.p
-                  key={`${mode}-${factIndex}`}
-                  initial={{ opacity: 0, transform: "translateY(8px)", filter: "blur(3px)" }}
+                  key={`${mode}-${searchFactIndices[searchFactStep]}`}
+                  initial={reduceMotion ? { opacity: 0 } : { opacity: 0, transform: "translateY(26px)", filter: "blur(8px)" }}
                   animate={{ opacity: 1, transform: "translateY(0px)", filter: "blur(0px)" }}
-                  exit={{ opacity: 0, transform: "translateY(-6px)", filter: "blur(2px)" }}
-                  transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
+                  exit={reduceMotion ? { opacity: 0 } : { opacity: 0, transform: "translateY(-26px)", filter: "blur(7px)" }}
+                  transition={{ duration: 0.52, ease: [0.16, 1, 0.3, 1] }}
                   className="mx-auto mt-4 max-w-xl text-sm font-semibold leading-6 text-[var(--color-text-muted)] md:text-base"
                 >
                   <span className="mr-2 font-black text-[var(--color-bordeaux)]">Beauty-факт</span>
-                  {searchFacts[mode][factIndex]}
+                  {searchFacts[mode][searchFactIndices[searchFactStep]]}
                 </motion.p>
               </AnimatePresence>
               <div className="mx-auto mt-6 h-1 w-full max-w-md overflow-hidden rounded-full bg-[var(--color-border)]">

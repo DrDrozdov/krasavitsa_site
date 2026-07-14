@@ -65,10 +65,9 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#FCFAFB" },
-    { media: "(prefers-color-scheme: dark)", color: "#1d1417" },
-  ],
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
   colorScheme: "light dark",
 };
 
@@ -130,19 +129,21 @@ const bootLoaderScript = `
 
 const themeScript = `
 (() => {
+  const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  let theme = systemTheme;
+  let themeSource = "system";
   try {
     const stored = window.localStorage.getItem("krasavitsa-theme");
     const source = window.localStorage.getItem("krasavitsa-theme-source");
-    const theme = source === "manual" && (stored === "dark" || stored === "light")
-      ? stored
-      : (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-    document.documentElement.dataset.theme = theme;
-    document.documentElement.dataset.themeSource = source === "manual" ? "manual" : "system";
-    const color = theme === "dark" ? "#1d1417" : "#fcfafb";
-    document.querySelector("#krasavitsa-theme-color")?.setAttribute("content", color);
-  } catch {
-    document.documentElement.dataset.theme = "light";
-  }
+    if (source === "manual" && (stored === "dark" || stored === "light")) {
+      theme = stored;
+      themeSource = "manual";
+    }
+  } catch {}
+  document.documentElement.dataset.theme = theme;
+  document.documentElement.dataset.themeSource = themeSource;
+  document.documentElement.style.colorScheme = theme;
+  document.querySelector("#krasavitsa-theme-color")?.setAttribute("content", theme === "dark" ? "#1d1417" : "#fcfafb");
 })();
 `;
 
@@ -152,9 +153,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ru" className="scroll-smooth">
+    <html lang="ru" className="scroll-smooth" suppressHydrationWarning>
       <head>
-        <meta name="color-scheme" content="light dark" />
         <meta id="krasavitsa-theme-color" name="theme-color" content="#fcfafb" />
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>

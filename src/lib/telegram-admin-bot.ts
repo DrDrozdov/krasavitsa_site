@@ -183,6 +183,8 @@ export async function sendDailyAnalyticsDigest() {
     `Ключевые действия: ${analytics.totals.cta}`,
     `Переходы в Telegram: ${analytics.totals.telegram}`,
     `Поиски: ${analytics.totals.searches}`,
+    `Готовые подборы: ${analytics.totals.searchSuccess}`,
+    `Запросы на уточнение: ${analytics.totals.searchRejected}`,
     `Ошибки: ${analytics.totals.errors}`,
     "",
     "Данные агрегированы: без IP, текста запросов и постоянных идентификаторов.",

@@ -99,35 +99,35 @@ export function ProfileDemo() {
     }
   };
 
-  if (loading) return <div className="mx-auto min-h-[520px] max-w-[1180px] animate-pulse rounded-[var(--radius-xxl)] bg-[var(--color-glass)]" />;
+  if (loading) return <div className="mx-auto min-h-[360px] max-w-[1180px] animate-pulse rounded-[var(--radius-xxl)] bg-[var(--color-glass)] md:min-h-[520px]" />;
 
   return (
-    <section className="px-3 pb-14 pt-6 md:px-5 md:pb-24 md:pt-12">
+    <section className="px-3 pb-10 pt-4 md:px-5 md:pb-24 md:pt-12">
       <div className="mx-auto grid max-w-[1180px] gap-3 md:grid-cols-[0.88fr_1.12fr]">
-        <div className="brand-panel flex min-h-[500px] flex-col justify-between rounded-[var(--radius-xxl)] border border-white/18 p-6 text-white shadow-[var(--shadow-soft)] md:p-9">
+        <div className="brand-panel flex min-h-[360px] flex-col justify-between rounded-[var(--radius-xxl)] border border-white/18 p-5 text-white md:min-h-[500px] md:p-9">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.18em] text-white/48">Личный контекст</p>
-            <h1 className="mt-6 text-[clamp(3rem,6vw,6.4rem)] font-black leading-[0.88]">Профиль, который помнит главное</h1>
+            <h1 className="mt-5 text-[clamp(2.45rem,11vw,4.8rem)] font-black leading-[0.92] tracking-[-0.035em]">Профиль, который помнит главное</h1>
           </div>
-          <div className="mt-16 grid gap-4 text-sm font-semibold leading-6 text-white/68">
+          <div className="mt-8 grid gap-3 text-sm font-semibold leading-6 text-white/72 md:mt-16 md:gap-4">
             <p>Аккаунт и аватар сохраняются на сервере проекта в России. Текст AI-запросов не связывается с email профиля.</p>
             <div className="flex items-center gap-3"><ShieldCheck className="size-5" /><span>Пароль хранится только как криптографический хеш.</span></div>
           </div>
         </div>
 
-        <div className="liquid-glass rounded-[var(--radius-xxl)] border border-[var(--color-border)] bg-[var(--color-glass)] p-5 shadow-[var(--shadow-card)] backdrop-blur-3xl md:p-8">
+        <div className="liquid-glass rounded-[var(--radius-xxl)] border border-[var(--color-border)] bg-[var(--color-glass)] p-4 backdrop-blur-3xl md:p-8">
           <AnimatePresence mode="wait">
             {user ? (
-              <motion.div key="account" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="flex min-h-[450px] flex-col">
+              <motion.div key="account" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="flex min-h-[360px] flex-col md:min-h-[450px]">
                 <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
-                  <label className="group relative grid size-32 shrink-0 cursor-pointer place-items-center overflow-hidden rounded-full border border-[var(--color-border)] bg-[var(--color-powder-light)]">
+                  <label className="group relative grid size-24 shrink-0 cursor-pointer place-items-center overflow-hidden rounded-full border border-[var(--color-border)] bg-[var(--color-powder-light)] md:size-32">
                     {user.avatarUrl ? <Image src={user.avatarUrl} alt="Аватар профиля" fill unoptimized className="object-cover" /> : <UserRound className="size-12 text-[var(--color-bordeaux)]" />}
                     <span className="absolute inset-0 grid place-items-center bg-black/0 text-transparent transition group-hover:bg-black/40 group-hover:text-white"><Camera className="size-6" /></span>
                     <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(event) => void uploadAvatar(event.target.files?.[0])} />
                   </label>
                   <div><p className="text-xs font-black uppercase text-[var(--color-text-soft)]">Ваш профиль</p><h2 className="mt-2 text-4xl font-black">{user.nickname}</h2><p className="mt-2 font-semibold text-[var(--color-text-muted)]">{user.email}</p></div>
                 </div>
-                <div className="mt-12 grid gap-3 sm:grid-cols-2">
+                <div className="mt-8 grid gap-2 sm:grid-cols-2 md:mt-12 md:gap-3">
                   <Info label="Хранение" value="Российский сервер" />
                   <Info label="Создан" value={new Date(user.createdAt).toLocaleDateString("ru-RU")} />
                   <Info label="Следующий шаг" value="Заполнить параметры ухода" />

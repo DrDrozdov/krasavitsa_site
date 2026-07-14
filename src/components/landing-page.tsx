@@ -7,6 +7,7 @@ import {
   Menu,
   MessageCircle,
   Send,
+  UserRound,
   WandSparkles,
   X,
 } from "lucide-react";
@@ -321,7 +322,7 @@ function Header({ onTry }: { onTry: () => void }) {
         <nav className="hidden items-center gap-2 md:flex">
           {links.map(([label, href]) => (
             <a key={href} href={href} className={cn("apple-glass-button rounded-full border border-[var(--color-border)] bg-white/50 px-5 py-3 text-sm font-bold transition duration-200 hover:bg-[var(--color-bordeaux)] hover:text-white", href === "#home" && "brand-action text-white")}>
-              {label}
+              <span className="inline-flex items-center gap-2">{href === "/profile" ? <UserRound className="size-4" /> : null}{label}</span>
             </a>
           ))}
           <button type="button" onClick={onTry} className="apple-glass-button brand-action rounded-full px-6 py-3 text-sm font-bold text-white transition duration-200">
@@ -329,9 +330,14 @@ function Header({ onTry }: { onTry: () => void }) {
           </button>
           <ThemeToggle />
         </nav>
-        <button type="button" aria-label="Открыть меню" onClick={() => setOpen((value) => !value)} className="relative grid size-12 place-items-center rounded-full border border-white/20 bg-[var(--color-bordeaux)] text-white shadow-[0_14px_34px_rgba(92,31,45,.22)] md:hidden">
-          {open ? <X className="size-6" /> : <Menu className="size-6" />}
-        </button>
+        <div className="flex items-center gap-2 md:hidden">
+          <a href="/profile" aria-label="Открыть профиль" className="apple-glass-button grid size-11 place-items-center rounded-full border border-[var(--color-border)] bg-[var(--color-glass-strong)] text-[var(--color-bordeaux)]">
+            <UserRound className="size-5" />
+          </a>
+          <button type="button" aria-label="Открыть меню" aria-expanded={open} onClick={() => setOpen((value) => !value)} className="relative grid size-11 place-items-center rounded-full bg-[var(--color-bordeaux)] text-white md:hidden">
+            {open ? <X className="size-5" /> : <Menu className="size-5" />}
+          </button>
+        </div>
       </header>
 
       <div className={cn("fixed inset-0 z-[60] transition md:hidden", open ? "pointer-events-auto" : "pointer-events-none")}>
@@ -353,7 +359,7 @@ function Header({ onTry }: { onTry: () => void }) {
               onClick={() => setOpen(false)}
               className="apple-glass-button block rounded-full border border-white/18 bg-white/14 px-5 py-4 text-xl font-black text-white shadow-[inset_0_1px_0_rgba(255,255,255,.2)] backdrop-blur-2xl transition duration-300 hover:bg-white hover:text-black"
             >
-              {label}
+              <span className="flex items-center gap-3">{href === "/profile" ? <UserRound className="size-5" /> : null}{label}</span>
             </a>
           ))}
           <button type="button" onClick={() => { setOpen(false); onTry(); }} className="apple-glass-button mt-5 rounded-full bg-white px-6 py-4 text-sm font-bold text-black">

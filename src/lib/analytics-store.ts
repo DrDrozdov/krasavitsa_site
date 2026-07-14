@@ -44,6 +44,17 @@ const storePath = process.env.ANALYTICS_DATA_DIR
 
 let writeQueue = Promise.resolve();
 
+function analyticsDate(date = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: process.env.ANALYTICS_TIME_ZONE ?? "Europe/Moscow",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const value = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${value.year}-${value.month}-${value.day}`;
+}
+
 function clean(value: unknown, max = 80) {
   return typeof value === "string" ? value.replace(/[^\p{L}\p{N}_./ -]/gu, "").slice(0, max) : "";
 }
@@ -71,7 +82,7 @@ export function recordAnalyticsEvent(input: AnalyticsEvent) {
 
   const task = writeQueue.then(async () => {
     const state = await readState();
-    const date = new Date().toISOString().slice(0, 10);
+    const date = analyticsDate();
     let day = state.daily.find((item) => item.date === date);
     if (!day) {
       day = { date, total: 0, events: {}, pages: {}, devices: {}, browsers: {}, referrers: {}, campaigns: {}, errors: 0 };
@@ -103,15 +114,17 @@ export async function getAnalyticsSnapshot(days = 30) {
     acc.cta += day.events.cta_click ?? 0;
     acc.telegram += day.events.telegram_click ?? 0;
     acc.searches += day.events.search_submit ?? 0;
+    acc.searchSuccess += day.events.search_success ?? 0;
+    acc.searchRejected += day.events.search_rejected ?? 0;
     acc.engaged += day.events.engaged_visit ?? 0;
     acc.errors += day.errors;
     return acc;
-  }, { events: 0, pageviews: 0, cta: 0, telegram: 0, searches: 0, engaged: 0, errors: 0 });
+  }, { events: 0, pageviews: 0, cta: 0, telegram: 0, searches: 0, searchSuccess: 0, searchRejected: 0, engaged: 0, errors: 0 });
   return { updatedAt: state.updatedAt, daily, totals };
 }
 
 export function analyticsToCsv(snapshot: Awaited<ReturnType<typeof getAnalyticsSnapshot>>) {
-  const header = "date,total,pageviews,cta_clicks,telegram_clicks,searches,errors";
-  const rows = snapshot.daily.map((day) => [day.date, day.total, day.events.page_view ?? 0, day.events.cta_click ?? 0, day.events.telegram_click ?? 0, day.events.search_submit ?? 0, day.errors].join(","));
+  const header = "date,total,pageviews,cta_clicks,telegram_clicks,searches,search_success,search_rejected,errors";
+  const rows = snapshot.daily.map((day) => [day.date, day.total, day.events.page_view ?? 0, day.events.cta_click ?? 0, day.events.telegram_click ?? 0, day.events.search_submit ?? 0, day.events.search_success ?? 0, day.events.search_rejected ?? 0, day.errors].join(","));
   return [header, ...rows].join("\n");
 }

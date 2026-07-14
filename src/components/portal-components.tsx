@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 import { ArrowRight, Menu, MessageCircle, Send, UserRound, X } from "lucide-react";
@@ -23,9 +23,7 @@ export const navLinks = [
 export function SiteHeader() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => setMounted(true), []);
+  const mounted = useSyncExternalStore(() => () => undefined, () => true, () => false);
 
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? "hidden" : "";
@@ -33,10 +31,6 @@ export function SiteHeader() {
       document.body.style.overflow = "";
     };
   }, [mobileOpen]);
-
-  useEffect(() => {
-    setMobileOpen(false);
-  }, [pathname]);
 
   return (
     <header className="liquid-glass sticky top-0 z-[200] border-b border-[var(--color-border)] bg-[rgba(250,247,243,.62)] px-4 py-3 backdrop-blur-2xl md:px-6">
@@ -57,15 +51,28 @@ export function SiteHeader() {
           </LinkButton>
           <ThemeToggle />
         </nav>
-        <button
-          type="button"
-          aria-label={mobileOpen ? "Закрыть меню" : "Открыть меню"}
-          aria-expanded={mobileOpen}
-          onClick={() => setMobileOpen((current) => !current)}
-          className="apple-glass-button grid size-12 place-items-center rounded-full bg-[var(--color-bordeaux)] text-white shadow-[var(--shadow-card)] md:hidden"
-        >
-          {mobileOpen ? <X className="size-6" /> : <Menu className="size-6" />}
-        </button>
+        <div className="flex items-center gap-2 md:hidden">
+          <Link
+            href="/profile"
+            aria-label="Открыть профиль"
+            aria-current={isActivePath(pathname, "/profile") ? "page" : undefined}
+            className={cn(
+              "apple-glass-button grid size-11 place-items-center rounded-full border border-[var(--color-border)] bg-[var(--color-glass-strong)] text-[var(--color-bordeaux)]",
+              isActivePath(pathname, "/profile") && "bg-[var(--color-bordeaux)] text-white",
+            )}
+          >
+            <UserRound className="size-5" />
+          </Link>
+          <button
+            type="button"
+            aria-label={mobileOpen ? "Закрыть меню" : "Открыть меню"}
+            aria-expanded={mobileOpen}
+            onClick={() => setMobileOpen((current) => !current)}
+            className="apple-glass-button grid size-11 place-items-center rounded-full bg-[var(--color-bordeaux)] text-white md:hidden"
+          >
+            {mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+          </button>
+        </div>
       </div>
       {mounted ? createPortal(<div
         className={cn(
@@ -106,7 +113,7 @@ export function SiteHeader() {
                   isActivePath(pathname, href) && "bg-white text-black",
                 )}
               >
-                {href === "/profile" ? <><UserRound className="mr-2 inline size-5" /><span className="sr-only">{label}</span></> : label}
+                {href === "/profile" ? <span className="flex items-center gap-3"><UserRound className="size-5" />{label}</span> : label}
               </Link>
             ))}
             <LinkButton href="/care" onClick={() => setMobileOpen(false)} className="mt-2 h-14 w-full bg-white px-6 text-black hover:bg-white/90">
@@ -138,7 +145,7 @@ function HeaderNavLink({ label, href, active }: { label: string; href: string; a
         active && "brand-action border-transparent text-white shadow-[0_18px_48px_rgba(92,31,45,.18)]",
       )}
     >
-      <span>{label}</span>
+      <span className="inline-flex items-center gap-2">{href === "/profile" ? <UserRound className="size-4" /> : null}{label}</span>
       {active ? <span className="ml-2 inline-block size-1.5 rounded-full bg-[#74d58a] shadow-[0_0_14px_rgba(116,213,138,.9)]" /> : null}
     </Link>
   );
@@ -262,9 +269,9 @@ export function PageHero({
 }) {
   return (
     <div className="px-3 pb-2 pt-5 md:px-5">
-      <BeautyPortalGrid className="min-h-[520px]">
+      <BeautyPortalGrid className="min-h-[390px] md:min-h-[520px]">
         <PortalPanel className="md:col-span-7 md:row-span-2" image={image} priority>
-          <div className="flex min-h-[430px] flex-col justify-between">
+          <div className="flex min-h-[330px] flex-col justify-between md:min-h-[430px]">
             <div>
               <p className="text-sm font-black uppercase text-[var(--color-text-soft)]">{eyebrow}</p>
               <h1 className="mt-5 max-w-4xl text-[clamp(2.7rem,5.7vw,5.8rem)] font-black leading-[0.94] tracking-tight">{title}</h1>

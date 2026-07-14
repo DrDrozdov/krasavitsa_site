@@ -4,6 +4,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
 
 export const adminCookieName = "krasavitsa_admin";
+export const adminAccessCookieName = "krasavitsa_admin_gate";
 
 function sessionSecret() {
   return process.env.KRASAVITSA_ADMIN_SESSION_SECRET ?? "";
@@ -29,6 +30,10 @@ function expectedCookie() {
   return createHmac("sha256", sessionSecret()).update("krasavitsa-owner-v1").digest("hex");
 }
 
+function expectedAccessCookie() {
+  return createHmac("sha256", sessionSecret()).update("krasavitsa-owner-gate-v1").digest("hex");
+}
+
 function safeEqual(left: string, right: string) {
   const a = Buffer.from(left);
   const b = Buffer.from(right);
@@ -46,6 +51,16 @@ export async function isAdminSession() {
   return safeEqual(value, expectedCookie());
 }
 
+export async function hasAdminAccess() {
+  if (!adminConfiguration().sessionConfigured) return false;
+  const value = (await cookies()).get(adminAccessCookieName)?.value ?? "";
+  return safeEqual(value, expectedAccessCookie());
+}
+
 export function createAdminSessionValue() {
   return expectedCookie();
+}
+
+export function createAdminAccessValue() {
+  return expectedAccessCookie();
 }

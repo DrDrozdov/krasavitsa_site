@@ -15,5 +15,18 @@ services:
       - krasavitsa-analytics:/app/data
     restart: unless-stopped
 
+  analytics-digest-scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["node", "/app/scripts/digest-scheduler.mjs"]
+    env_file:
+      - .env
+    environment:
+      ANALYTICS_DIGEST_INTERNAL_URL: http://krasavitsa:3000
+    depends_on:
+      - krasavitsa
+    restart: unless-stopped
+
 volumes:
   krasavitsa-analytics:
