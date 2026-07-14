@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
-import { Droplets, ExternalLink, Heart, Scissors, Sparkles } from "lucide-react";
+import { Droplets, ExternalLink, Heart, LoaderCircle, ScanSearch, Scissors, Sparkles } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { trackAnalyticsEvent } from "@/lib/analytics-client";
@@ -75,6 +75,24 @@ const placeholders: Record<Mode, string> = {
   perfume: "Например: чистый мускус, офис, без сладкого шлейфа, до 6000 ₽",
 };
 
+const searchFacts: Record<Mode, string[]> = {
+  skin: [
+    "Кожный барьер лучше восстанавливается от регулярности, чем от большого числа активов.",
+    "SPF нужен не только летом: ультрафиолет проходит через облака и окна.",
+    "Новый актив разумно вводить по одному — так легче заметить реакцию кожи.",
+  ],
+  hair: [
+    "Длина волос не получает питание от кожи головы: ей важны кондиционирование и защита.",
+    "Горячая укладка безопаснее, когда термозащиту наносят до нагрева, а не после.",
+    "Один и тот же шампунь может работать по-разному из-за жёсткости воды.",
+  ],
+  perfume: [
+    "Аромат раскрывается на коже иначе, чем на блоттере — дайте ему хотя бы 20 минут.",
+    "Влажность и температура заметно меняют звучание и шлейф парфюма.",
+    "Ноты в пирамиде — ориентир: композиция ощущается цельно, а не по отдельности.",
+  ],
+};
+
 export function BeautyFinder() {
   const [mode, setMode] = useState<Mode>("skin");
   const [query, setQuery] = useState("");
@@ -82,6 +100,7 @@ export function BeautyFinder() {
   const [summary, setSummary] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [factIndex, setFactIndex] = useState(0);
   const [savedNames, setSavedNames] = useState<string[]>([]);
   const [examplePage, setExamplePage] = useState(0);
   const [placeholderPage, setPlaceholderPage] = useState(0);
@@ -95,6 +114,12 @@ export function BeautyFinder() {
   }, [mode]);
 
   useEffect(() => {
+    if (!loading) return;
+    const timer = window.setInterval(() => setFactIndex((index) => (index + 1) % searchFacts[mode].length), 1300);
+    return () => window.clearInterval(timer);
+  }, [loading, mode]);
+
+  useEffect(() => {
     const timer = window.setInterval(() => setPlaceholderPage((page) => page + 1), 4200);
     return () => window.clearInterval(timer);
   }, [mode]);
@@ -106,6 +131,7 @@ export function BeautyFinder() {
     setResults([]);
     setSummary("");
     setError("");
+    setFactIndex(0);
     setPlaceholderPage(0);
   };
 
@@ -114,7 +140,11 @@ export function BeautyFinder() {
     setQuery(value);
     setError("");
     if (!next) return;
+    const startedAt = Date.now();
     setLoading(true);
+    setResults([]);
+    setSummary("");
+    setFactIndex(Math.floor(Math.random() * searchFacts[mode].length));
     trackAnalyticsEvent("search_submit", `unified_${mode}`);
     try {
       const response = await fetch("/api/recommendations", {
@@ -123,6 +153,8 @@ export function BeautyFinder() {
         body: JSON.stringify({ query: next, mode }),
       });
       const data = (await response.json()) as { summary?: string; products?: Product[]; error?: string };
+      const remainingAnimationTime = 1000 - (Date.now() - startedAt);
+      if (remainingAnimationTime > 0) await new Promise((resolve) => window.setTimeout(resolve, remainingAnimationTime));
       if (!response.ok) {
         setResults([]);
         setSummary("");
@@ -231,8 +263,42 @@ export function BeautyFinder() {
           </motion.div>
         </AnimatePresence>
 
-        <AnimatePresence mode="wait">
-          {results.length ? (
+        <AnimatePresence mode="wait" initial={false}>
+          {loading ? (
+            <motion.div
+              key={`searching-${mode}`}
+              initial={{ opacity: 0, transform: "translateY(16px) scale(0.98)", filter: "blur(5px)" }}
+              animate={{ opacity: 1, transform: "translateY(0px) scale(1)", filter: "blur(0px)" }}
+              exit={{ opacity: 0, transform: "translateY(-10px) scale(0.99)", filter: "blur(3px)" }}
+              transition={{ duration: 0.24, ease: [0.23, 1, 0.32, 1] }}
+              aria-live="polite"
+              className="search-discovery mt-5 overflow-hidden rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-glass)] p-5 text-center shadow-[var(--shadow-soft)] backdrop-blur-2xl md:mt-7 md:rounded-[var(--radius-xxl)] md:p-8"
+            >
+              <div className="relative mx-auto grid size-16 place-items-center rounded-full border border-[var(--color-bordeaux)]/20 bg-[var(--color-blush)]/45 md:size-20">
+                <span className="absolute inset-[-7px] rounded-full border border-dashed border-[var(--color-bordeaux)]/30 animate-[spin_7s_linear_infinite]" />
+                <LoaderCircle className="size-7 animate-spin text-[var(--color-bordeaux)] md:size-8" strokeWidth={2.4} />
+                <ScanSearch className="absolute size-4 text-[var(--color-bordeaux)] md:size-5" strokeWidth={2.6} />
+              </div>
+              <p className="mt-5 text-xs font-black uppercase tracking-[0.18em] text-[var(--color-text-soft)]">Красавица ищет совпадения</p>
+              <h2 className="mt-2 text-2xl font-black tracking-tight md:text-3xl">Собираю ваш сценарий ухода</h2>
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.p
+                  key={`${mode}-${factIndex}`}
+                  initial={{ opacity: 0, transform: "translateY(8px)", filter: "blur(3px)" }}
+                  animate={{ opacity: 1, transform: "translateY(0px)", filter: "blur(0px)" }}
+                  exit={{ opacity: 0, transform: "translateY(-6px)", filter: "blur(2px)" }}
+                  transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
+                  className="mx-auto mt-4 max-w-xl text-sm font-semibold leading-6 text-[var(--color-text-muted)] md:text-base"
+                >
+                  <span className="mr-2 font-black text-[var(--color-bordeaux)]">Beauty-факт</span>
+                  {searchFacts[mode][factIndex]}
+                </motion.p>
+              </AnimatePresence>
+              <div className="mx-auto mt-6 h-1 w-full max-w-md overflow-hidden rounded-full bg-[var(--color-border)]">
+                <span className="search-discovery-progress block h-full w-2/5 rounded-full bg-[var(--color-bordeaux)]" />
+              </div>
+            </motion.div>
+          ) : results.length ? (
             <motion.div key={`${mode}-${summary}`} initial={{ opacity: 0, y: 22 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mt-5">
               <p className="mx-auto max-w-3xl py-7 text-center text-xl font-bold leading-8 text-[var(--color-text-muted)]">{summary}</p>
               <div className="grid gap-3 md:grid-cols-2">
