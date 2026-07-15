@@ -240,34 +240,49 @@ async function callModel(system: string, user: string, maxTokens: number): Promi
   const key = process.env.DEEPSEEK_API_KEY?.trim();
   if (!key) throw new Error("AI_NOT_CONFIGURED");
   const baseUrl = (process.env.DEEPSEEK_BASE_URL ?? "https://api.deepseek.com").replace(/\/$/, "");
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 24_000);
-  try {
-    const response = await fetch(`${baseUrl}/chat/completions`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: process.env.DEEPSEEK_MODEL ?? "deepseek-chat",
-        temperature: 0.15,
-        max_tokens: maxTokens,
-        response_format: { type: "json_object" },
-        messages: [{ role: "system", content: system }, { role: "user", content: user }],
-      }),
-      cache: "no-store",
-      signal: controller.signal,
-    });
-    if (!response.ok) throw new Error(`AI_HTTP_${response.status}`);
-    const envelope = asRecord(await response.json());
-    const choices = Array.isArray(envelope?.choices) ? envelope.choices : [];
-    const first = asRecord(choices[0]);
-    const message = asRecord(first?.message);
-    const content = asString(message?.content, 40_000);
-    const parsed = parseJsonObject(content);
-    if (!parsed) throw new Error("AI_INVALID_JSON");
-    return parsed;
-  } finally {
-    clearTimeout(timeout);
+  const configuredModel = (process.env.DEEPSEEK_MODEL ?? "deepseek-v4-flash").trim();
+  // Reasoning models may spend the whole serverless request budget on internal
+  // reasoning. Product search needs predictable structured output, so migrate
+  // legacy R1 configuration to the fast JSON-capable model automatically.
+  const model = /^deepseek-r1(?:-|$)/i.test(configuredModel) ? "deepseek-v4-flash" : configuredModel;
+
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30_000);
+    try {
+      const response = await fetch(`${baseUrl}/chat/completions`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model,
+          temperature: 0.15,
+          max_tokens: maxTokens,
+          response_format: { type: "json_object" },
+          messages: [{ role: "system", content: system }, { role: "user", content: user }],
+        }),
+        cache: "no-store",
+        signal: controller.signal,
+      });
+      if (!response.ok) {
+        if ((response.status === 429 || response.status >= 500) && attempt === 0) {
+          await new Promise((resolve) => setTimeout(resolve, 700));
+          continue;
+        }
+        throw new Error(`AI_HTTP_${response.status}`);
+      }
+      const envelope = asRecord(await response.json());
+      const choices = Array.isArray(envelope?.choices) ? envelope.choices : [];
+      const first = asRecord(choices[0]);
+      const message = asRecord(first?.message);
+      const content = asString(message?.content, 40_000);
+      const parsed = parseJsonObject(content);
+      if (!parsed) throw new Error("AI_INVALID_JSON");
+      return parsed;
+    } finally {
+      clearTimeout(timeout);
+    }
   }
+  throw new Error("AI_RETRY_EXHAUSTED");
 }
 
 function parseTriage(raw: JsonRecord): TriageResult {
@@ -316,6 +331,24 @@ function parseCandidates(raw: JsonRecord): Candidate[] {
 function normalizedTokens(value: string): string[] {
   const stop = new Set(["the", "and", "with", "for", "eau", "de", "parfum", "toilette", "cream", "gel", "serum", "shampoo", "conditioner", "spray", "крем", "гель", "сыворотка", "шампунь", "спрей", "для"]);
   return value.toLocaleLowerCase("ru").replace(/ё/g, "е").replace(/[^a-zа-я0-9]+/g, " ").split(/\s+/).filter((token) => token.length >= 3 && !stop.has(token));
+}
+
+function curatedForQuery(mode: SearchMode, query: string): BeautyProduct[] {
+  const queryTokens = normalizedTokens(query);
+  return curatedFallback[mode]
+    .map((product, index) => {
+      const searchable = `${product.name} ${product.category} ${product.reason}`.toLocaleLowerCase("ru");
+      const matches = queryTokens.filter((token) => searchable.includes(token)).length;
+      const category = product.category.toLocaleLowerCase("ru");
+      const categoryMatches = queryTokens.filter((token) => category.includes(token)).length;
+      return {
+        ...product,
+        matchScore: clampScore(product.matchScore + Math.min(22, matches * 4 + categoryMatches * 8)),
+        image: productImage(mode, product.name, product.marketplaces[0]?.href, index),
+        imageKind: "verified-composite" as const,
+      };
+    })
+    .sort((left, right) => right.matchScore - left.matchScore);
 }
 
 function allowedHosts(): string[] {
@@ -447,7 +480,7 @@ async function critique(mode: SearchMode, query: string, profile: JsonRecord, ca
         tradeoffs: item.tradeoffs,
       })),
     }),
-    2600,
+    1200,
   );
   const decisions = Array.isArray(raw.decisions) ? raw.decisions.map(asRecord).filter((item): item is JsonRecord => Boolean(item)) : [];
   const byName = new Map(candidates.map((item) => [item.name.toLocaleLowerCase("ru"), item]));
@@ -474,11 +507,7 @@ export async function recommendBeauty(query: string, mode: SearchMode): Promise<
       status: "complete",
       mode,
       summary: "AI-провайдер не настроен, поэтому показываю только небольшой проверенный базовый каталог без персональных обещаний.",
-      products: curatedFallback[mode].map((product, index) => ({
-        ...product,
-        image: productImage(mode, product.name, product.marketplaces[0]?.href, index),
-        imageKind: "verified-composite",
-      })),
+      products: curatedForQuery(mode, query),
       methodology: "curated-fallback",
     };
   }
@@ -489,10 +518,20 @@ ${config.triage}
 Красные флаги: ${config.safety}
 Верни JSON {"decision":"ready|clarify|safety|decline","summary":"что достоверно понято без домыслов","question":"один самый полезный вопрос или пустая строка","profile":{"goal":"","constraints":[],"preferences":[],"budget":"","context":""},"red_flags":[]}. Clarify выбирай только когда без ответа высок риск нерелевантного или небезопасного подбора.`,
     `<user_request>${query}</user_request>`,
-    1400,
+    800,
   );
   const triage = parseTriage(triageRaw);
-  if (triage.decision === "clarify" || triage.decision === "decline") {
+  if (triage.decision === "clarify") {
+    return {
+      status: "complete",
+      mode,
+      summary: `${triage.summary} Для старта показываю проверенные варианты; ${triage.question?.toLocaleLowerCase("ru") || "параметры можно уточнить следующим запросом"}`,
+      followUpQuestion: triage.question,
+      products: curatedForQuery(mode, query),
+      methodology: "curated-fallback",
+    };
+  }
+  if (triage.decision === "decline") {
     return {
       status: "needs_input",
       mode,
@@ -517,34 +556,43 @@ ${config.triage}
     `Ты профильный эксперт платформы «Красавица» по направлению «${config.label}». ${sharedContract}
 ${config.specialist}
 ${config.safety}
-Сначала внутренне проверь каждый вариант по всем ограничениям, но не раскрывай цепочку рассуждений. Предложи до 6 независимых кандидатов, чтобы сервер мог проверить ссылки и отсеять ошибки. Товар без известной прямой карточки не включай.
+Сначала внутренне проверь каждый вариант по всем ограничениям, но не раскрывай цепочку рассуждений. Предложи до 4 независимых кандидатов, чтобы сервер мог проверить ссылки и отсеять ошибки. Товар без известной прямой карточки не включай. В user payload передан verified_catalog: это уже проверенные сервером товары и URL. Если товар из него соответствует запросу, используй его точное имя и official_url без изменений. Новые товары добавляй только при уверенности в точной прямой карточке.
 Верни JSON {"products":[{"name":"точное официальное название","category":"роль","reason":"почему подходит именно профилю без неподтверждённых свойств","match_score":0,"usage":"короткий безопасный способ применения или тестирования","tradeoffs":["честное ограничение"],"official_url":"https://прямая-карточка-бренда","retailer_urls":[{"label":"магазин","url":"https://прямая-карточка-товара"}]}]}. Не указывай цену и пользовательский рейтинг.`,
-    JSON.stringify({ user_query: query, extracted_profile: triage.profile }),
-    4200,
+    JSON.stringify({
+      user_query: query,
+      extracted_profile: triage.profile,
+      verified_catalog: curatedFallback[mode].map((product) => ({
+        name: product.name,
+        category: product.category,
+        official_url: product.marketplaces[0]?.href,
+      })),
+    }),
+    1900,
   );
   const candidates = parseCandidates(candidateRaw);
   const verified = (await Promise.all(candidates.map(verifyCandidate))).filter((item): item is VerifiedCandidate => Boolean(item));
   if (!verified.length) {
     return {
-      status: "no_verified_products",
+      status: "complete",
       mode,
-      summary: "Я нашла возможные варианты, но не смогла подтвердить ни одну отдельную карточку товара. Чтобы не показывать вымышленные средства или ссылки на общий поиск, подборка остановлена.",
-      followUpQuestion: "Попробуйте уточнить бюджет, страну покупки или назовите 1–2 знакомых бренда — я выполню более узкую проверку.",
-      products: [],
-      methodology: "grounded-v2",
+      summary: `${triage.summary} Новые карточки не прошли строгую проверку источников, поэтому показываю наиболее близкие варианты из проверенного каталога — без вымышленных товаров и поисковых ссылок.`,
+      products: curatedForQuery(mode, query),
+      methodology: "curated-fallback",
     };
   }
 
   let summary = triage.summary;
   let finalProducts = verified.sort((a, b) => b.matchScore - a.matchScore).slice(0, 4);
-  try {
-    const reviewed = await critique(mode, query, triage.profile, verified);
-    if (reviewed.products.length) {
-      summary = reviewed.summary;
-      finalProducts = reviewed.products;
+  if (process.env.BEAUTY_ENABLE_AI_CRITIQUE === "1") {
+    try {
+      const reviewed = await critique(mode, query, triage.profile, verified);
+      if (reviewed.products.length) {
+        summary = reviewed.summary;
+        finalProducts = reviewed.products;
+      }
+    } catch {
+      summary = `${triage.summary} Товары прошли проверку существования и прямых карточек; финальная редакторская перепроверка временно недоступна.`;
     }
-  } catch {
-    summary = `${triage.summary} Товары прошли проверку существования и прямых карточек; финальная редакторская перепроверка временно недоступна.`;
   }
 
   return {
@@ -565,11 +613,7 @@ export function fallbackRecommendation(mode: SearchMode): BeautyRecommendation {
     status: "complete",
     mode,
     summary: "AI-провайдер временно недоступен. Показываю только проверенный базовый каталог; это не персональная подборка.",
-    products: curatedFallback[mode].map((product, index) => ({
-      ...product,
-      image: productImage(mode, product.name, product.marketplaces[0]?.href, index),
-      imageKind: "verified-composite",
-    })),
+    products: curatedForQuery(mode, ""),
     methodology: "curated-fallback",
   };
 }
