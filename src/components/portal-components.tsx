@@ -38,6 +38,7 @@ export function SiteHeader() {
   const mounted = useSyncExternalStore(() => () => undefined, () => true, () => false);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const openedByPointerRef = useRef(false);
 
   useEffect(() => {
     if (!mobileOpen) return;
@@ -47,7 +48,7 @@ export function SiteHeader() {
     body.style.position = "fixed";
     body.style.inset = `-${scrollY}px 0 0`;
     body.style.width = "100%";
-    closeButtonRef.current?.focus();
+    if (!openedByPointerRef.current) closeButtonRef.current?.focus();
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -78,7 +79,8 @@ export function SiteHeader() {
       body.style.inset = "";
       body.style.width = "";
       window.scrollTo(0, scrollY);
-      trigger?.focus();
+      if (!openedByPointerRef.current) trigger?.focus();
+      openedByPointerRef.current = false;
     };
   }, [mobileOpen]);
 
@@ -116,7 +118,12 @@ export function SiteHeader() {
             aria-label={mobileOpen ? "Закрыть меню" : "Открыть меню"}
             aria-expanded={mobileOpen}
             aria-controls="mobile-navigation-panel"
-            onClick={() => setMobileOpen((current) => !current)}
+            onClick={() => { openedByPointerRef.current = false; setMobileOpen((current) => !current); }}
+            onPointerEnter={(event) => {
+              if (event.pointerType !== "mouse" || !window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+              openedByPointerRef.current = true;
+              setMobileOpen(true);
+            }}
             className="header-icon-button menu-trigger"
           >
             {mobileOpen ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
@@ -143,7 +150,9 @@ export function SiteHeader() {
                 aria-modal="true"
                 aria-label="Меню сайта"
                 initial={false}
-                animate={mobileOpen ? { x: 0, opacity: 1 } : { x: reduceMotion ? 0 : "100%", opacity: 0 }}
+                animate={mobileOpen
+                  ? { clipPath: "inset(0% 0% 0% 0% round 0px)", opacity: 1, scale: 1, filter: "blur(0px)" }
+                  : { clipPath: reduceMotion ? "inset(0% 0% 0% 100% round 24px)" : "inset(0% 0% 0% 100% round 36px)", opacity: 0, scale: .985, filter: reduceMotion ? "blur(0px)" : "blur(12px)" }}
                 transition={{ duration: reduceMotion ? 0 : 0.28, ease: [0.16, 1, 0.3, 1] }}
                 className="mobile-menu-panel"
               >
@@ -161,6 +170,11 @@ export function SiteHeader() {
                   >
                     <X aria-hidden="true" />
                   </button>
+                </div>
+
+                <div className="mobile-menu-art" aria-hidden="true">
+                  <Image src="/krasavitsa-cinematic-hero-v2.png" alt="" fill sizes="420px" />
+                  <span>BEAUTY INTELLIGENCE · 2026</span>
                 </div>
 
                 <nav className="mobile-nav" aria-label="Мобильная навигация">

@@ -18,10 +18,6 @@ function saveConsent(value: Exclude<Consent, "pending">) {
   window.dispatchEvent(new CustomEvent("krasavitsa-cookie-consent", { detail: value }));
 }
 
-export function analyticsAllowed() {
-  return typeof document !== "undefined" && readConsent() === "all";
-}
-
 export function CookieConsent() {
   const [consent, setConsent] = useState<Consent>("pending");
   const reduceMotion = useReducedMotion();
@@ -47,11 +43,11 @@ export function CookieConsent() {
           className="cookie-consent liquid-glass z-[80] mx-auto max-w-xl rounded-[var(--radius-lg)] border border-[var(--color-border)] p-4 text-[var(--color-text)] shadow-[var(--shadow-hover)] backdrop-blur-3xl"
         >
           <p className="text-sm font-black">Настройки cookies</p>
-          <p className="mt-2 text-sm leading-6 text-[var(--color-text-muted)]">Мы используем обязательные cookies для работы сайта. С согласия пользователя включаем обезличенную аналитику посещений.</p>
+          <p className="mt-2 text-sm leading-6 text-[var(--color-text-muted)]">Обезличенная продуктовая статистика работает без cookies и не хранит текст запросов или постоянный ID. Здесь можно разрешить только дополнительные настройки сайта.</p>
           <p className="mt-2 text-xs font-semibold text-[var(--color-text-soft)]"><Link href="/cookies" className="underline underline-offset-4">Политика cookies</Link> · <Link href="/privacy" className="underline underline-offset-4">Политика конфиденциальности</Link></p>
           <div className="mt-4 flex flex-wrap gap-2">
-            <button type="button" onClick={() => choose("all")} className="apple-glass-button brand-action rounded-full px-4 py-2.5 text-sm font-black">Принять все</button>
-            <button type="button" onClick={() => choose("essential")} className="apple-glass-button rounded-full border border-[var(--color-border)] bg-[var(--color-glass)] px-4 py-2.5 text-sm font-black text-[var(--color-text)]">Только необходимые</button>
+            <button type="button" onClick={() => choose("all")} className="apple-glass-button brand-action rounded-full px-4 py-2.5 text-sm font-black">Разрешить настройки</button>
+            <button type="button" onClick={() => choose("essential")} className="apple-glass-button rounded-full border border-[var(--color-border)] bg-[var(--color-glass)] px-4 py-2.5 text-sm font-black text-[var(--color-text)]">Без дополнительных cookies</button>
           </div>
         </motion.aside>
       ) : null}

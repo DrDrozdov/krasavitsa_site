@@ -39,13 +39,18 @@ DEEPSEEK_BASE_URL=https://api.deepseek.com
 DEEPSEEK_MODEL=deepseek-chat
 ```
 
-If you use a shared backend for the Telegram bot and website, set:
+The website route `/api/recommendations` is the canonical recommendation engine
+for the website and Telegram bot. In the bot project set:
 
 ```bash
-BEAUTY_OS_API_URL=https://your-backend-endpoint
+BEAUTY_OS_API_URL=https://your-domain.ru/api/recommendations
 ```
 
-`BEAUTY_OS_API_URL` has priority over DeepSeek-compatible settings.
+The engine returns only product links that pass direct-page validation. Search
+pages are intentionally not returned. To trust additional official brand or
+retailer domains, add them to `PRODUCT_LINK_ALLOWED_HOSTS`.
+
+See `BEAUTY_SEARCH_METHODOLOGY.md` for the quality and safety contract.
 
 ## Secrets
 

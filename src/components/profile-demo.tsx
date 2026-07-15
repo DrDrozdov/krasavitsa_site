@@ -183,10 +183,10 @@ function ProfileLibrary({ library, onAnalyticsChange }: { library: Library; onAn
       <section className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-white/26 p-4 backdrop-blur-2xl">
         <div className="flex items-center gap-2"><SlidersHorizontal className="size-4 text-[var(--color-bordeaux)]" /><p className="text-sm font-black">Согласия</p></div>
         <label className="mt-3 flex cursor-pointer items-center justify-between gap-3 text-xs font-semibold text-[var(--color-text-muted)]">
-          Аналитика посещений
+          Доп. настройки cookies
           <input type="checkbox" checked={library.consents.analytics} onChange={(event) => void onAnalyticsChange(event.target.checked)} className="size-4 accent-[var(--color-bordeaux)]" />
         </label>
-        <p className="mt-2 text-[11px] leading-4 text-[var(--color-text-soft)]">Обязательные согласия приняты при регистрации.</p>
+        <p className="mt-2 text-[11px] leading-4 text-[var(--color-text-soft)]">Cookieless-аналитика агрегатов работает независимо от этого переключателя и не хранит постоянный ID.</p>
       </section>
     </div>
   );

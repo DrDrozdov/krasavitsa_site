@@ -23,7 +23,7 @@ export type StoredUser = {
 };
 
 export type PublicUser = Pick<StoredUser, "id" | "email" | "nickname" | "avatarUrl" | "createdAt">;
-export type SavedProduct = { id: string; name: string; category: string; reason: string; image?: string; price?: string; rating?: number; savedAt: string };
+export type SavedProduct = { id: string; name: string; category: string; reason: string; image?: string; price?: string; rating?: number; matchScore?: number; savedAt: string };
 export type RecommendationHistory = { id: string; query: string; mode: "skin" | "hair" | "perfume"; summary: string; products: SavedProduct[]; createdAt: string };
 export type UserConsents = { privacy: boolean; terms: boolean; analytics: boolean; updatedAt: string };
 
@@ -60,6 +60,7 @@ function safeProduct(input: Partial<SavedProduct>): SavedProduct | null {
     image: input.image?.startsWith("/") ? input.image.slice(0, 260) : undefined,
     price: typeof input.price === "string" ? input.price.slice(0, 80) : undefined,
     rating: Number.isFinite(input.rating) ? Math.max(1, Math.min(5, Number(input.rating))) : undefined,
+    matchScore: Number.isFinite(input.matchScore) ? Math.max(0, Math.min(100, Number(input.matchScore))) : undefined,
     savedAt: new Date().toISOString(),
   };
 }

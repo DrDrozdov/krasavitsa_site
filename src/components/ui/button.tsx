@@ -13,7 +13,7 @@ const tones: Record<ButtonTone, string> = {
 };
 
 const base =
-  "apple-glass-button inline-flex h-12 items-center justify-center gap-2 rounded-full px-5 text-sm font-semibold transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent-strong)]";
+  "apple-glass-button inline-flex h-12 items-center justify-center gap-2 rounded-full px-5 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent-strong)]";
 
 type CommonProps = {
   children: ReactNode;
@@ -27,7 +27,7 @@ type LinkButtonProps = CommonProps & AnchorHTMLAttributes<HTMLAnchorElement> & {
 export function Button({ children, className, tone = "primary", ...props }: ButtonProps) {
   return (
     <button className={cn(base, tones[tone], className)} {...props}>
-      {children}
+      <span className="button-content">{children}</span>
     </button>
   );
 }
@@ -50,14 +50,14 @@ export function LinkButton({
         target="_blank"
         {...props}
       >
-        {children}
+        <span className="button-content">{children}</span>
       </a>
     );
   }
 
   return (
     <Link className={cn(base, tones[tone], className)} href={href} {...props}>
-      {children}
+      <span className="button-content">{children}</span>
     </Link>
   );
 }

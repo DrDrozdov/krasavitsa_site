@@ -32,11 +32,19 @@ function updatePointer(element: HTMLElement, event: PointerEvent) {
   element.dataset.pointerGlow = "true";
   element.style.setProperty("--pointer-x", `${Math.min(100, Math.max(0, x)).toFixed(2)}%`);
   element.style.setProperty("--pointer-y", `${Math.min(100, Math.max(0, y)).toFixed(2)}%`);
+  if (event.pointerType === "mouse" && window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+    const dx = Math.max(-7, Math.min(7, (x - 50) * 0.13));
+    const dy = Math.max(-6, Math.min(6, (y - 50) * 0.11));
+    element.style.setProperty("--pointer-dx", `${dx.toFixed(2)}px`);
+    element.style.setProperty("--pointer-dy", `${dy.toFixed(2)}px`);
+  }
 }
 
 export function PointerGlow() {
   useEffect(() => {
     let active: HTMLElement | null = null;
+    let frame = 0;
+    let pending: { element: HTMLElement; event: PointerEvent } | null = null;
 
     const onPointerMove = (event: PointerEvent) => {
       const element = findTarget(event.target);
@@ -51,7 +59,14 @@ export function PointerGlow() {
       active = element;
       element.dataset.pointerGlow = "true";
       element.dataset.pointerActive = "true";
-      updatePointer(element, event);
+      pending = { element, event };
+      if (!frame) {
+        frame = window.requestAnimationFrame(() => {
+          frame = 0;
+          if (pending) updatePointer(pending.element, pending.event);
+          pending = null;
+        });
+      }
     };
 
     const onPointerDown = (event: PointerEvent) => {
@@ -83,6 +98,8 @@ export function PointerGlow() {
 
       element.dataset.pointerActive = "false";
       element.dataset.pointerPressed = "false";
+      element.style.setProperty("--pointer-dx", "0px");
+      element.style.setProperty("--pointer-dy", "0px");
       if (active === element) {
         active = null;
       }
@@ -95,6 +112,7 @@ export function PointerGlow() {
     window.addEventListener("pointerout", onPointerOut, { passive: true });
 
     return () => {
+      window.cancelAnimationFrame(frame);
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerdown", onPointerDown);
       window.removeEventListener("pointerup", clearPress);

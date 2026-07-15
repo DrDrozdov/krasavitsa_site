@@ -86,6 +86,9 @@ export async function buildAdminReply(command: string) {
         `Ключевые действия: ${analytics.totals.cta}`,
         `Переходы в Telegram: ${analytics.totals.telegram}`,
         `Поиски: ${analytics.totals.searches}`,
+        `Успешность подборов: ${Math.round(analytics.rates.searchSuccess * 100)}%`,
+        `Среднее время AI: ${analytics.averages.searchMs ? (analytics.averages.searchMs / 1000).toFixed(1) : "—"} с`,
+        `Избранное: ${analytics.totals.favoriteSaves} · Статьи: ${analytics.totals.articleSaves}`,
         `Ошибки: ${analytics.totals.errors}`,
       ].join("\n");
 
@@ -98,6 +101,9 @@ export async function buildAdminReply(command: string) {
         `Ключевые действия: ${analytics.totals.cta}`,
         `Переходы в Telegram: ${analytics.totals.telegram}`,
         `Поиски: ${analytics.totals.searches}`,
+        `Успешность подборов: ${Math.round(analytics.rates.searchSuccess * 100)}%`,
+        `Среднее время AI: ${analytics.averages.searchMs ? (analytics.averages.searchMs / 1000).toFixed(1) : "—"} с`,
+        `Избранное: ${analytics.totals.favoriteSaves} · Статьи: ${analytics.totals.articleSaves}`,
         `Ошибки: ${analytics.totals.errors}`,
       ].join("\n");
 
@@ -184,7 +190,13 @@ export async function sendDailyAnalyticsDigest() {
     `Переходы в Telegram: ${analytics.totals.telegram}`,
     `Поиски: ${analytics.totals.searches}`,
     `Готовые подборы: ${analytics.totals.searchSuccess}`,
+    `Успешность подборов: ${Math.round(analytics.rates.searchSuccess * 100)}%`,
+    `Среднее время ответа AI: ${analytics.averages.searchMs ? (analytics.averages.searchMs / 1000).toFixed(1) : "—"} с`,
+    `Показано средств: ${analytics.totals.productsShown}`,
     `Запросы на уточнение: ${analytics.totals.searchRejected}`,
+    `Избранное: ${analytics.totals.favoriteSaves}`,
+    `Статьи: ${analytics.totals.articleSaves}`,
+    `Действия профиля: ${analytics.totals.profiles}`,
     `Ошибки: ${analytics.totals.errors}`,
     "",
     "Данные агрегированы: без IP, текста запросов и постоянных идентификаторов.",

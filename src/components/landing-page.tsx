@@ -2,166 +2,148 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import {
-  ArrowDown,
-  ArrowRight,
-  Bot,
-  Droplets,
-  Heart,
-  History,
-  Scissors,
-  Send,
-  Sparkles,
-  UserRound,
-} from "lucide-react";
-import { motion, useReducedMotion } from "motion/react";
-import {
-  InstagramIcon,
-  SiteFooter,
-  SiteHeader,
-  VkIcon,
-} from "@/components/portal-components";
+import { ArrowDownRight, ArrowRight, Bot, Droplets, Heart, History, Scissors, Send, Sparkles, UserRound } from "lucide-react";
+import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } from "motion/react";
+import { useEffect, useRef } from "react";
+import { InstagramIcon, SiteFooter, SiteHeader, VkIcon } from "@/components/portal-components";
 import { LinkButton } from "@/components/ui/button";
 
 const directions = [
-  {
-    label: "Кожа",
-    text: "Барьер, активы, чувствительность и SPF.",
-    Icon: Droplets,
-  },
-  {
-    label: "Волосы",
-    text: "Кожа головы, длина, окрашивание и укладка.",
-    Icon: Scissors,
-  },
-  {
-    label: "Ароматы",
-    text: "Ноты, настроение, повод, бюджет и шлейф.",
-    Icon: Sparkles,
-  },
+  { label: "Кожа", number: "01", text: "Барьер, активы, чувствительность и SPF", Icon: Droplets },
+  { label: "Волосы", number: "02", text: "Кожа головы, длина, окрашивание и укладка", Icon: Scissors },
+  { label: "Ароматы", number: "03", text: "Ноты, настроение, повод, бюджет и шлейф", Icon: Sparkles },
 ];
 
 const process = [
-  ["Опишите ситуацию", "Пишите как есть: задача, бюджет, ограничения и то, что уже пробовали."],
-  ["Получите логику", "AI соберёт сценарий и объяснит роль каждого средства без рекламного шума."],
-  ["Сохраните контекст", "Избранное и история остаются в профиле, чтобы не начинать заново."],
+  ["Контекст", "Опишите задачу, бюджет, ограничения и то, что уже пробовали."],
+  ["Проверка", "Два этапа сверяют товары, ссылки и то, насколько они отвечают запросу."],
+  ["Сценарий", "Получите короткий совет, карточки средств и понятную роль каждого шага."],
 ];
 
 export function LandingPage() {
   const reduceMotion = useReducedMotion();
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const pointerX = useMotionValue(0);
+  const pointerY = useMotionValue(0);
+  const smoothX = useSpring(pointerX, { stiffness: 80, damping: 22, mass: .7 });
+  const smoothY = useSpring(pointerY, { stiffness: 80, damping: 22, mass: .7 });
+  const mediaX = useTransform(smoothX, (value) => value * -0.7);
+  const mediaY = useTransform(smoothY, (value) => value * -0.55);
+  const typeX = useTransform(smoothX, (value) => value * .24);
+  const typeY = useTransform(smoothY, (value) => value * .18);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (reduceMotion) video.pause();
+    else void video.play().catch(() => undefined);
+  }, [reduceMotion]);
 
   return (
-    <main className="site-shell home-page">
+    <main className="site-shell home-page cinematic-site">
       <SiteHeader />
 
-      <section className="home-hero section-shell" id="home">
-        <motion.div
-          className="home-hero-copy"
-          initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.64, ease: [0.16, 1, 0.3, 1] }}
-        >
-          <p className="eyebrow">Персональный beauty AI</p>
-          <h1>Уход, который понимает ваш ритм.</h1>
-          <p className="home-hero-text">
-            Опишите задачу обычными словами. Красавица учтёт бюджет, чувствительность и привычки, затем соберёт понятный сценарий.
-          </p>
-          <div className="home-hero-actions">
-            <LinkButton href="/care" className="hero-primary">Начать подбор <ArrowRight /></LinkButton>
-            <LinkButton href="/profile" tone="secondary"><UserRound /> Мой профиль</LinkButton>
-          </div>
-          <div className="home-proofline" aria-label="Направления подбора">
-            <span>Кожа</span><i /><span>Волосы</span><i /><span>Ароматы</span>
+      <section
+        className="cinematic-hero"
+        onPointerMove={(event) => {
+          if (reduceMotion || event.pointerType !== "mouse") return;
+          const rect = event.currentTarget.getBoundingClientRect();
+          pointerX.set(((event.clientX - rect.left) / rect.width - .5) * 28);
+          pointerY.set(((event.clientY - rect.top) / rect.height - .5) * 24);
+        }}
+        onPointerLeave={() => { pointerX.set(0); pointerY.set(0); }}
+      >
+        <div className="cinematic-hero-backdrop" aria-hidden="true">
+          <Image src="/krasavitsa-cinematic-hero-v2.png" alt="" fill priority sizes="100vw" className="cinematic-hero-poster" />
+          <motion.div className="cinematic-video-window" style={{ x: mediaX, y: mediaY }}>
+            <video ref={videoRef} autoPlay muted loop playsInline preload="metadata" poster="/krasavitsa-cinematic-hero-v2.png">
+              <source src="/krasavitsa-beauty-loop-source.mp4" type="video/mp4" />
+            </video>
+          </motion.div>
+          <div className="cinematic-vignette" />
+          <span className="hero-orbit hero-orbit-one" /><span className="hero-orbit hero-orbit-two" />
+        </div>
+
+        <motion.div className="cinematic-wordmark" style={{ x: typeX, y: typeY }} aria-label="Красавица">
+          <span>КРАСА</span><span>ВИЦА</span>
+        </motion.div>
+
+        <motion.div className="hero-manifest" initial={false} animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}>
+          <p className="hero-index">BEAUTY INTELLIGENCE / 2026</p>
+          <h1>Не ещё одна полка.<br /><em>Ваш понятный выбор.</em></h1>
+          <p>AI-подбор ухода и ароматов, который учитывает реальную жизнь: чувствительность, привычки, бюджет и контекст.</p>
+          <div className="hero-actions-v2">
+            <LinkButton href="/care" className="hero-primary-v2" data-analytics="hero_search">Собрать подбор <ArrowRight /></LinkButton>
+            <LinkButton href="/about" tone="secondary" className="hero-ghost-v2">Как это устроено</LinkButton>
           </div>
         </motion.div>
 
-        <motion.div
-          className="home-hero-media"
-          initial={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.98, y: 18 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ duration: 0.76, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
-        >
-          <Image
-            src="/krasavitsa-editorial-hero.png"
-            alt="Абстрактная композиция с косметическими флаконами в бордово-пудровой палитре"
-            fill
-            priority
-            sizes="(min-width: 900px) 52vw, 100vw"
-            className="home-hero-image"
-          />
-          <div className="home-hero-sheen" />
-          <div className="home-hero-note">
-            <Sparkles aria-hidden="true" />
-            <div><span>Не список банок</span><strong>Сценарий, который можно повторить</strong></div>
-          </div>
-          <a href="#directions" className="hero-scroll" aria-label="Перейти к направлениям"><ArrowDown /></a>
-        </motion.div>
+        <div className="hero-signal" aria-hidden="true"><span>SCROLL TO DISCOVER</span><ArrowDownRight /></div>
+        <div className="hero-proof" aria-label="Особенности сервиса"><span>03 направления</span><span>02 этапа проверки</span><span>01 понятный сценарий</span></div>
       </section>
 
-      <section className="direction-section section-shell" id="directions">
-        <div className="section-heading split-heading">
-          <div><p className="eyebrow">Один вход</p><h2>Три разных способа выбирать.</h2></div>
-          <p>Каждое направление меняет вопросы, примеры и правила подбора. Интерфейс остаётся знакомым, логика становится точнее.</p>
+      <section className="kinetic-marquee" aria-hidden="true"><div><span>Кожа</span><i>✦</i><span>Волосы</span><i>✦</i><span>Ароматы</span><i>✦</i><span>Ваш ритм</span><i>✦</i><span>Кожа</span><i>✦</i><span>Волосы</span><i>✦</i><span>Ароматы</span></div></section>
+
+      <section className="direction-editorial section-shell" id="directions">
+        <div className="editorial-heading">
+          <p>ТРИ РЕЖИМА · ОДНА ЛОГИКА</p>
+          <h2>Красота начинается<br />не с банки, а с вопроса.</h2>
+          <span>Выберите направление — интерфейс задаст правильные уточнения и не смешает правила кожи, волос и парфюмерии.</span>
         </div>
-        <div className="direction-list">
-          {directions.map(({ label, text, Icon }, index) => (
-            <motion.div
-              key={label}
-              initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-60px" }}
-              transition={{ duration: 0.46, delay: index * 0.06, ease: [0.16, 1, 0.3, 1] }}
-            >
-              <Link href="/care" className="direction-row">
-                <span className="direction-index">0{index + 1}</span>
-                <span className="direction-icon"><Icon /></span>
-                <strong>{label}</strong>
-                <p>{text}</p>
-                <ArrowRight className="direction-arrow" />
+        <div className="direction-rack">
+          {directions.map(({ label, number: index, text, Icon }, order) => (
+            <motion.div key={label} initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 34 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-80px" }} transition={{ duration: .62, delay: order * .08, ease: [0.16, 1, 0.3, 1] }}>
+              <Link href="/care" className="direction-slab" data-direction={order + 1}>
+                <span className="direction-number">{index}</span><Icon className="direction-glyph" /><strong>{label}</strong><p>{text}</p><ArrowRight />
               </Link>
             </motion.div>
           ))}
         </div>
       </section>
 
-      <section className="home-process section-shell" id="features">
-        <div className="process-visual">
-          <Image src="/recommendations/skin-packshot-v1.png" alt="Косметические средства для сценария ухода" fill sizes="(min-width: 900px) 44vw, 100vw" />
-          <div className="process-orb" aria-hidden="true"><i /><i /><i /><Sparkles /></div>
-          <span className="process-caption">Контекст → логика → выбор</span>
+      <section className="intelligence-stage section-shell">
+        <div className="intelligence-visual">
+          <Image src="/krasavitsa-cinematic-hero-v2.png" alt="Абстрактная композиция с косметическими флаконами без лиц" fill sizes="(min-width: 900px) 48vw, 100vw" />
+          <div className="intelligence-scan" aria-hidden="true" />
+          <div className="intelligence-object" aria-hidden="true"><span /><span /><span /><Sparkles /></div>
+          <p>Не магия. Система проверок.</p>
         </div>
-        <div className="process-copy">
-          <p className="eyebrow">Как это работает</p>
-          <h2>Меньше поиска. Больше понимания.</h2>
-          <div className="process-list">
-            {process.map(([title, text], index) => (
-              <article key={title}><span>{index + 1}</span><div><h3>{title}</h3><p>{text}</p></div></article>
-            ))}
+        <div className="intelligence-copy">
+          <p className="section-code">HOW IT THINKS / 03 STEPS</p>
+          <h2>Из запроса —<br /><em>в ясный сценарий.</em></h2>
+          <div className="process-editorial">
+            {process.map(([title, text], index) => <article key={title}><span>0{index + 1}</span><div><h3>{title}</h3><p>{text}</p></div></article>)}
           </div>
-          <LinkButton href="/care">Попробовать на своём запросе <ArrowRight /></LinkButton>
+          <LinkButton href="/care" className="process-action">Попробовать на своём запросе <ArrowRight /></LinkButton>
         </div>
       </section>
 
-      <section className="profile-story section-shell">
-        <div className="profile-story-copy">
-          <p className="eyebrow-inverse">Память, которой управляете вы</p>
-          <h2>Профиль помнит полезное, а не лишнее.</h2>
-          <p>Сохраняйте удачные средства и возвращайтесь к прошлым подборам. Настройки аналитики остаются под вашим контролем.</p>
-          <LinkButton href="/profile" className="button-light"><UserRound /> Открыть профиль</LinkButton>
+      <section className="memory-theatre section-shell">
+        <div className="memory-copy">
+          <p className="section-code section-code-light">YOUR BEAUTY MEMORY</p>
+          <h2>Профиль хранит<br />полезное. <em>Не лишнее.</em></h2>
+          <p>Избранное, история подборов и авторские статьи остаются в одном пространстве. Вы решаете, что сохранить.</p>
+          <LinkButton href="/profile" className="memory-action"><UserRound /> Открыть профиль</LinkButton>
         </div>
-        <div className="profile-miniatures">
-          <article><Heart /><span>Избранное</span><strong>Всё удачное рядом</strong></article>
-          <article><History /><span>История</span><strong>Не начинайте с нуля</strong></article>
+        <div className="memory-ledger">
+          <article><Heart /><span>01</span><div><strong>Избранное</strong><p>Средства, к которым хочется вернуться</p></div></article>
+          <article><History /><span>02</span><div><strong>История</strong><p>Контекст прошлых решений без повторного старта</p></div></article>
+          <article><Sparkles /><span>03</span><div><strong>Редакция</strong><p>Собственный материал и живой опыт сообщества</p></div></article>
         </div>
       </section>
 
-      <section className="community-section section-shell">
-        <div>
-          <p className="eyebrow">Красавица рядом</p>
-          <h2>Выберите удобный формат общения.</h2>
-          <p>Подбор в боте, новости проекта и короткие визуальные разборы.</p>
-        </div>
-        <div className="community-links">
+      <section className="journal-preview section-shell">
+        <div><p className="section-code">КРАСАВИЦА · JOURNAL</p><h2>Читать медленнее.<br />Выбирать увереннее.</h2></div>
+        <Link href="/blog" className="journal-cover">
+          <Image src="/beauty-bg-03.svg" alt="" fill sizes="(min-width: 900px) 62vw, 100vw" />
+          <span>Выбор редакции</span><strong>Как отличить понятный уход от перегруженной рутины</strong><ArrowRight />
+        </Link>
+        <div className="journal-note"><p>Материалы о составах, SPF, привычках и ароматах — без бесконечной тревожной ленты.</p><LinkButton href="/blog" tone="secondary">Открыть журнал <ArrowRight /></LinkButton></div>
+      </section>
+
+      <section className="community-v2 section-shell">
+        <div><p className="section-code">STAY IN THE LOOP</p><h2>Красавица<br />в вашем формате.</h2></div>
+        <div className="community-orbit-links">
           <CommunityLink href="https://t.me/krasavitsa_ai_bot" label="Telegram-бот"><Bot /></CommunityLink>
           <CommunityLink href="https://t.me/krasavitsa_ai" label="Telegram"><Send /></CommunityLink>
           <CommunityLink href="https://www.instagram.com/krasavitsa_ai?utm_source=qr" label="Instagram"><InstagramIcon /></CommunityLink>
@@ -175,9 +157,6 @@ export function LandingPage() {
 }
 
 function CommunityLink({ href, label, children }: { href: string; label: string; children: React.ReactNode }) {
-  return (
-    <motion.a href={href} target="_blank" rel="noreferrer" aria-label={label} whileHover={{ y: -4 }} whileTap={{ scale: 0.96 }}>
-      <span>{children}</span><strong>{label}</strong><ArrowRight />
-    </motion.a>
-  );
+  const reduceMotion = useReducedMotion();
+  return <motion.a href={href} target="_blank" rel="noreferrer" aria-label={label} whileHover={reduceMotion ? undefined : { y: -6, rotate: -1.4 }} whileTap={reduceMotion ? undefined : { scale: .96 }}><span>{children}</span><strong>{label}</strong><ArrowRight /></motion.a>;
 }

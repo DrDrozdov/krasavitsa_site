@@ -1,18 +1,27 @@
 "use client";
 
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { Droplets, ExternalLink, Heart, Scissors, Sparkles } from "lucide-react";
+import { Check, Copy, Droplets, ExternalLink, Heart, Scissors, Sparkles } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { trackAnalyticsEvent } from "@/lib/analytics-client";
 
 type Mode = "skin" | "hair" | "perfume";
-type Product = { name: string; category: string; reason: string; rating: number; price?: string; image?: string; marketplaces?: Array<{ label: string; href: string }> };
+type Product = {
+  name: string;
+  category: string;
+  reason: string;
+  matchScore: number;
+  usage?: string;
+  tradeoffs?: string[];
+  image?: string;
+  marketplaces?: Array<{ label: string; href: string; kind?: "official" | "retailer" }>;
+};
 
 const modeVisual: Record<Mode, string> = {
-  skin: "/recommendations/skin-packshot-v1.png",
-  hair: "/recommendations/hair-packshot-v1.png",
-  perfume: "/recommendations/perfume-packshot-v1.png",
+  skin: "/recommendations/skin-packshot-v2.webp",
+  hair: "/recommendations/hair-packshot-v2.webp",
+  perfume: "/recommendations/perfume-packshot-v2.webp",
 };
 
 const modes: Array<{ id: Mode; label: string; description: string; Icon: typeof Sparkles }> = [
@@ -103,6 +112,7 @@ export function BeautyFinder() {
   const [searchFactIndices, setSearchFactIndices] = useState([0, 1]);
   const [searchFactStep, setSearchFactStep] = useState(0);
   const [savedNames, setSavedNames] = useState<string[]>([]);
+  const [copiedName, setCopiedName] = useState("");
   const [examplePage, setExamplePage] = useState(0);
   const [placeholderPage, setPlaceholderPage] = useState(0);
   const reduceMotion = useReducedMotion();
@@ -150,21 +160,29 @@ export function BeautyFinder() {
     const firstFact = Math.floor(Math.random() * searchFacts[mode].length);
     const secondFact = (firstFact + 1 + Math.floor(Math.random() * (searchFacts[mode].length - 1))) % searchFacts[mode].length;
     setSearchFactIndices([firstFact, secondFact]);
-    trackAnalyticsEvent("search_submit", `unified_${mode}`);
+    trackAnalyticsEvent("search_submit", `unified_${mode}`, { mode });
     try {
       const response = await fetch("/api/recommendations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query: next, mode }),
       });
-      const data = (await response.json()) as { summary?: string; products?: Product[]; error?: string };
+      const data = (await response.json()) as {
+        status?: "complete" | "needs_input" | "safety_redirect" | "no_verified_products";
+        summary?: string;
+        followUpQuestion?: string;
+        products?: Product[];
+        methodology?: string;
+        error?: string;
+      };
       if (!response.ok) {
         setResults([]);
         setSummary("");
         setError(data.error ?? "Не удалось обработать запрос.");
-        trackAnalyticsEvent("search_rejected", `unified_${mode}`);
+        trackAnalyticsEvent("search_rejected", `unified_${mode}`, { mode, durationMs: Date.now() - startedAt, result: "error" });
       } else {
-        setSummary(data.summary ?? "Подборка готова.");
+        const explanation = [data.summary, data.followUpQuestion].filter(Boolean).join("\n\n");
+        setSummary(explanation || "Подборка готова.");
         const nextProducts = data.products ?? [];
         setResults(nextProducts);
         if (nextProducts.length) {
@@ -173,12 +191,13 @@ export function BeautyFinder() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ action: "history", history: { query: next, mode, summary: data.summary, products: nextProducts } }),
           });
+          trackAnalyticsEvent("history_save", `unified_${mode}`, { mode, productCount: nextProducts.length });
         }
-        trackAnalyticsEvent("search_success", `unified_${mode}`);
+        trackAnalyticsEvent("search_success", `unified_${mode}`, { mode, durationMs: Date.now() - startedAt, productCount: nextProducts.length, source: data.methodology ?? "unknown", result: "success" });
       }
     } catch {
       setError("Связь с подбором прервалась. Попробуйте ещё раз.");
-      trackAnalyticsEvent("form_error", `recommendations_${mode}`);
+      trackAnalyticsEvent("form_error", `recommendations_${mode}`, { mode, durationMs: Date.now() - startedAt, result: "error" });
     } finally {
       const remainingAnimationTime = 1450 - (Date.now() - startedAt);
       if (remainingAnimationTime > 0) {
@@ -195,7 +214,19 @@ export function BeautyFinder() {
       body: JSON.stringify({ action: "favorite", product }),
     });
     const data = await response.json().catch(() => ({})) as { favorites?: Array<{ name: string }> };
-    if (data.favorites) setSavedNames(data.favorites.map((item) => item.name));
+    if (data.favorites) {
+      setSavedNames(data.favorites.map((item) => item.name));
+      trackAnalyticsEvent("favorite_save", mode, { mode, result: "success" });
+    }
+  };
+
+  const copyProductName = async (name: string) => {
+    try {
+      await navigator.clipboard.writeText(name);
+      setCopiedName(name);
+      trackAnalyticsEvent("copy_product_name", mode, { mode });
+      window.setTimeout(() => setCopiedName((current) => current === name ? "" : current), 1800);
+    } catch { /* Clipboard permission can be denied by the browser. */ }
   };
 
   return (
@@ -216,7 +247,7 @@ export function BeautyFinder() {
               animate={mode === id ? { y: -4, scale: 1.015 } : { y: 0, scale: 1 }}
               whileHover={{ y: -4, scale: 1.012 }}
               whileTap={{ scale: 0.98 }}
-              transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
               className={`direction-card min-h-[112px] rounded-[var(--radius-lg)] border p-3 text-left backdrop-blur-2xl md:min-h-0 md:rounded-[var(--radius-xl)] md:p-5 ${mode === id ? "direction-card-active" : "border-[var(--color-border)] bg-[var(--color-glass)]"}`}
             >
               <Icon className="size-5 md:size-6" />
@@ -314,26 +345,35 @@ export function BeautyFinder() {
             </motion.div>
           ) : results.length ? (
             <motion.div key={`${mode}-${summary}`} initial={{ opacity: 0, y: 22 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mt-5">
-              <p className="mx-auto max-w-3xl py-7 text-center text-xl font-bold leading-8 text-[var(--color-text-muted)]">{summary}</p>
+              <p className="mx-auto max-w-3xl whitespace-pre-line py-7 text-center text-xl font-bold leading-8 text-[var(--color-text-muted)]">{summary}</p>
               <div className="grid gap-3 md:grid-cols-2">
-                {results.map((product) => (
-                  <article key={product.name} className="meaning-card liquid-glass overflow-hidden rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-glass)] p-3 backdrop-blur-2xl md:p-4">
-                    <div className="relative mb-4 aspect-[16/7] overflow-hidden rounded-[calc(var(--radius-lg)-8px)] border border-white/30 bg-white/36">
-                      <Image src={product.image || modeVisual[mode]} alt={`Визуал для рекомендации: ${product.name}`} fill sizes="(min-width: 768px) 48vw, 100vw" className="object-cover p-3" />
+                {results.map((product, index) => (
+                  <motion.article key={product.name} initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 28, scale: .985 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ duration: .58, delay: index * .07, ease: [0.16, 1, 0.3, 1] }} className="product-result-card overflow-hidden border border-[var(--color-border)] bg-[var(--color-surface)]">
+                    <div className="product-result-visual relative aspect-[16/9] overflow-hidden bg-[var(--color-soft)]">
+                      {/* The browser requests all product compositions in parallel; the endpoint validates the official image and always has a local fallback. */}
+                      <Image src={product.image || modeVisual[mode]} alt={`Визуал для рекомендации: ${product.name}`} fill unoptimized priority={index < 2} sizes="(min-width: 768px) 50vw, 100vw" className="object-cover" onError={(event) => { if (!event.currentTarget.dataset.fallback) { event.currentTarget.dataset.fallback = "true"; event.currentTarget.src = modeVisual[mode]; } }} />
                     </div>
+                    <div className="p-4 md:p-5">
                     <div className="flex items-start justify-between gap-4">
-                      <div><p className="text-xs font-black uppercase text-[var(--color-text-soft)]">{product.category}</p><h3 className="mt-3 text-2xl font-black leading-tight">{product.name}</h3></div>
-                      <span className="rating-badge shrink-0 rounded-full bg-[var(--color-bordeaux)] px-3 py-2 text-xs font-black text-white" tabIndex={0}>★ {product.rating.toFixed(1)}</span>
+                      <div className="min-w-0"><p className="text-xs font-black text-[var(--color-bordeaux)]">{product.category}</p><div className="mt-2 flex items-start gap-2"><h3 className="text-[clamp(1.35rem,3vw,2rem)] font-black leading-[1.05] tracking-[-.035em]">{product.name}</h3><button type="button" onClick={() => void copyProductName(product.name)} aria-label={`Скопировать название ${product.name}`} className="apple-glass-button mt-0.5 grid size-8 shrink-0 place-items-center rounded-full border border-[var(--color-border)] bg-[var(--color-soft)] text-[var(--color-bordeaux)]">{copiedName === product.name ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}</button></div></div>
+                      <span className="rating-badge shrink-0 rounded-full bg-[var(--color-bordeaux)] px-3 py-2 text-xs font-black text-white" tabIndex={0} title="Степень соответствия именно вашему запросу, а не пользовательский рейтинг">{Math.round(product.matchScore)}% совпадение</span>
                     </div>
                     <p className="mt-4 text-sm font-semibold leading-6 text-[var(--color-text-muted)]">{product.reason}</p>
-                    {product.price ? <p className="mt-3 text-sm font-black text-[var(--color-bordeaux)]">Ориентир по цене: {product.price}</p> : null}
+                    {product.usage ? <p className="mt-3 text-sm font-semibold leading-6"><span className="font-black text-[var(--color-bordeaux)]">Как использовать:</span> {product.usage}</p> : null}
+                    {product.tradeoffs?.length ? <p className="mt-3 text-xs font-semibold leading-5 text-[var(--color-text-soft)]">Важно: {product.tradeoffs.join(" · ")}</p> : null}
+                    <div className="mt-4 flex items-center justify-between gap-3 border-y border-[var(--color-border)] py-3 text-xs font-bold text-[var(--color-text-muted)]"><span>Рейтинг сообщества</span><span>Новый · оценок пока нет</span></div>
                     <div className="mt-5 flex flex-wrap gap-2">
-                      {product.marketplaces?.map((link) => <a key={link.href} href={link.href} target="_blank" rel="noreferrer" className="apple-glass-button inline-flex items-center gap-1 rounded-full border border-[var(--color-border)] bg-white/48 px-3 py-2 text-xs font-black">{link.label}<ExternalLink className="size-3" /></a>)}
+                      {product.marketplaces?.map((link) => <a key={link.href} href={link.href} target="_blank" rel="noopener noreferrer" className="apple-glass-button inline-flex items-center gap-1 rounded-full border border-[var(--color-border)] bg-white/48 px-3 py-2 text-xs font-black">{link.label}<ExternalLink className="size-3" /></a>)}
                       <button type="button" onClick={() => void toggleFavorite(product)} aria-label="Сохранить в избранное" className={`apple-glass-button grid size-9 place-items-center rounded-full border border-[var(--color-border)] bg-white/48 ${savedNames.includes(product.name) ? "text-[var(--color-bordeaux)]" : "text-[var(--color-text-muted)]"}`}><Heart className={`size-4 ${savedNames.includes(product.name) ? "fill-current" : ""}`} /></button>
                     </div>
-                  </article>
+                    </div>
+                  </motion.article>
                 ))}
               </div>
+            </motion.div>
+          ) : summary ? (
+            <motion.div key={`${mode}-${summary}`} initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mx-auto mt-5 max-w-3xl rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-glass)] p-6 text-center shadow-[var(--shadow-soft)] backdrop-blur-2xl md:p-9">
+              <p className="whitespace-pre-line text-lg font-bold leading-8 text-[var(--color-text-muted)]">{summary}</p>
             </motion.div>
           ) : null}
         </AnimatePresence>
