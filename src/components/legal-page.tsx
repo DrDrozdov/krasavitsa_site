@@ -11,7 +11,7 @@ export function LegalPage({ title, subtitle, sections }: { title: string; subtit
   const current = sections[active] ?? sections[0];
 
   return (
-    <main className="site-shell">
+    <main className="site-shell motion-page legal-motion-page">
       <SiteHeader />
       <div className="px-4 pb-16 pt-3 text-[var(--color-text)] md:px-6 md:pb-24 md:pt-5">
       <section className="legal-hero liquid-glass mx-auto max-w-[1380px] rounded-[var(--radius-xl)] border border-[var(--color-border)] p-6 shadow-[var(--shadow-soft)] md:p-10">

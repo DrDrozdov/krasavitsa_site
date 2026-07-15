@@ -4142,3 +4142,744 @@ p {
     transform: none !important;
   }
 }
+
+/* Unified MotionSites editorial system — route-specific choreography, one brand material. */
+.motion-page {
+  overflow: clip;
+  background: var(--color-bg);
+}
+
+/* The film owns the first viewport. Chrome gains its material only after scroll. */
+.site-header {
+  inset: 0 0 auto;
+  z-index: 700;
+  height: 82px;
+  padding-top: max(12px, env(safe-area-inset-top));
+  pointer-events: none;
+}
+
+.site-chrome,
+.site-header.is-scrolled .site-chrome {
+  width: min(1440px, calc(100% - 34px));
+  min-height: 58px;
+  padding: 7px;
+  border: 1px solid color-mix(in srgb, var(--color-border-strong) 74%, transparent);
+  border-radius: 17px;
+  background: color-mix(in srgb, var(--color-glass-strong) 89%, transparent);
+  box-shadow: 0 10px 28px rgba(47, 8, 23, .12);
+  backdrop-filter: blur(24px) saturate(1.18);
+  -webkit-backdrop-filter: blur(24px) saturate(1.18);
+  transform-origin: center top;
+  transition: width .52s var(--ease-soft), transform .52s var(--ease-soft), background-color .3s ease, border-color .3s ease, box-shadow .3s ease;
+}
+
+.site-header.is-scrolled .site-chrome {
+  width: min(1280px, calc(100% - 38px));
+  transform: translateY(-2px) scale(.99);
+}
+
+.site-header.is-home:not(.is-scrolled) .site-chrome {
+  width: min(1500px, calc(100% - 40px));
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  animation: chrome-over-film-in .75s var(--ease-soft) both;
+}
+
+.site-header.is-home:not(.is-scrolled) .brand-mark,
+.site-header.is-home:not(.is-scrolled) .desktop-nav-link,
+.site-header.is-home:not(.is-scrolled) .header-icon-button,
+.site-header.is-home:not(.is-scrolled) .theme-switch {
+  color: #fff9fa;
+}
+
+.site-header.is-home:not(.is-scrolled) .header-icon-button,
+.site-header.is-home:not(.is-scrolled) .theme-switch {
+  border-color: rgba(255,255,255,.28);
+  background: rgba(31, 5, 14, .16);
+  backdrop-filter: blur(9px);
+  -webkit-backdrop-filter: blur(9px);
+}
+
+.site-header.is-home:not(.is-scrolled) .desktop-nav-link::before {
+  background: rgba(255,255,255,.17);
+}
+
+.site-header.is-home:not(.is-scrolled) .header-cta {
+  border-color: rgba(255,255,255,.5) !important;
+  background: rgba(255,251,252,.96) !important;
+  color: #5b1730 !important;
+}
+
+.desktop-nav-link::before {
+  transform-origin: center;
+}
+
+.desktop-nav-link:hover::before,
+.desktop-nav-link.is-active::before {
+  transform: scale(1);
+}
+
+@keyframes chrome-over-film-in {
+  from { opacity: 0; transform: translateY(-14px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* AeroCore-like launch: the living lotus is the scene and the transition object. */
+.aerocore-stage {
+  height: 176svh;
+  background: var(--color-bg);
+}
+
+.aerocore-sticky {
+  height: 100svh;
+  padding: 0;
+  background: var(--color-bg);
+}
+
+.aerocore-hero {
+  z-index: 3;
+  background: #16050d;
+  transform-origin: center top;
+}
+
+.aerocore-media {
+  inset: -2.5%;
+  width: 105%;
+  height: 105%;
+  background: #16050d url("/krasavitsa-lotus-hero-v1.png") center / cover no-repeat;
+}
+
+.aerocore-lotus-stage {
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  background: #16050d url("/krasavitsa-lotus-hero-v1.png") center / cover no-repeat;
+}
+
+.aerocore-lotus {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 52%;
+  filter: saturate(.82) contrast(1.12) brightness(.71) hue-rotate(-8deg);
+}
+
+.aerocore-launch-aura {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  top: 55%;
+  width: min(44vw, 650px);
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border: 1px solid rgba(255, 210, 226, .28);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(245,181,205,.2), rgba(103,20,54,.08) 38%, transparent 69%);
+  box-shadow: inset 0 0 80px rgba(255,225,235,.1), 0 0 90px rgba(198,56,111,.13);
+  filter: blur(.2px);
+  will-change: opacity, transform;
+}
+
+.aerocore-launch-trail {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  top: 58%;
+  width: min(34vw, 430px);
+  height: 54vh;
+  translate: -50% 0;
+  filter: blur(12px);
+  pointer-events: none;
+}
+
+.aerocore-launch-trail i {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 2px;
+  height: 100%;
+  background: linear-gradient(180deg, rgba(255,222,233,.7), rgba(218,68,124,.22) 35%, transparent 92%);
+  transform: translateX(-50%);
+}
+
+.aerocore-launch-trail i:nth-child(2) { left: 36%; height: 78%; opacity: .48; transform: rotate(4deg); }
+.aerocore-launch-trail i:nth-child(3) { left: 64%; height: 84%; opacity: .38; transform: rotate(-5deg); }
+
+.aerocore-wash {
+  z-index: 2;
+  background:
+    radial-gradient(circle at 50% 48%, transparent 0 21%, rgba(16,3,9,.16) 51%, rgba(14,2,7,.4) 90%),
+    linear-gradient(0deg, rgba(13,2,7,.7), transparent 46%, rgba(12,2,7,.21)),
+    linear-gradient(90deg, rgba(15,2,8,.38), transparent 31%, transparent 70%, rgba(15,2,8,.35));
+}
+
+.aerocore-title {
+  top: 50%;
+  z-index: 5;
+  font-size: clamp(5.4rem, 13.4vw, 13.4rem);
+  font-weight: 330;
+  line-height: .8;
+  letter-spacing: -.04em;
+  mix-blend-mode: screen;
+}
+
+.aerocore-hero-detail {
+  z-index: 5;
+}
+
+.aerocore-reveal-panel {
+  z-index: 2;
+  min-height: 24svh;
+  border-top: 1px solid var(--color-border-strong);
+}
+
+.aerocore-stage + .direction-editorial {
+  margin-top: 0;
+  padding-top: clamp(38px, 5vw, 74px);
+}
+
+/* Cursor material stays attached to the actual interactive element. */
+.apple-glass-button {
+  contain: paint;
+}
+
+.apple-glass-button::before {
+  inset: 0;
+  background:
+    radial-gradient(circle at var(--pointer-x) var(--pointer-y), rgba(255,255,255,.94) 0 3%, rgba(241,171,198,.55) 10%, transparent 30%),
+    conic-gradient(from 205deg at var(--pointer-x) var(--pointer-y), transparent 0 12%, rgba(184,58,112,.32) 24%, transparent 46% 100%);
+}
+
+/* Full menu settings. */
+.mobile-menu-motion-label {
+  margin-top: 16px !important;
+}
+
+.motion-preferences {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 14px;
+  background: rgba(255,255,255,.07);
+}
+
+.motion-preferences button {
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: rgba(255,255,255,.68);
+  cursor: pointer;
+}
+
+.motion-preferences button.is-active {
+  background: #fff;
+  color: #3c1020;
+}
+
+.motion-preferences svg { width: 16px; height: 16px; }
+.motion-preferences span { font-size: .7rem; font-weight: 760; }
+
+.menu-secondary-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px 14px;
+  padding: 18px 0 2px;
+}
+
+.menu-secondary-links a {
+  color: rgba(255,255,255,.58);
+  font-size: .68rem;
+  font-weight: 650;
+  text-decoration: none;
+  transition: color .2s ease;
+}
+
+.menu-secondary-links a:hover { color: #fff; }
+
+/* About: image-led split reveal and a sequential manifesto. */
+.about-motion-page .about-new-hero {
+  min-height: calc(100svh - 82px);
+  align-items: stretch;
+  padding-block: clamp(18px, 2.2vw, 34px) clamp(78px, 8vw, 120px);
+}
+
+.about-motion-page .about-new-copy h1 {
+  max-width: 760px;
+  font-family: "Unbounded", sans-serif;
+  font-size: clamp(3.25rem, 6.25vw, 6.7rem);
+  font-weight: 620;
+  letter-spacing: -.04em;
+}
+
+.about-motion-page .about-new-visual {
+  min-height: min(760px, calc(100svh - 130px));
+  border-radius: 14px;
+  clip-path: inset(0 round 14px);
+}
+
+.about-motion-page .about-new-visual > img {
+  transition: transform 1.2s var(--ease-soft), filter .5s ease;
+}
+
+.about-motion-page .about-new-visual:hover > img {
+  transform: scale(1.035);
+}
+
+.about-motion-page .about-manifesto {
+  border-radius: 14px;
+}
+
+.about-motion-page .about-principle-list article {
+  transition: padding .48s var(--ease-soft), background-color .28s ease;
+}
+
+.about-motion-page .about-principle-list article:hover {
+  padding-inline: 18px;
+  background: var(--color-surface-muted);
+}
+
+.about-motion-page .about-principle-list article > svg {
+  transition: transform .5s var(--ease-soft), background-color .25s ease, color .25s ease;
+}
+
+.about-motion-page .about-principle-list article:hover > svg {
+  transform: rotate(-7deg) scale(1.08);
+  background: var(--color-bordeaux);
+  color: #fff;
+}
+
+/* AI finder: compact motion workbench, no decorative dead zones. */
+.care-motion-stage {
+  position: relative;
+  min-height: calc(100svh - 82px);
+  padding-top: clamp(24px, 4vw, 58px) !important;
+  background: var(--color-bg);
+}
+
+.care-motion-page .ai-finder > div {
+  position: relative;
+}
+
+.care-motion-page .direction-card {
+  overflow: hidden;
+  border-radius: 14px;
+}
+
+.care-motion-page .brand-panel {
+  border-radius: 16px;
+  box-shadow: none !important;
+}
+
+.care-motion-page .example-chip {
+  transition: transform .38s var(--ease-soft), background-color .25s ease, border-color .25s ease;
+}
+
+.care-motion-page .example-chip:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255,255,255,.38);
+  background: rgba(255,255,255,.15);
+}
+
+/* Profile: a calmer dashboard chapter inside the same material system. */
+.profile-motion-page .profile-dashboard,
+.profile-motion-page .profile-story {
+  border-radius: 14px;
+}
+
+.profile-motion-page .profile-miniatures article {
+  transition: transform .42s var(--ease-soft), background-color .25s ease;
+}
+
+.profile-motion-page .profile-miniatures article:hover {
+  transform: translateY(-5px);
+  background: color-mix(in srgb, var(--color-surface-muted) 86%, var(--color-powder));
+}
+
+/* Journal: weekly-edition hierarchy, motion without turning stories into cards. */
+.journal-motion-page {
+  background: var(--color-bg);
+}
+
+.journal-motion-page .journal-masthead {
+  padding-top: clamp(38px, 5vw, 76px);
+  padding-bottom: 30px;
+}
+
+.journal-section-nav {
+  display: flex;
+  align-items: center;
+  gap: clamp(14px, 2.2vw, 32px);
+  overflow-x: auto;
+  border-bottom: 1px solid var(--color-border-strong);
+  padding: 12px 0;
+  scrollbar-width: none;
+}
+
+.journal-section-nav::-webkit-scrollbar { display: none; }
+.journal-section-nav a {
+  position: relative;
+  flex: 0 0 auto;
+  color: var(--color-text-muted);
+  font-size: .74rem;
+  font-weight: 720;
+  text-decoration: none;
+}
+
+.journal-section-nav a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 100%;
+  bottom: -13px;
+  height: 2px;
+  background: var(--color-raspberry);
+  transition: right .42s var(--ease-soft);
+}
+
+.journal-section-nav a:hover::after { right: 0; }
+
+.journal-motion-page .journal-title-lockup {
+  margin-top: clamp(30px, 4vw, 60px);
+  border-bottom: 1px solid var(--color-border-strong);
+  padding-bottom: clamp(20px, 2.6vw, 34px);
+}
+
+.journal-motion-page .journal-title-lockup > h1 {
+  font-size: clamp(4.3rem, 11.1vw, 12rem);
+  line-height: .78;
+  letter-spacing: -.04em;
+}
+
+.journal-motion-page .journal-title-lockup > span {
+  color: var(--color-raspberry);
+  font-style: normal;
+  font-weight: 720;
+}
+
+.journal-motion-page .journal-lead {
+  gap: 0;
+  padding-bottom: clamp(80px, 10vw, 150px);
+}
+
+.journal-motion-page .journal-lead-image {
+  min-height: min(680px, 68vw);
+  background: var(--color-surface-muted);
+}
+
+.journal-motion-page .journal-lead-copy {
+  border-color: var(--color-border-strong);
+  background: var(--color-surface);
+}
+
+.journal-motion-page .journal-lead-copy h2 {
+  letter-spacing: -.04em;
+}
+
+.journal-motion-page .journal-editor-note {
+  align-items: center;
+  background: var(--color-bg);
+}
+
+.journal-motion-page .journal-article-list article {
+  position: relative;
+  transition: padding .48s var(--ease-soft), background-color .25s ease;
+}
+
+.journal-motion-page .journal-article-list article:hover {
+  padding-inline: 14px;
+  background: var(--color-surface-muted);
+}
+
+.journal-motion-page .journal-article-actions a,
+.journal-motion-page .journal-article-actions button {
+  transition: transform .3s var(--ease-soft), background-color .2s ease, color .2s ease;
+}
+
+.journal-motion-page .journal-article-actions a:hover,
+.journal-motion-page .journal-article-actions button:hover {
+  transform: rotate(-5deg) scale(1.07);
+  background: var(--color-bordeaux);
+  color: #fff;
+}
+
+.article-motion-page .longform-article,
+.article-motion-page .longform-next {
+  background: var(--color-bg);
+}
+
+.legal-motion-page .legal-hero,
+.legal-motion-page .legal-toc,
+.legal-motion-page .legal-document {
+  border-radius: 14px !important;
+  box-shadow: none !important;
+}
+
+.legal-motion-page .legal-toc-button {
+  transition: transform .35s var(--ease-soft), background-color .2s ease, color .2s ease;
+}
+
+.legal-motion-page .legal-toc-button:hover {
+  transform: translateX(4px);
+}
+
+:root[data-theme="dark"] .journal-motion-page .journal-lead-copy,
+:root[data-theme="dark"] .journal-motion-page .journal-editor-note,
+:root[data-theme="dark"] .journal-motion-page .journal-article-list article:hover {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+:root[data-theme="dark"] .about-motion-page .about-principle-list article:hover,
+:root[data-theme="dark"] .profile-motion-page .profile-miniatures article:hover {
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+}
+
+@supports (animation-timeline: view()) {
+  .direction-editorial,
+  .intelligence-stage,
+  .memory-theatre,
+  .community-v2,
+  .about-motion-page .about-new-visual,
+  .about-motion-page .about-manifesto,
+  .about-motion-page .about-principles,
+  .about-motion-page .about-ecosystem,
+  .care-motion-page .brand-panel,
+  .profile-motion-page .profile-dashboard,
+  .journal-motion-page .journal-lead,
+  .journal-motion-page .journal-index,
+  .journal-motion-page .journal-studio,
+  .article-motion-page .longform-cover,
+  .article-motion-page .longform-layout,
+  .article-motion-page .longform-next {
+    animation: route-chapter-rise both linear;
+    animation-timeline: view();
+    animation-range: entry 2% cover 31%;
+  }
+
+  .legal-motion-page .legal-hero,
+  .legal-motion-page .legal-toc,
+  .legal-motion-page .legal-document {
+    animation: route-chapter-rise both linear;
+    animation-timeline: view();
+    animation-range: entry 2% cover 24%;
+  }
+
+  .about-motion-page .about-new-visual,
+  .journal-motion-page .journal-lead-image,
+  .article-motion-page .longform-cover {
+    animation-name: route-media-open;
+  }
+}
+
+@keyframes route-chapter-rise {
+  from { opacity: .76; transform: translate3d(0, 56px, 0) scale(.985); filter: blur(5px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+
+@keyframes route-media-open {
+  from { opacity: .84; clip-path: inset(8% 8% 8% 8% round 14px); transform: scale(.965); }
+  to { opacity: 1; clip-path: inset(0 round 14px); transform: none; }
+}
+
+@media (max-width: 980px) {
+  .site-header.is-home:not(.is-scrolled) .site-chrome {
+    width: calc(100% - 20px);
+  }
+
+  .about-motion-page .about-new-visual {
+    min-height: 540px;
+  }
+
+  .journal-motion-page .journal-lead-image {
+    min-height: 520px;
+  }
+}
+
+@media (max-width: 767px) {
+  .site-header {
+    height: 70px;
+    padding-top: max(7px, env(safe-area-inset-top));
+  }
+
+  .site-chrome,
+  .site-header.is-scrolled .site-chrome {
+    width: calc(100% - 16px);
+    min-height: 54px;
+    border-radius: 14px;
+  }
+
+  .site-header.is-home:not(.is-scrolled) .site-chrome {
+    width: calc(100% - 14px);
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .site-header.is-home:not(.is-scrolled) .header-icon-button,
+  .site-header.is-home:not(.is-scrolled) .theme-switch {
+    background: rgba(24, 4, 12, .2);
+  }
+
+  .aerocore-stage {
+    height: 150svh;
+  }
+
+  .aerocore-media {
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .aerocore-lotus-stage {
+    inset: 0 -28%;
+  }
+
+  .aerocore-lotus {
+    object-position: 49% center;
+  }
+
+  .aerocore-title {
+    top: 48%;
+    max-width: calc(100vw - 20px);
+    font-size: clamp(3.55rem, 17vw, 5.35rem);
+    letter-spacing: -.04em;
+  }
+
+  .aerocore-launch-aura {
+    top: 48%;
+    width: 88vw;
+  }
+
+  .aerocore-launch-trail {
+    top: 52%;
+    width: 70vw;
+  }
+
+  .aerocore-hero-detail {
+    align-items: flex-end;
+  }
+
+  .aerocore-hero-detail > p {
+    width: min(45vw, 160px);
+  }
+
+  .aerocore-reveal-panel {
+    min-height: 23svh;
+    grid-template-columns: 1fr;
+    align-content: end;
+  }
+
+  .aerocore-reveal-panel > strong {
+    max-width: 310px;
+    font-size: clamp(1.18rem, 5.6vw, 1.55rem);
+  }
+
+  .about-motion-page .about-new-hero {
+    min-height: auto;
+    padding-block: 18px 72px;
+  }
+
+  .about-motion-page .about-new-copy h1 {
+    font-size: clamp(2.55rem, 11.5vw, 4rem);
+  }
+
+  .about-motion-page .about-new-visual {
+    min-height: 440px;
+  }
+
+  .about-motion-page .about-manifesto,
+  .profile-motion-page .profile-dashboard,
+  .profile-motion-page .profile-story {
+    border-radius: 12px;
+  }
+
+  .care-motion-stage {
+    padding-top: 18px !important;
+  }
+
+  .care-motion-page .direction-card {
+    min-height: 102px;
+    border-radius: 12px;
+  }
+
+  .care-motion-page .brand-panel {
+    border-radius: 14px;
+  }
+
+  .journal-motion-page .journal-masthead {
+    padding-top: 26px;
+  }
+
+  .journal-section-nav {
+    width: calc(100% + 16px);
+  }
+
+  .journal-motion-page .journal-title-lockup > h1 {
+    font-size: clamp(2.9rem, 14vw, 4.7rem);
+    white-space: normal;
+  }
+
+  .journal-motion-page .journal-title-lockup > span {
+    justify-self: start;
+  }
+
+  .journal-motion-page .journal-lead-image {
+    min-height: 390px;
+  }
+
+  .journal-motion-page .journal-lead-copy {
+    border-left: 1px solid var(--color-border-strong);
+  }
+
+  .journal-motion-page .journal-article-list article:hover {
+    padding-inline: 0;
+  }
+}
+
+:root[data-motion="reduced"] *,
+:root[data-motion="reduced"] *::before,
+:root[data-motion="reduced"] *::after {
+  animation-duration: .01ms !important;
+  animation-iteration-count: 1 !important;
+  scroll-behavior: auto !important;
+  transition-duration: .01ms !important;
+}
+
+:root[data-motion="reduced"] .aerocore-stage {
+  height: 100svh;
+}
+
+:root[data-motion="reduced"] .aerocore-sticky {
+  position: relative;
+}
+
+:root[data-motion="reduced"] .aerocore-lotus {
+  visibility: hidden;
+}
+
+:root[data-motion="reduced"] .aerocore-launch-aura,
+:root[data-motion="reduced"] .aerocore-launch-trail,
+:root[data-motion="reduced"] .aerocore-reveal-panel {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aerocore-lotus { visibility: hidden; }
+  .aerocore-launch-aura,
+  .aerocore-launch-trail { display: none; }
+}

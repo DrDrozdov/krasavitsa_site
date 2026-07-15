@@ -10,8 +10,8 @@ export const metadata: Metadata = {
 
 export default function CarePage() {
   return (
-    <BeautyPageShell>
-      <div className="pb-10 pt-8 md:pt-14">
+    <BeautyPageShell className="care-motion-page">
+      <div className="care-motion-stage pb-10 pt-8 md:pt-14">
         <BeautyFinder />
         <p className="mx-auto max-w-3xl px-6 text-center text-xs font-semibold leading-6 text-[var(--color-text-soft)]">
           Рекомендации носят информационный характер. При заболеваниях кожи, кожи головы, выраженном выпадении волос или аллергических реакциях обратитесь к врачу.

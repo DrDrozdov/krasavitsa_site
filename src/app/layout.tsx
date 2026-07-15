@@ -92,6 +92,11 @@ const themeScript = `
   root.dataset.theme = theme;
   root.dataset.themePreference = preference;
   root.dataset.themeSource = preference === "system" ? "system" : "manual";
+  let motion = "full";
+  try {
+    motion = window.localStorage.getItem("krasavitsa-motion-preference") === "reduced" ? "reduced" : "full";
+  } catch {}
+  root.dataset.motion = motion;
   root.style.colorScheme = theme;
   document.querySelector("#krasavitsa-theme-color")?.setAttribute("content", theme === "dark" ? "#160b11" : "#fff8f6");
 })();

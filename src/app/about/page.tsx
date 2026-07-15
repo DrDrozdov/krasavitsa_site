@@ -35,7 +35,7 @@ const principles = [
 
 export default function AboutPage() {
   return (
-    <BeautyPageShell>
+    <BeautyPageShell className="about-motion-page">
       <section className="about-new-hero section-shell">
         <div className="about-new-copy">
           <p className="eyebrow">О проекте</p>

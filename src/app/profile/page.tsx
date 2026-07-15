@@ -9,5 +9,5 @@ export const metadata: Metadata = {
 };
 
 export default function ProfilePage() {
-  return <BeautyPageShell><ProfileDemo /></BeautyPageShell>;
+  return <BeautyPageShell className="profile-motion-page"><ProfileDemo /></BeautyPageShell>;
 }

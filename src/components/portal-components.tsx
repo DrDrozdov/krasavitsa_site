@@ -16,7 +16,7 @@ import {
   X,
 } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
-import { ThemePreferences, ThemeToggle } from "@/components/theme-toggle";
+import { MotionPreferences, ThemePreferences, ThemeToggle } from "@/components/theme-toggle";
 import { LinkButton } from "@/components/ui/button";
 import { BrandMark } from "@/components/brand-mark";
 import { cn } from "@/lib/utils";
@@ -264,9 +264,18 @@ export function SiteHeader() {
                   ))}
                 </nav>
 
+                <nav className="menu-secondary-links" aria-label="Документы сайта">
+                  <Link href="/privacy" tabIndex={mobileOpen ? 0 : -1} onClick={() => setMobileOpen(false)}>Конфиденциальность</Link>
+                  <Link href="/terms" tabIndex={mobileOpen ? 0 : -1} onClick={() => setMobileOpen(false)}>Соглашение</Link>
+                  <Link href="/cookies" tabIndex={mobileOpen ? 0 : -1} onClick={() => setMobileOpen(false)}>Cookies</Link>
+                  <Link href="/personal-data" tabIndex={mobileOpen ? 0 : -1} onClick={() => setMobileOpen(false)}>Персональные данные</Link>
+                </nav>
+
                 <div className="mobile-menu-foot">
                   <p>Тема интерфейса</p>
                   <ThemePreferences />
+                  <p className="mobile-menu-motion-label">Анимация интерфейса</p>
+                  <MotionPreferences />
                   <LinkButton href="/care" className="mobile-menu-cta" tabIndex={mobileOpen ? 0 : -1} onClick={() => setMobileOpen(false)}>
                     Начать AI-подбор
                     <ArrowRight aria-hidden="true" />
@@ -342,9 +351,9 @@ function FooterColumn({ title, links }: { title: string; links: string[][] }) {
   );
 }
 
-export function BeautyPageShell({ children }: { children: ReactNode }) {
+export function BeautyPageShell({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <main className="site-shell">
+    <main className={cn("site-shell motion-page", className)}>
       <SiteHeader />
       {children}
       <SiteFooter />

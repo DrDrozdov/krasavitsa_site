@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Laptop, Moon, Sun } from "lucide-react";
+import { Check, Gauge, Laptop, Moon, Sparkles, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
   applyTheme,
@@ -78,6 +78,42 @@ export function ThemePreferences({ className }: { className?: string }) {
           {preference === value ? <Check className="theme-preference-check" aria-hidden="true" /> : null}
         </button>
       ))}
+    </div>
+  );
+}
+
+type MotionPreference = "full" | "reduced";
+const motionPreferenceKey = "krasavitsa-motion-preference";
+
+export function MotionPreferences({ className }: { className?: string }) {
+  const [preference, setPreference] = useState<MotionPreference>("full");
+
+  useEffect(() => {
+    let stored: MotionPreference = "full";
+    try {
+      stored = window.localStorage.getItem(motionPreferenceKey) === "reduced" ? "reduced" : "full";
+    } catch {}
+    document.documentElement.dataset.motion = stored;
+    const frame = window.requestAnimationFrame(() => setPreference(stored));
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+
+  const select = (value: MotionPreference) => {
+    setPreference(value);
+    document.documentElement.dataset.motion = value;
+    try {
+      window.localStorage.setItem(motionPreferenceKey, value);
+    } catch {}
+  };
+
+  return (
+    <div className={cn("motion-preferences", className)} role="group" aria-label="Интенсивность анимации">
+      <button type="button" className={cn(preference === "full" && "is-active")} aria-pressed={preference === "full"} onClick={() => select("full")}>
+        <Sparkles aria-hidden="true" /><span>Полная</span>
+      </button>
+      <button type="button" className={cn(preference === "reduced" && "is-active")} aria-pressed={preference === "reduced"} onClick={() => select("reduced")}>
+        <Gauge aria-hidden="true" /><span>Спокойная</span>
+      </button>
     </div>
   );
 }

@@ -31,16 +31,18 @@ export function LandingPage() {
   const mediaY = useTransform(smoothY, (value) => value * -0.55);
   const typeX = useTransform(smoothX, (value) => value * .24);
   const { scrollYProgress: heroProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
-  const heroScale = useTransform(heroProgress, [0, .48, 1], [1, .972, .86]);
-  const heroRadius = useTransform(heroProgress, [0, .5, 1], [0, 10, 18]);
-  const lotusScale = useTransform(heroProgress, [0, .58, 1], [1, 1.1, 1.62]);
-  const lotusY = useTransform(heroProgress, [0, 1], [0, -126]);
-  const lotusOpacity = useTransform(heroProgress, [.5, 1], [1, .14]);
-  const titleY = useTransform(heroProgress, [0, .5, 1], [0, -18, -118]);
-  const titleOpacity = useTransform(heroProgress, [0, .62, 1], [1, .9, 0]);
+  const heroScale = useTransform(heroProgress, [0, .48, 1], [1, .985, .87]);
+  const heroRadius = useTransform(heroProgress, [0, .5, 1], [0, 8, 22]);
+  const lotusScale = useTransform(heroProgress, [0, .54, 1], [1, 1.08, 1.42]);
+  const lotusY = useTransform(heroProgress, [0, .56, 1], [0, -32, -286]);
+  const lotusOpacity = useTransform(heroProgress, [.62, .92, 1], [1, .78, .18]);
+  const titleY = useTransform(heroProgress, [0, .46, 1], [0, -12, -154]);
+  const titleOpacity = useTransform(heroProgress, [0, .58, .9], [1, .92, 0]);
   const detailOpacity = useTransform(heroProgress, [0, .28, .66], [1, .76, 0]);
-  const revealY = useTransform(heroProgress, [.44, 1], [112, 0]);
-  const revealOpacity = useTransform(heroProgress, [.42, .7, 1], [0, .65, 1]);
+  const revealY = useTransform(heroProgress, [.42, 1], [160, 0]);
+  const revealOpacity = useTransform(heroProgress, [.44, .72, 1], [0, .64, 1]);
+  const launchOpacity = useTransform(heroProgress, [.28, .56, .92], [0, .85, 0]);
+  const launchScale = useTransform(heroProgress, [.28, .88], [.55, 1.38]);
 
   return (
     <main className="site-shell home-page cinematic-site">
@@ -64,8 +66,21 @@ export function LandingPage() {
           >
             <motion.div className="aerocore-media" style={reduceMotion ? undefined : { x: mediaX, y: mediaY }} aria-hidden="true">
               <motion.div className="aerocore-lotus-stage" style={reduceMotion ? undefined : { scale: lotusScale, y: lotusY, opacity: lotusOpacity }}>
-                <Image src="/krasavitsa-lotus-hero-v1.png" alt="" fill priority sizes="100vw" className="aerocore-lotus" />
+                <video
+                  className="aerocore-lotus"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  preload="metadata"
+                  poster="/krasavitsa-lotus-hero-v1.png"
+                  tabIndex={-1}
+                >
+                  <source src="/krasavitsa-lotus-loop-v1.mp4" type="video/mp4" />
+                </video>
               </motion.div>
+              <motion.div className="aerocore-launch-aura" style={reduceMotion ? undefined : { opacity: launchOpacity, scale: launchScale }} />
+              <motion.div className="aerocore-launch-trail" style={reduceMotion ? undefined : { opacity: launchOpacity }}><i /><i /><i /></motion.div>
               <div className="aerocore-wash" />
             </motion.div>
 
@@ -87,8 +102,8 @@ export function LandingPage() {
           </motion.div>
 
           <motion.div className="aerocore-reveal-panel" style={reduceMotion ? undefined : { opacity: revealOpacity, y: revealY }} aria-hidden="true">
-            <span>Лотос раскрывается в ваш сценарий</span>
-            <strong>Выберите направление — и начнём.</strong>
+            <span>Первая глава</span>
+            <strong>Три направления. Один ясный сценарий.</strong>
             <div><i>Кожа</i><i>Волосы</i><i>Ароматы</i></div>
           </motion.div>
         </div>

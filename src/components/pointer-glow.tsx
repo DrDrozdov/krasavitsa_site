@@ -105,11 +105,22 @@ export function PointerGlow() {
       }
     };
 
+    const resetActive = () => {
+      if (!active) return;
+      active.dataset.pointerActive = "false";
+      active.dataset.pointerPressed = "false";
+      active.style.setProperty("--pointer-dx", "0px");
+      active.style.setProperty("--pointer-dy", "0px");
+      active = null;
+    };
+
     window.addEventListener("pointermove", onPointerMove, { passive: true });
     window.addEventListener("pointerdown", onPointerDown, { passive: true });
     window.addEventListener("pointerup", clearPress, { passive: true });
     window.addEventListener("pointercancel", clearPress, { passive: true });
     window.addEventListener("pointerout", onPointerOut, { passive: true });
+    window.addEventListener("blur", resetActive);
+    window.addEventListener("scroll", resetActive, { passive: true });
 
     return () => {
       window.cancelAnimationFrame(frame);
@@ -118,6 +129,8 @@ export function PointerGlow() {
       window.removeEventListener("pointerup", clearPress);
       window.removeEventListener("pointercancel", clearPress);
       window.removeEventListener("pointerout", onPointerOut);
+      window.removeEventListener("blur", resetActive);
+      window.removeEventListener("scroll", resetActive);
     };
   }, []);
 
