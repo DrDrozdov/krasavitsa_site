@@ -451,7 +451,8 @@ function isDirectProductUrl(value: string): URL | null {
     const url = new URL(value);
     if (url.protocol !== "https:" || !isAllowedHost(url.hostname)) return null;
     const route = `${url.pathname} ${url.search}`.toLowerCase();
-    if (/\/(search|catalogsearch|catalog\/0\/search|category|collections\/all|reviews?|brands?|tags?|seller|marketplace-orders[^/]*)(\/|\?|$)/.test(route)) return null;
+    if (/\/(search|showcaptcha|captcha|catalogsearch|catalog\/0\/search|category|collections\/all|reviews?|brands?|tags?|seller|marketplace-orders[^/]*|gold-apple-team|novinki|flacon|articles?|blog|promo|help|faq)(\/|\?|$)/.test(route)) return null;
+    if (/^\/f(?:\/|\?|$)/.test(route)) return null;
     if (["q", "query", "text", "search"].some((key) => url.searchParams.has(key))) return null;
     if (url.pathname === "/" || url.pathname.length < 8) return null;
     return url;
@@ -583,6 +584,14 @@ async function verifyLink(
       cache: "no-store",
       signal: controller.signal,
     });
+    const redirectedRoute = (() => {
+      try { return new URL(response.url).pathname.toLocaleLowerCase("ru"); } catch { return ""; }
+    })();
+    if (/\/(?:showcaptcha|captcha)(?:\/|$)/.test(redirectedRoute)) {
+      return indexedIdentity
+        ? { label, href: url.toString(), kind, price: evidencePrice, currency: evidencePrice ? "RUB" : undefined }
+        : null;
+    }
     const finalUrl = isDirectProductUrl(response.url);
     if (!finalUrl) return null;
     if (!response.ok) {
@@ -777,7 +786,11 @@ async function verifyCandidate(candidate: Candidate): Promise<VerifiedCandidate 
   for (const link of links) {
     const key = storeKey(link.href);
     const existing = uniqueByStore.get(key);
-    if (!key || (existing?.price && !link.price)) continue;
+    if (!key) continue;
+    // Candidate-provided and hand-verified links are checked first. A later
+    // search hit may only replace one when it adds real price evidence; an
+    // unpriced redirect or weaker variant must never displace the exact card.
+    if (existing && (existing.price || !link.price)) continue;
     uniqueByStore.set(key, link);
   }
   const unique = [...uniqueByStore.values()].slice(0, 8);
