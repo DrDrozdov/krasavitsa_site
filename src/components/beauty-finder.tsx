@@ -110,6 +110,7 @@ export function BeautyFinder() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Product[]>([]);
   const [summary, setSummary] = useState("");
+  const [insight, setInsight] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [searchFactIndices, setSearchFactIndices] = useState([0, 1]);
@@ -223,6 +224,7 @@ export function BeautyFinder() {
     setQuery("");
     setResults([]);
     setSummary("");
+    setInsight("");
     setError("");
     setSearchFactStep(0);
     setPlaceholderPage(0);
@@ -237,6 +239,7 @@ export function BeautyFinder() {
     setLoading(true);
     setResults([]);
     setSummary("");
+    setInsight("");
     setSearchFactStep(0);
     const firstFact = Math.floor(Math.random() * searchFacts[mode].length);
     const secondFact = (firstFact + 1 + Math.floor(Math.random() * (searchFacts[mode].length - 1))) % searchFacts[mode].length;
@@ -251,6 +254,7 @@ export function BeautyFinder() {
       const data = (await response.json()) as {
         status?: "complete" | "needs_input" | "safety_redirect" | "no_verified_products";
         summary?: string;
+        insight?: string;
         followUpQuestion?: string;
         products?: Product[];
         methodology?: string;
@@ -264,6 +268,7 @@ export function BeautyFinder() {
       } else {
         const explanation = [data.summary, data.followUpQuestion].filter(Boolean).join("\n\n");
         setSummary(explanation || "Подборка готова.");
+        setInsight(data.insight || "");
         const nextProducts = data.products ?? [];
         setResults(nextProducts);
         if (nextProducts.length) {
@@ -444,7 +449,10 @@ export function BeautyFinder() {
             </motion.div>
           ) : results.length ? (
             <motion.div key={`${mode}-${summary}`} initial={{ opacity: 0, y: 22 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mt-5">
-              <p className="mx-auto max-w-3xl whitespace-pre-line py-7 text-center text-xl font-bold leading-8 text-[var(--color-text-muted)]">{summary}</p>
+              <div className="mx-auto mb-5 max-w-3xl border-y border-[var(--color-border)] px-2 py-6 text-center md:py-8">
+                <p className="whitespace-pre-line text-xl font-bold leading-8 text-[var(--color-text)]">{summary}</p>
+                {insight ? <p className="mx-auto mt-3 max-w-2xl text-sm font-semibold leading-6 text-[var(--color-text-muted)]"><span className="font-black text-[var(--color-bordeaux)]">Полезно знать:</span> {insight}</p> : null}
+              </div>
               <div className="grid gap-3 md:grid-cols-2">
                 {results.map((product, index) => (
                   <motion.article key={product.name} initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 28, scale: .985 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ duration: .58, delay: index * .07, ease: [0.16, 1, 0.3, 1] }} className="product-result-card overflow-hidden border border-[var(--color-border)] bg-[var(--color-surface)]">
@@ -456,10 +464,10 @@ export function BeautyFinder() {
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0"><p className="text-xs font-black text-[var(--color-bordeaux)]">{product.category}</p><div className="mt-2 flex items-start gap-2"><h3 className="text-[clamp(1.35rem,3vw,2rem)] font-black leading-[1.05] tracking-[-.035em]">{product.name}</h3><button type="button" onClick={() => void copyProductName(product.name)} aria-label={`Скопировать название ${product.name}`} className="apple-glass-button mt-0.5 grid size-8 shrink-0 place-items-center rounded-full border border-[var(--color-border)] bg-[var(--color-soft)] text-[var(--color-bordeaux)]">{copiedName === product.name ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}</button></div></div>
                     </div>
+                    <div className="mt-4 flex items-center justify-between gap-3 border-y border-[var(--color-border)] py-3 text-xs font-bold text-[var(--color-text-muted)]"><span>Ориентир цены</span><span className="text-right text-[var(--color-text)]">{product.priceRange}</span></div>
                     <p className="mt-4 text-sm font-semibold leading-6 text-[var(--color-text-muted)]"><span className="font-black text-[var(--color-bordeaux)]">Почему здесь:</span> {product.reason}</p>
                     {product.usage ? <p className="mt-3 text-sm font-semibold leading-6"><span className="font-black text-[var(--color-bordeaux)]">Как использовать:</span> {product.usage}</p> : null}
                     {product.tradeoffs?.length ? <p className="mt-3 text-xs font-semibold leading-5 text-[var(--color-text-soft)]"><span className="font-black text-[var(--color-bordeaux)]">Учесть:</span> {product.tradeoffs.join(" · ")}</p> : null}
-                    <div className="mt-4 flex items-center justify-between gap-3 border-y border-[var(--color-border)] py-3 text-xs font-bold text-[var(--color-text-muted)]"><span>Ориентир цены</span><span className="text-right text-[var(--color-text)]">{product.priceRange || "уточняется в магазинах"}</span></div>
                     <div className="mt-5 flex flex-wrap gap-2">
                       {product.marketplaces?.map((link) => <a key={link.href} href={link.href} target="_blank" rel="noopener noreferrer" className="apple-glass-button inline-flex items-center gap-1 rounded-full border border-[var(--color-border)] bg-white/48 px-3 py-2 text-xs font-black">🛍️ {link.label}<ExternalLink className="size-3" /></a>)}
                       <button type="button" onClick={() => void toggleFavorite(product)} aria-label="Сохранить в избранное" className={`apple-glass-button grid size-9 place-items-center rounded-full border border-[var(--color-border)] bg-white/48 ${savedNames.includes(product.name) ? "text-[var(--color-bordeaux)]" : "text-[var(--color-text-muted)]"}`}><Heart className={`size-4 ${savedNames.includes(product.name) ? "fill-current" : ""}`} /></button>

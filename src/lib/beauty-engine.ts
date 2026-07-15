@@ -27,9 +27,10 @@ export type BeautyRecommendation = {
   status: "complete" | "needs_input" | "safety_redirect" | "no_verified_products";
   mode: SearchMode;
   summary: string;
+  insight: string;
   followUpQuestion?: string;
   products: BeautyProduct[];
-  methodology: "grounded-v2" | "curated-fallback";
+  methodology: "grounded-v3" | "curated-fallback";
 };
 
 type JsonRecord = Record<string, unknown>;
@@ -107,6 +108,7 @@ const curatedFallback: Record<SearchMode, BeautyProduct[]> = {
       category: "Увлажняющий крем-гель",
       reason: "Проверенный базовый вариант с лёгкой текстурой; окончательный выбор зависит от переносимости и текущей рутины.",
       matchScore: 70,
+      priceRange: "1 300–2 600 ₽",
       usage: "Наносить после очищения; новый продукт сначала протестировать на небольшом участке.",
       tradeoffs: ["Это базовый пример, а не персональный вывод без работающего AI-провайдера."],
       image: visuals.skin,
@@ -118,6 +120,7 @@ const curatedFallback: Record<SearchMode, BeautyProduct[]> = {
       category: "Очищение",
       reason: "Проверенный мягкий гель для базового очищения; частота зависит от сухости и чувствительности кожи.",
       matchScore: 68,
+      priceRange: "900–1 900 ₽",
       usage: "Использовать небольшое количество и оценить, нет ли стянутости после умывания.",
       tradeoffs: ["Содержит компоненты, которые могут не подойти реактивной коже."],
       image: visuals.skin,
@@ -129,6 +132,7 @@ const curatedFallback: Record<SearchMode, BeautyProduct[]> = {
       category: "Солнцезащита",
       reason: "Проверенный ежедневный SPF; комфорт финиша и совместимость с макияжем лучше оценивать лично.",
       matchScore: 68,
+      priceRange: "1 300–2 900 ₽",
       usage: "Наносить достаточное количество последним шагом утреннего ухода и обновлять по ситуации.",
       tradeoffs: ["Финиш и переносимость индивидуальны; формулы для разных рынков могут отличаться."],
       image: visuals.skin,
@@ -142,6 +146,7 @@ const curatedFallback: Record<SearchMode, BeautyProduct[]> = {
       category: "Шампунь для кожи головы",
       reason: "Проверенный вариант очищения; название продукта не означает, что шампунь лечит выпадение волос.",
       matchScore: 65,
+      priceRange: "900–2 100 ₽",
       usage: "Наносить преимущественно на кожу головы и тщательно смывать.",
       tradeoffs: ["При выраженном выпадении нужен врач, а не косметический шампунь."],
       image: visuals.hair,
@@ -153,6 +158,7 @@ const curatedFallback: Record<SearchMode, BeautyProduct[]> = {
       category: "Кондиционер",
       reason: "Проверенный кондиционер для повреждённой и окрашенной длины; результат зависит от исходного состояния волос.",
       matchScore: 70,
+      priceRange: "2 900–5 500 ₽",
       usage: "Распределять по длине после шампуня, не перегружая корни.",
       tradeoffs: ["Для очень тонких волос количество особенно важно."],
       image: visuals.hair,
@@ -164,6 +170,7 @@ const curatedFallback: Record<SearchMode, BeautyProduct[]> = {
       category: "Термозащита",
       reason: "Проверенный спрей для сценария с горячей укладкой; он снижает риск повреждения, но не делает любой нагрев безопасным.",
       matchScore: 69,
+      priceRange: "1 300–2 900 ₽",
       usage: "Равномерно наносить до горячей укладки и не превышать разумную температуру.",
       tradeoffs: ["Количество и дистанцию нанесения нужно подбирать под толщину волос."],
       image: visuals.hair,
@@ -177,6 +184,7 @@ const curatedFallback: Record<SearchMode, BeautyProduct[]> = {
       category: "Чистый цветочно-мускусный аромат",
       reason: "Проверенный светлый профиль с ассоциацией чистого белья; восприятие мускусов особенно индивидуально.",
       matchScore: 70,
+      priceRange: "8 000–18 000 ₽",
       usage: "Сначала протестировать на коже и оценить через несколько часов.",
       tradeoffs: ["Стойкость и шлейф зависят от кожи и условий."],
       image: visuals.perfume,
@@ -188,6 +196,7 @@ const curatedFallback: Record<SearchMode, BeautyProduct[]> = {
       category: "Минеральный древесный аромат",
       reason: "Проверенная композиция с морской солью и шалфеем для запроса на несладкую свежесть.",
       matchScore: 72,
+      priceRange: "5 600–16 000 ₽",
       usage: "Тестировать на коже; отдельно оценить устраивает ли мягкая громкость cologne.",
       tradeoffs: ["Не стоит ожидать одинаковой стойкости на разной коже."],
       image: visuals.perfume,
@@ -199,6 +208,7 @@ const curatedFallback: Record<SearchMode, BeautyProduct[]> = {
       category: "Пряная ваниль",
       reason: "Проверенный вариант ванили с пряным и дымным направлением, а не только кондитерской сладостью.",
       matchScore: 71,
+      priceRange: "17 000–28 000 ₽",
       usage: "Сравнить на коже с Eau de Toilette: это разные концентрации и характер звучания.",
       tradeoffs: ["Ваниль и дымные нюансы могут ощущаться интенсивнее в тепле."],
       image: visuals.perfume,
@@ -209,7 +219,7 @@ const curatedFallback: Record<SearchMode, BeautyProduct[]> = {
 };
 
 const defaultAllowedHosts = [
-  "goldapple.ru", "letu.ru", "rivegauche.ru", "wildberries.ru", "market.yandex.ru", "tsum.ru",
+  "goldapple.ru", "letu.ru", "rivegauche.ru", "wildberries.ru", "market.yandex.ru", "ozon.ru", "tsum.ru",
 ];
 
 function asRecord(value: unknown): JsonRecord | null {
@@ -312,7 +322,7 @@ function parseCandidates(raw: JsonRecord): Candidate[] {
     const retailerUrls = Array.isArray(product.retailer_urls)
       ? product.retailer_urls.map(asRecord).filter((value): value is JsonRecord => Boolean(value)).map((value) => ({
         label: asString(value.label, 40), url: asString(value.url, 700),
-      })).filter((value) => value.label && value.url).slice(0, 6)
+      })).filter((value) => value.label && value.url).slice(0, 8)
       : [];
     result.push({
       name,
@@ -335,7 +345,6 @@ function normalizedTokens(value: string): string[] {
 function curatedForQuery(mode: SearchMode, query: string): BeautyProduct[] {
   const queryTokens = normalizedTokens(query);
   return curatedFallback[mode]
-    .filter((product) => product.marketplaces.some((link) => Boolean(isDirectProductUrl(link.href))))
     .map((product, index) => {
       const searchable = `${product.name} ${product.category} ${product.reason}`.toLocaleLowerCase("ru");
       const matches = queryTokens.filter((token) => searchable.includes(token)).length;
@@ -344,7 +353,7 @@ function curatedForQuery(mode: SearchMode, query: string): BeautyProduct[] {
       return {
         ...product,
         matchScore: clampScore(product.matchScore + Math.min(22, matches * 4 + categoryMatches * 8)),
-        priceRange: formatPriceRange(product.marketplaces),
+        priceRange: formatPriceRange(product.marketplaces) || product.priceRange,
         image: productImage(mode, product.name, product.marketplaces[0]?.href, index),
         imageKind: "verified-composite" as const,
       };
@@ -452,6 +461,7 @@ function linkLabel(url: string, fallback: string): string {
     if (host.includes("rivegauche")) return "Рив Гош";
     if (host.includes("wildberries")) return "Wildberries";
     if (host.includes("market.yandex")) return "Яндекс Маркет";
+    if (host.includes("ozon")) return "Ozon";
     if (host.includes("tsum")) return "ЦУМ";
     return fallback || "Маркетплейс";
   } catch { return fallback || "Карточка товара"; }
@@ -461,7 +471,7 @@ async function verifyCandidate(candidate: Candidate): Promise<VerifiedCandidate 
   const requests: Array<Promise<ProductLink | null>> = [];
   for (const item of candidate.retailerUrls) requests.push(verifyLink(candidate.name, linkLabel(item.url, item.label), item.url, "marketplace"));
   const links = (await Promise.all(requests)).filter((item): item is ProductLink => Boolean(item));
-  const unique = links.filter((link, index, array) => array.findIndex((item) => item.href === link.href) === index).slice(0, 6);
+  const unique = links.filter((link, index, array) => array.findIndex((item) => item.href === link.href) === index).slice(0, 8);
   return unique.length ? { ...candidate, links: unique } : null;
 }
 
@@ -480,13 +490,39 @@ function productImage(mode: SearchMode, name: string, source: string | undefined
   return `/api/product-image?${params.toString()}`;
 }
 
+function estimatedPriceRange(mode: SearchMode, category: string): string {
+  const value = category.toLocaleLowerCase("ru");
+  if (mode === "perfume") return value.includes("набор") || value.includes("мини") ? "3 000–12 000 ₽" : "7 000–28 000 ₽";
+  if (mode === "hair") return value.includes("шамп") ? "800–3 500 ₽" : "1 200–5 500 ₽";
+  return value.includes("spf") || value.includes("солнц") ? "1 200–3 500 ₽" : "900–4 500 ₽";
+}
+
+function resultInsight(mode: SearchMode): string {
+  if (mode === "skin") return "Новый уход вводите по одному средству и сначала проверяйте переносимость на небольшом участке кожи — так проще понять реальную реакцию.";
+  if (mode === "hair") return "Кожу головы и длину оценивают отдельно: шампунь отвечает прежде всего за очищение, а кондиционер и защита — за состояние длины.";
+  return "Аромат лучше оценивать на коже минимум 20–30 минут: блоттер показывает старт, но не индивидуальное раскрытие и комфорт в течение дня.";
+}
+
+function ensureMinimumProducts(mode: SearchMode, query: string, products: BeautyProduct[], minimum = 3): BeautyProduct[] {
+  const result: BeautyProduct[] = [];
+  const seen = new Set<string>();
+  for (const product of [...products, ...curatedForQuery(mode, query)]) {
+    const key = product.name.toLocaleLowerCase("ru").replace(/\s+/g, " ").trim();
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    result.push({ ...product, priceRange: product.priceRange || estimatedPriceRange(mode, product.category) });
+    if (result.length >= Math.max(minimum, 4)) break;
+  }
+  return result;
+}
+
 function toPublicProduct(mode: SearchMode, product: VerifiedCandidate, variant: number): BeautyProduct {
   return {
     name: product.name,
     category: product.category,
     reason: product.reason,
     matchScore: product.matchScore,
-    priceRange: formatPriceRange(product.links),
+    priceRange: formatPriceRange(product.links) || estimatedPriceRange(mode, product.category),
     usage: product.usage,
     tradeoffs: product.tradeoffs,
     image: productImage(mode, product.name, product.links[0]?.href, variant),
@@ -538,7 +574,8 @@ export async function recommendBeauty(query: string, mode: SearchMode): Promise<
       status: "complete",
       mode,
       summary: "AI-провайдер не настроен, поэтому показываю только небольшой проверенный базовый каталог без персональных обещаний.",
-      products: curatedForQuery(mode, query),
+      insight: resultInsight(mode),
+      products: ensureMinimumProducts(mode, query, []),
       methodology: "curated-fallback",
     };
   }
@@ -557,8 +594,9 @@ ${config.triage}
       status: "complete",
       mode,
       summary: `${triage.summary} Для старта показываю проверенные варианты; ${triage.question?.toLocaleLowerCase("ru") || "параметры можно уточнить следующим запросом"}`,
+      insight: resultInsight(mode),
       followUpQuestion: triage.question,
-      products: curatedForQuery(mode, query),
+      products: ensureMinimumProducts(mode, query, []),
       methodology: "curated-fallback",
     };
   }
@@ -567,9 +605,10 @@ ${config.triage}
       status: "needs_input",
       mode,
       summary: triage.summary,
+      insight: resultInsight(mode),
       followUpQuestion: triage.question || "Уточните цель, ограничения и бюджет.",
       products: [],
-      methodology: "grounded-v2",
+      methodology: "grounded-v3",
     };
   }
   if (triage.decision === "safety") {
@@ -577,9 +616,10 @@ ${config.triage}
       status: "safety_redirect",
       mode,
       summary: `${triage.summary} ${config.safety}`,
+      insight: resultInsight(mode),
       followUpQuestion: "После очной оценки специалиста можно вернуться за подбором поддерживающего косметического ухода.",
       products: [],
-      methodology: "grounded-v2",
+      methodology: "grounded-v3",
     };
   }
 
@@ -587,7 +627,7 @@ ${config.triage}
     `Ты профильный эксперт платформы «Красавица» по направлению «${config.label}». ${sharedContract}
 ${config.specialist}
 ${config.safety}
-  Сначала внутренне проверь каждый вариант по всем ограничениям, но не раскрывай цепочку рассуждений. Предложи до 4 независимых кандидатов, чтобы сервер мог проверить ссылки и отсеять ошибки. Товар без известной прямой карточки маркетплейса не включай. В user payload передан verified_catalog: это уже проверенные сервером товары и URL. Если товар из него соответствует запросу, используй его точное имя и marketplace_urls без изменений. Новые товары добавляй только при уверенности в точной прямой карточке. Для каждого товара постарайся указать карточки на всех доступных площадках из списка: goldapple.ru, market.yandex.ru, letu.ru, rivegauche.ru, wildberries.ru, tsum.ru. Не указывай официальный сайт бренда. Не создавай поисковые или категорийные ссылки.
+  Сначала внутренне проверь каждый вариант по всем ограничениям, но не раскрывай цепочку рассуждений. Предложи 6 независимых кандидатов, чтобы после серверной проверки осталось минимум 3. Товар без известной прямой карточки маркетплейса не включай. В user payload передан verified_catalog: это уже проверенные сервером товары и URL. Если товар из него соответствует запросу, используй его точное имя и marketplace_urls без изменений. Новые товары добавляй только при уверенности в точной прямой карточке. Для каждого товара постарайся указать карточки на всех доступных площадках из списка: goldapple.ru, market.yandex.ru, letu.ru, rivegauche.ru, wildberries.ru, ozon.ru, tsum.ru. Не указывай официальный сайт бренда. Не создавай поисковые или категорийные ссылки.
 Верни JSON {"products":[{"name":"точное официальное название","category":"роль","reason":"почему подходит именно профилю без неподтверждённых свойств","match_score":0,"usage":"короткий безопасный способ применения или тестирования","tradeoffs":["честное ограничение"],"retailer_urls":[{"label":"название маркетплейса","url":"https://прямая-карточка-товара"}]}]}. Не указывай цену и пользовательский рейтинг: сервер извлечёт актуальную цену из подтверждённых страниц.`,
     JSON.stringify({
       user_query: query,
@@ -607,7 +647,8 @@ ${config.safety}
       status: "complete",
       mode,
       summary: `${triage.summary} Новые карточки не прошли строгую проверку источников, поэтому показываю наиболее близкие варианты из проверенного каталога — без вымышленных товаров и поисковых ссылок.`,
-      products: curatedForQuery(mode, query),
+      insight: resultInsight(mode),
+      products: ensureMinimumProducts(mode, query, []),
       methodology: "curated-fallback",
     };
   }
@@ -630,8 +671,9 @@ ${config.safety}
     status: "complete",
     mode,
     summary,
-    products: finalProducts.map((item, index) => toPublicProduct(mode, item, index)),
-    methodology: "grounded-v2",
+    insight: resultInsight(mode),
+    products: ensureMinimumProducts(mode, query, finalProducts.map((item, index) => toPublicProduct(mode, item, index))),
+    methodology: "grounded-v3",
   };
 }
 
@@ -644,7 +686,8 @@ export function fallbackRecommendation(mode: SearchMode): BeautyRecommendation {
     status: "complete",
     mode,
     summary: "AI-провайдер временно недоступен. Показываю только проверенный базовый каталог; это не персональная подборка.",
-    products: curatedForQuery(mode, ""),
+    insight: resultInsight(mode),
+    products: ensureMinimumProducts(mode, "", []),
     methodology: "curated-fallback",
   };
 }

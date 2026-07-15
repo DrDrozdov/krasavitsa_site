@@ -4,6 +4,16 @@ import { fallbackRecommendation, isSearchMode, recommendBeauty } from "@/lib/bea
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
+function looksMeaningful(query: string): boolean {
+  const letters = query.toLocaleLowerCase("ru").match(/[a-zа-яё]/g) ?? [];
+  const distinct = new Set(letters).size;
+  const normalized = query.replace(/\s+/g, " ").trim();
+  if (letters.length < 7 || distinct < 3) return false;
+  if (/(.)\1{6,}/iu.test(normalized)) return false;
+  if (/^(?:https?:\/\/|www\.|[@#/]|\d+[\s.,-]*)/iu.test(normalized)) return false;
+  return normalized.split(" ").some((word) => word.replace(/[^a-zа-яё]/giu, "").length >= 4);
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json() as { query?: unknown; mode?: unknown };
@@ -12,6 +22,9 @@ export async function POST(request: Request) {
 
     if (query.length < 10) {
       return NextResponse.json({ error: "Опишите задачу чуть подробнее: цель, важные ограничения и бюджет, если он есть." }, { status: 400 });
+    }
+    if (!looksMeaningful(query)) {
+      return NextResponse.json({ error: "Похоже, это не beauty-запрос. Напишите, что хотите подобрать для кожи, волос или какой аромат ищете." }, { status: 400 });
     }
     if (query.length > 1600) {
       return NextResponse.json({ error: "Сократите запрос до 1600 символов." }, { status: 413 });
