@@ -30,7 +30,7 @@ export type BeautyRecommendation = {
   insight: string;
   followUpQuestion?: string;
   products: BeautyProduct[];
-  methodology: "grounded-v3" | "curated-fallback";
+  methodology: "grounded-v4" | "curated-fallback";
 };
 
 type JsonRecord = Record<string, unknown>;
@@ -54,6 +54,12 @@ type Candidate = {
 };
 
 type VerifiedCandidate = Candidate & { links: ProductLink[] };
+type DiscoveredLink = {
+  label: string;
+  url: string;
+  indexedPrice?: number;
+  evidence: string;
+};
 
 const visuals: Record<SearchMode, string> = {
   skin: "/recommendations/skin-packshot-v2.webp",
@@ -68,9 +74,9 @@ const sharedContract = `
 3. Не выдумывай товар, вариант, концентрацию, объём, состав, сертификацию, цену, рейтинг, наличие, продавца или URL.
 4. Если факта нет в надёжной памяти — не используй его как аргумент. Не делай вывод о полной формуле по одному активу.
 5. Название товара: бренд + точная линейка + тип/концентрация или EDT/EDP, если это часть официального названия.
-6. URL допустим только для отдельной карточки именно этого товара на одном из разрешённых маркетплейсов: Золотое Яблоко, Яндекс Маркет, Лэтуаль, Рив Гош, Wildberries или ЦУМ. Официальный сайт бренда, поиск, категория, главная страница и сокращённая ссылка запрещены. Если точный URL неизвестен — пустая строка.
+6. URL допустим только для отдельной карточки именно этого товара на одном из разрешённых маркетплейсов: Золотое Яблоко, Яндекс Маркет, Лэтуаль, Рив Гош, Wildberries, Ozon или ЦУМ. Официальный сайт бренда, поиск, категория, главная страница и сокращённая ссылка запрещены. Если точный URL неизвестен — пустая строка.
 7. Не ставь диагнозы, не назначай лекарства и не обещай лечение. Рекомендация информационная и должна быть консервативной.
-8. Не заполняй пробелы догадками. Лучше задать один точный вопрос или вернуть меньше товаров.
+8. Не заполняй пробелы догадками. Для широкого безопасного запроса не останавливай подбор: выбирай базовые, широко доступные товары и честно обозначай ограничения. Уточнение обязательно только при медицинском риске или прямом противоречии.
 9. Учитывай все явные ограничения пользователя. Противоречие с аллергеном, нежелательной нотой, бюджетом или форматом — причина исключить товар.
 10. Пиши по-русски, спокойно и конкретно. В ответе должен быть валидный JSON-объект без markdown.
 `;
@@ -110,7 +116,7 @@ const curatedFallback: Record<SearchMode, BeautyProduct[]> = {
       matchScore: 70,
       priceRange: "1 300–2 600 ₽",
       usage: "Наносить после очищения; новый продукт сначала протестировать на небольшом участке.",
-      tradeoffs: ["Это базовый пример, а не персональный вывод без работающего AI-провайдера."],
+      tradeoffs: ["Это спокойный базовый вариант; индивидуальную переносимость всё равно важно проверить."],
       image: visuals.skin,
       imageKind: "category-visual",
       marketplaces: [],
@@ -138,6 +144,30 @@ const curatedFallback: Record<SearchMode, BeautyProduct[]> = {
       image: visuals.skin,
       imageKind: "category-visual",
       marketplaces: [{ label: "Яндекс Маркет", href: "https://ngo.integration.market.yandex.ru/card/krem-dlya-litsa-s-probiotikami-solntsezashchitnyy--beauty-of-joseon-relief-sun-riceprobiotics-spf-50-pa-50-ml/103197717356", kind: "marketplace" }],
+    },
+    {
+      name: "CeraVe Foaming Cleanser 236 ml",
+      category: "Очищение",
+      reason: "Широко доступный базовый вариант для нормальной и склонной к жирности кожи; важно оценить отсутствие стянутости.",
+      matchScore: 66,
+      priceRange: "1 000–2 500 ₽",
+      usage: "Вспенить небольшое количество во влажных ладонях и мягко смыть без долгого контакта.",
+      tradeoffs: ["При сухой или реактивной коже может понадобиться более мягкое очищение."],
+      image: visuals.skin,
+      imageKind: "category-visual",
+      marketplaces: [],
+    },
+    {
+      name: "Bioderma Sensibio H2O 250 ml",
+      category: "Мицеллярная вода",
+      reason: "Широко доступный вариант для снятия макияжа или SPF в спокойной базовой рутине.",
+      matchScore: 65,
+      priceRange: "900–2 000 ₽",
+      usage: "После снятия макияжа смыть средство водой и продолжить обычное мягкое очищение.",
+      tradeoffs: ["Не заменяет полноценное умывание, если на коже остаются загрязнения или плотный SPF."],
+      image: visuals.skin,
+      imageKind: "category-visual",
+      marketplaces: [],
     },
   ],
   hair: [
@@ -177,14 +207,38 @@ const curatedFallback: Record<SearchMode, BeautyProduct[]> = {
       imageKind: "category-visual",
       marketplaces: [],
     },
+    {
+      name: "Lador Wonder Balm",
+      category: "Бальзам для длины",
+      reason: "Широко доступный вариант для кондиционирования сухой или повреждённой длины.",
+      matchScore: 67,
+      priceRange: "700–1 800 ₽",
+      usage: "Нанести по длине после шампуня, выдержать недолго и тщательно смыть.",
+      tradeoffs: ["Тонким волосам лучше начать с небольшого количества."],
+      image: visuals.hair,
+      imageKind: "category-visual",
+      marketplaces: [],
+    },
+    {
+      name: "OLLIN Professional Perfect Hair 15 in 1 Leave-In Cream",
+      category: "Несмываемый уход",
+      reason: "Широко доступный многофункциональный вариант для облегчения расчёсывания и защиты длины от трения.",
+      matchScore: 66,
+      priceRange: "600–1 500 ₽",
+      usage: "Распределить небольшое количество по влажной длине, избегая кожи головы.",
+      tradeoffs: ["Избыток средства может утяжелить тонкие волосы."],
+      image: visuals.hair,
+      imageKind: "category-visual",
+      marketplaces: [],
+    },
   ],
   perfume: [
     {
-      name: "Maison Margiela Replica Lazy Sunday Morning Eau de Toilette",
-      category: "Чистый цветочно-мускусный аромат",
-      reason: "Проверенный светлый профиль с ассоциацией чистого белья; восприятие мускусов особенно индивидуально.",
+      name: "Calvin Klein CK One Eau de Toilette",
+      category: "Свежий цитрусово-мускусный аромат",
+      reason: "Широко доступный спокойный вариант для знакомства со свежим унисекс-направлением.",
       matchScore: 70,
-      priceRange: "8 000–18 000 ₽",
+      priceRange: "3 000–7 000 ₽",
       usage: "Сначала протестировать на коже и оценить через несколько часов.",
       tradeoffs: ["Стойкость и шлейф зависят от кожи и условий."],
       image: visuals.perfume,
@@ -192,25 +246,49 @@ const curatedFallback: Record<SearchMode, BeautyProduct[]> = {
       marketplaces: [],
     },
     {
-      name: "Jo Malone London Wood Sage & Sea Salt Cologne",
-      category: "Минеральный древесный аромат",
-      reason: "Проверенная композиция с морской солью и шалфеем для запроса на несладкую свежесть.",
+      name: "Elizabeth Arden Green Tea Eau de Toilette",
+      category: "Свежий цитрусово-зелёный аромат",
+      reason: "Широко доступный лёгкий вариант для запроса на ненавязчивую дневную свежесть.",
       matchScore: 72,
-      priceRange: "5 600–16 000 ₽",
-      usage: "Тестировать на коже; отдельно оценить устраивает ли мягкая громкость cologne.",
+      priceRange: "1 500–4 000 ₽",
+      usage: "Тестировать на коже; отдельно оценить, устраивает ли лёгкая громкость композиции.",
       tradeoffs: ["Не стоит ожидать одинаковой стойкости на разной коже."],
       image: visuals.perfume,
       imageKind: "category-visual",
-      marketplaces: [{ label: "ЦУМ", href: "https://www.tsum.ru/product/he00455756-odekolon-wood-sage-sea-salt-50ml-jo-malone-london-bestcvetnyi/", kind: "marketplace", price: 5600, currency: "RUB" }],
+      marketplaces: [],
     },
     {
-      name: "Diptyque Eau Duelle Eau de Parfum",
-      category: "Пряная ваниль",
-      reason: "Проверенный вариант ванили с пряным и дымным направлением, а не только кондитерской сладостью.",
+      name: "Lanvin Éclat d'Arpège Eau de Parfum",
+      category: "Лёгкий цветочно-мускусный аромат",
+      reason: "Широко доступный мягкий цветочный профиль для дневного и подарочного сценария.",
       matchScore: 71,
-      priceRange: "17 000–28 000 ₽",
-      usage: "Сравнить на коже с Eau de Toilette: это разные концентрации и характер звучания.",
-      tradeoffs: ["Ваниль и дымные нюансы могут ощущаться интенсивнее в тепле."],
+      priceRange: "3 000–7 000 ₽",
+      usage: "Протестировать на коже и отдельно оценить мускусную базу через 30–60 минут.",
+      tradeoffs: ["Цветочные и мускусные нюансы раскрываются индивидуально."],
+      image: visuals.perfume,
+      imageKind: "category-visual",
+      marketplaces: [],
+    },
+    {
+      name: "Versace Bright Crystal Eau de Toilette",
+      category: "Свежий цветочно-фруктовый аромат",
+      reason: "Широко доступное светлое направление для дневного или подарочного сценария.",
+      matchScore: 68,
+      priceRange: "4 000–10 000 ₽",
+      usage: "Протестировать на коже и оценить цветочную базу через 30–60 минут.",
+      tradeoffs: ["Громкость и стойкость зависят от кожи, температуры и объёма флакона."],
+      image: visuals.perfume,
+      imageKind: "category-visual",
+      marketplaces: [],
+    },
+    {
+      name: "Antonio Banderas Her Secret Eau de Toilette",
+      category: "Тёплый сладковато-цветочный аромат",
+      reason: "Доступное и широко представленное направление для знакомства со сладковатой вечерней парфюмерией.",
+      matchScore: 65,
+      priceRange: "1 500–4 000 ₽",
+      usage: "Сначала нанести один распыл на кожу и оценить комфорт через несколько часов.",
+      tradeoffs: ["Сладость может восприниматься интенсивнее в жарком помещении."],
       image: visuals.perfume,
       imageKind: "category-visual",
       marketplaces: [],
@@ -221,7 +299,9 @@ const curatedFallback: Record<SearchMode, BeautyProduct[]> = {
 const defaultAllowedHosts = [
   "goldapple.ru", "letu.ru", "rivegauche.ru", "wildberries.ru", "market.yandex.ru", "ozon.ru", "tsum.ru",
 ];
-const primaryDiscoveryHosts = ["market.yandex.ru", "wildberries.ru", "ozon.ru"];
+const primaryDiscoveryHosts = ["market.yandex.ru", "wildberries.ru", "ozon.ru", "goldapple.ru"];
+const evidenceCache = new Map<string, { expiresAt: number; value: VerifiedCandidate | null }>();
+const EVIDENCE_CACHE_TTL = 6 * 60 * 60 * 1000;
 
 function asRecord(value: unknown): JsonRecord | null {
   return value && typeof value === "object" && !Array.isArray(value) ? value as JsonRecord : null;
@@ -257,9 +337,9 @@ async function callModel(system: string, user: string, maxTokens: number): Promi
   // legacy R1 configuration to the fast JSON-capable model automatically.
   const model = /^deepseek-r1(?:-|$)/i.test(configuredModel) ? "deepseek-v4-flash" : configuredModel;
 
-  for (let attempt = 0; attempt < 2; attempt += 1) {
+  for (let attempt = 0; attempt < 1; attempt += 1) {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 30_000);
+    const timeout = setTimeout(() => controller.abort(), 24_000);
     try {
       const response = await fetch(`${baseUrl}/chat/completions`, {
         method: "POST",
@@ -274,13 +354,7 @@ async function callModel(system: string, user: string, maxTokens: number): Promi
         cache: "no-store",
         signal: controller.signal,
       });
-      if (!response.ok) {
-        if ((response.status === 429 || response.status >= 500) && attempt === 0) {
-          await new Promise((resolve) => setTimeout(resolve, 700));
-          continue;
-        }
-        throw new Error(`AI_HTTP_${response.status}`);
-      }
+      if (!response.ok) throw new Error(`AI_HTTP_${response.status}`);
       const envelope = asRecord(await response.json());
       const choices = Array.isArray(envelope?.choices) ? envelope.choices : [];
       const first = asRecord(choices[0]);
@@ -357,7 +431,7 @@ function isDirectProductUrl(value: string): URL | null {
     const url = new URL(value);
     if (url.protocol !== "https:" || !isAllowedHost(url.hostname)) return null;
     const route = `${url.pathname} ${url.search}`.toLowerCase();
-    if (/\/(search|catalogsearch|catalog\/0\/search|category|collections\/all|review)(\/|\?|$)/.test(route)) return null;
+    if (/\/(search|catalogsearch|catalog\/0\/search|category|collections\/all|reviews?|brands?|tags?|seller|marketplace-orders[^/]*)(\/|\?|$)/.test(route)) return null;
     if (["q", "query", "text", "search"].some((key) => url.searchParams.has(key))) return null;
     if (url.pathname === "/" || url.pathname.length < 8) return null;
     return url;
@@ -381,15 +455,22 @@ async function readLimitedText(response: Response, limit = 180_000): Promise<str
 }
 
 function extractRublePrice(html: string): number | undefined {
-  const patterns = [
+  const strongPatterns = [
     /"price"\s*:\s*"?(\d{2,7}(?:[.,]\d{1,2})?)"?/gi,
     /"(?:priceValue|currentPrice|salePrice|discountPrice|finalPrice)"\s*:\s*"?(\d{2,7}(?:[.,]\d{1,2})?)"?/gi,
     /(?:product:price:amount|priceAmount)[^>]{0,160}(?:content=|:)\s*["']?(\d{2,7}(?:[.,]\d{1,2})?)/gi,
   ];
   const prices: number[] = [];
-  for (const pattern of patterns) {
+  for (const pattern of strongPatterns) {
     for (const match of html.matchAll(pattern)) {
       const value = Number(match[1].replace(",", "."));
+      if (Number.isFinite(value) && value >= 100 && value <= 2_000_000) prices.push(Math.round(value));
+    }
+  }
+  if (!prices.length) {
+    const visible = html.replace(/&nbsp;|&#160;/gi, " ").replace(/\u00a0/gi, " ");
+    for (const match of visible.matchAll(/(?:^|\D)(\d{1,3}(?:[\s\u00a0]\d{3})+|\d{3,7})\s*(?:₽|руб(?:\.|лей|ля)?)/giu)) {
+      const value = Number(match[1].replace(/[\s\u00a0]/g, ""));
       if (Number.isFinite(value) && value >= 100 && value <= 2_000_000) prices.push(Math.round(value));
     }
   }
@@ -400,12 +481,73 @@ function extractRublePrice(html: string): number | undefined {
     .sort((left, right) => right[1] - left[1] || left[0] - right[0])[0]?.[0];
 }
 
-async function verifyLink(name: string, label: string, value: string, kind: ProductLink["kind"]): Promise<ProductLink | null> {
+function evidenceMatchesProduct(name: string, value: string, minimum = 2): boolean {
+  const tokens = [...new Set(normalizedTokens(name))].slice(0, 8);
+  const normalized = value.toLocaleLowerCase("ru").replace(/ё/g, "е");
+  const matches = tokens.filter((token) => normalized.includes(token)).length;
+  const required = Math.min(3, Math.max(minimum, Math.ceil(tokens.length * 0.4)));
+  return matches >= required;
+}
+
+function normalizeMarketplacePrice(value: unknown): number | undefined {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric) || numeric <= 0) return undefined;
+  const rubles = numeric > 2_000_000 ? numeric / 100 : numeric;
+  return rubles >= 100 && rubles <= 2_000_000 ? Math.round(rubles) : undefined;
+}
+
+async function wildberriesEvidence(url: URL, name: string): Promise<{ price?: number; evidence: string } | null> {
+  const id = url.pathname.match(/\/catalog\/(\d+)/i)?.[1];
+  if (!id || !storeKey(url.toString()).includes("wildberries")) return null;
+  try {
+    const endpoint = new URL("https://card.wb.ru/cards/v4/detail");
+    for (const [key, value] of Object.entries({
+      appType: "1", curr: "rub", dest: "-1257786", hide_dtype: "13", lang: "ru", spp: "30", nm: id,
+    })) endpoint.searchParams.set(key, value);
+    const response = await fetch(endpoint, {
+      headers: { "User-Agent": "Mozilla/5.0 KrasavitsaPriceVerifier/4.0", Accept: "application/json" },
+      cache: "no-store",
+      signal: AbortSignal.timeout(4_000),
+    });
+    if (!response.ok) return null;
+    const payload = asRecord(await response.json());
+    const products = Array.isArray(payload?.products) ? payload.products : [];
+    const product = asRecord(products[0]);
+    if (!product) return null;
+    const sizes = Array.isArray(product.sizes) ? product.sizes.map(asRecord).filter((item): item is JsonRecord => Boolean(item)) : [];
+    const priceObjects = sizes.map((size) => asRecord(size.price)).filter((item): item is JsonRecord => Boolean(item));
+    const price = [
+      ...priceObjects.flatMap((item) => [item.product, item.total, item.basic]),
+      product.salePriceU,
+      product.priceU,
+    ].map(normalizeMarketplacePrice).find((item): item is number => Boolean(item));
+    const evidence = `${asString(product.brand, 100)} ${asString(product.name, 240)}`;
+    return evidenceMatchesProduct(name, evidence, 1) ? { price, evidence } : null;
+  } catch {
+    return null;
+  }
+}
+
+async function verifyLink(
+  name: string,
+  label: string,
+  value: string,
+  kind: ProductLink["kind"],
+  indexedPrice?: number,
+  indexedEvidence = "",
+): Promise<ProductLink | null> {
   const url = isDirectProductUrl(value);
   if (!url) return null;
   const tokens = [...new Set(normalizedTokens(name))].slice(0, 8);
+  const officialEvidence = await wildberriesEvidence(url, name);
+  const indexedIdentity = evidenceMatchesProduct(
+    name,
+    `${decodeURIComponent(url.pathname)} ${indexedEvidence} ${officialEvidence?.evidence ?? ""}`,
+    1,
+  );
+  const evidencePrice = officialEvidence?.price ?? indexedPrice;
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 7_000);
+  const timeout = setTimeout(() => controller.abort(), 5_500);
   try {
     const response = await fetch(url, {
       headers: { "User-Agent": "KrasavitsaProductVerifier/2.0", Accept: "text/html,application/xhtml+xml" },
@@ -415,18 +557,24 @@ async function verifyLink(name: string, label: string, value: string, kind: Prod
     });
     const finalUrl = isDirectProductUrl(response.url);
     if (!finalUrl) return null;
-    if (!response.ok) return null;
+    if (!response.ok) {
+      return indexedIdentity ? { label, href: url.toString(), kind, price: evidencePrice, currency: evidencePrice ? "RUB" : undefined } : null;
+    }
     const contentType = response.headers.get("content-type") ?? "";
-    if (!contentType.includes("text/html")) return null;
+    if (!contentType.includes("text/html")) {
+      return indexedIdentity ? { label, href: finalUrl.toString(), kind, price: evidencePrice, currency: evidencePrice ? "RUB" : undefined } : null;
+    }
     const rawHtml = await readLimitedText(response);
     const html = rawHtml.toLocaleLowerCase("ru").replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<style[\s\S]*?<\/style>/gi, " ").replace(/<[^>]+>/g, " ").replace(/&\w+;/g, " ");
     const matches = tokens.filter((token) => html.includes(token)).length;
     const required = Math.min(3, Math.max(2, Math.ceil(tokens.length * 0.45)));
-    if (matches < required) return null;
-    const price = extractRublePrice(rawHtml);
-    return price ? { label, href: finalUrl.toString(), kind, price, currency: "RUB" as const } : null;
+    if (matches < required && !indexedIdentity) return null;
+    const price = extractRublePrice(rawHtml) ?? evidencePrice;
+    return { label, href: finalUrl.toString(), kind, price, currency: price ? "RUB" as const : undefined };
   } catch {
-    return null;
+    return indexedIdentity
+      ? { label, href: url.toString(), kind, price: evidencePrice, currency: evidencePrice ? "RUB" : undefined }
+      : null;
   } finally {
     clearTimeout(timeout);
   }
@@ -460,50 +608,153 @@ function storeKey(url: string): string {
   return "";
 }
 
-async function discoverMarketplaceUrls(name: string): Promise<Array<{ label: string; url: string }>> {
-  const discoverOnHost = async (host: string): Promise<{ label: string; url: string } | null> => {
-    const query = encodeURIComponent(`"${name}" site:${host}`);
+function decodeSearchHtml(value: string): string {
+  return value
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;|&#160;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&#8381;|\\u20bd/gi, "₽")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+async function discoverMarketplaceUrls(name: string): Promise<DiscoveredLink[]> {
+  const broadDiscovery = async (): Promise<DiscoveredLink[]> => {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 4_000);
+    const timeout = setTimeout(() => controller.abort(), 5_000);
     try {
-      const response = await fetch(`https://html.duckduckgo.com/html/?q=${query}`, {
-        headers: { "User-Agent": "Mozilla/5.0 (compatible; KrasavitsaProductDiscovery/3.1)" },
+      const query = encodeURIComponent(`${name} купить цена Ozon Wildberries Яндекс Маркет Золотое Яблоко`);
+      const response = await fetch(`https://search.brave.com/search?q=${query}&source=web&spellcheck=0`, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/136 Safari/537.36",
+          "Accept-Language": "ru-RU,ru;q=0.9,en;q=0.6",
+          Accept: "text/html,application/xhtml+xml",
+        },
         cache: "no-store",
         signal: controller.signal,
       });
-      if (!response.ok) return null;
-      const html = await response.text();
-      for (const match of html.matchAll(/uddg=([^&"']+)/gi)) {
-        try {
-          const decoded = decodeURIComponent(match[1].replace(/&amp;/g, "&"));
-          const direct = isDirectProductUrl(decoded);
-          if (direct && storeKey(direct.toString()) === storeKey(`https://${host}`)) {
-            return { label: linkLabel(direct.toString(), "Маркетплейс"), url: direct.toString() };
-          }
-        } catch { /* Ignore malformed search-result redirects. */ }
+      if (!response.ok) return [];
+      const raw = (await response.text())
+        .replace(/\\u002f/gi, "/")
+        .replace(/\\\//g, "/")
+        .replace(/&amp;/gi, "&");
+      if (/scheduled a captcha|проверяем, что вы не робот|verification failed/iu.test(raw)) return [];
+      const byStore = new Map<string, DiscoveredLink>();
+      for (const match of raw.matchAll(/https?:\/\/[^\s"'<>\\]+/gi)) {
+        const candidateValue = match[0].split(/&(?:quot|lt|gt);/i)[0].replace(/[),.;]+$/g, "");
+        const direct = isDirectProductUrl(candidateValue);
+        if (!direct) continue;
+        const key = storeKey(direct.toString());
+        if (!key || byStore.has(key)) continue;
+        const start = Math.max(0, (match.index ?? 0) - 900);
+        const end = Math.min(raw.length, (match.index ?? 0) + match[0].length + 2600);
+        const evidence = decodeSearchHtml(raw.slice(start, end));
+        if (!evidenceMatchesProduct(name, `${decodeURIComponent(direct.pathname)} ${evidence}`, 1)) continue;
+        byStore.set(key, {
+          label: linkLabel(direct.toString(), "Маркетплейс"),
+          url: direct.toString(),
+          indexedPrice: extractRublePrice(evidence),
+          evidence,
+        });
       }
-      return null;
+      return [...byStore.values()].slice(0, 8);
     } catch {
-      return null;
+      return [];
     } finally {
       clearTimeout(timeout);
     }
   };
-  const found = await Promise.all(primaryDiscoveryHosts.map(discoverOnHost));
-  return found.filter((item): item is { label: string; url: string } => Boolean(item));
+
+  const broad = await broadDiscovery();
+  if (new Set(broad.map((item) => storeKey(item.url))).size >= 3) return broad;
+  const discoverOnHost = async (host: string): Promise<DiscoveredLink[]> => {
+    const query = encodeURIComponent(`${name} site:${host}`);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 4_500);
+    try {
+      const response = await fetch(`https://search.yahoo.com/search?p=${query}`, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/136 Safari/537.36",
+          "Accept-Language": "ru-RU,ru;q=0.9,en;q=0.6",
+        },
+        cache: "no-store",
+        signal: controller.signal,
+      });
+      if (!response.ok) return [];
+      const html = await response.text();
+      const results: DiscoveredLink[] = [];
+      for (const match of html.matchAll(/\/RU=([^/"']+)/gi)) {
+        try {
+          const decoded = decodeURIComponent(match[1].replace(/&amp;/g, "&"));
+          const direct = isDirectProductUrl(decoded);
+          if (direct && storeKey(direct.toString()) === storeKey(`https://${host}`)) {
+            const start = Math.max(0, (match.index ?? 0) - 500);
+            const end = Math.min(html.length, (match.index ?? 0) + match[0].length + 2600);
+            const evidence = decodeSearchHtml(html.slice(start, end));
+            if (!evidenceMatchesProduct(name, `${direct.pathname} ${evidence}`, 1)) continue;
+            const item = {
+              label: linkLabel(direct.toString(), "Маркетплейс"),
+              url: direct.toString(),
+              indexedPrice: extractRublePrice(evidence),
+              evidence,
+            };
+            if (!results.some((result) => result.url === item.url)) results.push(item);
+            if (results.length >= 3) return results;
+          }
+        } catch { /* Ignore malformed search-result redirects. */ }
+      }
+      return results;
+    } catch {
+      return [];
+    } finally {
+      clearTimeout(timeout);
+    }
+  };
+  const existingStores = new Set(broad.map((item) => storeKey(item.url)));
+  const missingHosts = primaryDiscoveryHosts.filter((host) => !existingStores.has(storeKey(`https://${host}`)));
+  const found = (await Promise.all(missingHosts.map(discoverOnHost))).flat();
+  return [...broad, ...found]
+    .filter((item, index, all) => all.findIndex((candidate) => candidate.url === item.url) === index);
 }
 
 async function verifyCandidate(candidate: Candidate): Promise<VerifiedCandidate | null> {
+  const cacheKey = candidate.name.toLocaleLowerCase("ru").replace(/\s+/g, " ").trim();
+  const cached = evidenceCache.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) return cached.value;
   const discovered = await discoverMarketplaceUrls(candidate.name);
-  const retailerUrls = [...candidate.retailerUrls, ...discovered]
+  const retailerUrls: DiscoveredLink[] = [
+    ...candidate.retailerUrls.map((item) => ({ ...item, evidence: `${item.label} ${item.url}` })),
+    ...discovered,
+  ]
     .filter((item, index, array) => array.findIndex((other) => other.url === item.url) === index)
-    .slice(0, 12);
+    .slice(0, 16);
   const requests: Array<Promise<ProductLink | null>> = [];
-  for (const item of retailerUrls) requests.push(verifyLink(candidate.name, linkLabel(item.url, item.label), item.url, "marketplace"));
+  for (const item of retailerUrls) {
+    requests.push(verifyLink(
+      candidate.name,
+      linkLabel(item.url, item.label),
+      item.url,
+      "marketplace",
+      item.indexedPrice,
+      item.evidence,
+    ));
+  }
   const links = (await Promise.all(requests)).filter((item): item is ProductLink => Boolean(item));
-  const unique = links.filter((link, index, array) => array.findIndex((item) => item.href === link.href) === index).slice(0, 8);
+  const uniqueByStore = new Map<string, ProductLink>();
+  for (const link of links) {
+    const key = storeKey(link.href);
+    const existing = uniqueByStore.get(key);
+    if (!key || (existing?.price && !link.price)) continue;
+    uniqueByStore.set(key, link);
+  }
+  const unique = [...uniqueByStore.values()].slice(0, 8);
   const storeCount = new Set(unique.map((link) => storeKey(link.href)).filter(Boolean)).size;
-  return storeCount >= 3 && unique.length >= 3 ? { ...candidate, links: unique } : null;
+  const pricedStoreCount = new Set(unique.filter((link) => link.price).map((link) => storeKey(link.href)).filter(Boolean)).size;
+  const result = storeCount >= 3 && unique.length >= 3 && pricedStoreCount >= 2 ? { ...candidate, links: unique } : null;
+  evidenceCache.set(cacheKey, { expiresAt: Date.now() + EVIDENCE_CACHE_TTL, value: result });
+  return result;
 }
 
 function formatPriceRange(links: ProductLink[]): string | undefined {
@@ -525,6 +776,42 @@ function resultInsight(mode: SearchMode): string {
   if (mode === "skin") return "Новый уход вводите по одному средству и сначала проверяйте переносимость на небольшом участке кожи — так проще понять реальную реакцию.";
   if (mode === "hair") return "Кожу головы и длину оценивают отдельно: шампунь отвечает прежде всего за очищение, а кондиционер и защита — за состояние длины.";
   return "Аромат лучше оценивать на коже минимум 20–30 минут: блоттер показывает старт, но не индивидуальное раскрытие и комфорт в течение дня.";
+}
+
+function curatedCandidates(mode: SearchMode): Candidate[] {
+  return curatedFallback[mode].map((product) => ({
+    name: product.name,
+    category: product.category,
+    reason: product.reason,
+    matchScore: product.matchScore,
+    usage: product.usage,
+    tradeoffs: product.tradeoffs ?? [],
+    retailerUrls: product.marketplaces.map((link) => ({ label: link.label, url: link.href })),
+  }));
+}
+
+function mergeCandidates(primary: Candidate[], fallback: Candidate[]): Candidate[] {
+  const result: Candidate[] = [];
+  const seen = new Set<string>();
+  for (const candidate of [...primary, ...fallback]) {
+    const key = candidate.name.toLocaleLowerCase("ru").replace(/\s+/g, " ").trim();
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    result.push(candidate);
+  }
+  return result;
+}
+
+async function verifyInWaves(primary: Candidate[], fallback: Candidate[]): Promise<VerifiedCandidate[]> {
+  const firstWave = mergeCandidates(primary, []).slice(0, 6);
+  const firstVerified = (await Promise.all(firstWave.map(verifyCandidate)))
+    .filter((item): item is VerifiedCandidate => Boolean(item));
+  if (firstVerified.length >= 4) return firstVerified;
+  const used = new Set(firstWave.map((item) => item.name.toLocaleLowerCase("ru")));
+  const secondWave = fallback.filter((item) => !used.has(item.name.toLocaleLowerCase("ru"))).slice(0, 5);
+  const secondVerified = (await Promise.all(secondWave.map(verifyCandidate)))
+    .filter((item): item is VerifiedCandidate => Boolean(item));
+  return mergeCandidates(firstVerified, secondVerified) as VerifiedCandidate[];
 }
 
 function ensureMinimumProducts(mode: SearchMode, query: string, products: BeautyProduct[], minimum = 3): BeautyProduct[] {
@@ -594,26 +881,35 @@ async function critique(mode: SearchMode, query: string, profile: JsonRecord, ca
 
 export async function recommendBeauty(query: string, mode: SearchMode): Promise<BeautyRecommendation> {
   const config = modes[mode];
-  if (!process.env.DEEPSEEK_API_KEY?.trim()) {
-    return {
-      status: "no_verified_products",
-      mode,
-      summary: "Сейчас не могу собрать три подтверждённые карточки с ценами на разных маркетплейсах. Попробуйте повторить запрос позже.",
-      insight: resultInsight(mode),
-      products: ensureMinimumProducts(mode, query, []),
-      methodology: "curated-fallback",
-    };
-  }
-
-  const triageRaw = await callModel(
-    `Ты аналитик входящего запроса платформы «Красавица». Направление уже выбрано: «${config.label}». Не переключай его по собственной инициативе. ${sharedContract}
+  let triage: TriageResult = {
+    decision: "ready",
+    summary: "Я поняла задачу и собрала практичные варианты с учётом бюджета и указанной цели.",
+    profile: {},
+    redFlags: [],
+  };
+  let candidates: Candidate[] = [];
+  let providerAvailable = false;
+  if (process.env.DEEPSEEK_API_KEY?.trim()) {
+    try {
+      const raw = await callModel(
+        `Ты единый поисковый процессор платформы «Красавица» и профильный эксперт по направлению «${config.label}». Не переключай направление по собственной инициативе. ${sharedContract}
 ${config.triage}
+${config.specialist}
 Красные флаги: ${config.safety}
-Верни JSON {"decision":"ready|clarify|safety|decline","summary":"что достоверно понято без домыслов","question":"один самый полезный вопрос или пустая строка","profile":{"goal":"","constraints":[],"preferences":[],"budget":"","context":""},"red_flags":[]}. Clarify выбирай только когда без ответа высок риск нерелевантного или небезопасного подбора.`,
-    `<user_request>${query}</user_request>`,
-    800,
-  );
-  let triage = parseTriage(triageRaw);
+
+Сделай три шага внутри одного ответа: аккуратно извлеки профиль, проверь безопасность и предложи 8 реально существующих широко доступных товаров. Для обычного широкого запроса (например, «базовый уход до 3000 ₽», «хочу варианты» или «подарок») decision всегда ready: не заставляй пользователя заполнять анкету и не оставляй его без результата. Если бюджет указан для всей рутины или это следует из формулировки, оценивай бюджет суммарно; если бюджет на одно средство — отдельно. При ограниченном бюджете предпочитай массовые товары, которые обычно представлены одновременно на Яндекс Маркете, Wildberries и Ozon. URL можно оставить пустыми: сервер самостоятельно найдёт и подтвердит карточки.
+
+Верни JSON {"decision":"ready|safety|decline","summary":"дружелюбное краткое резюме запроса на русском","question":"только при safety или decline","profile":{"goal":"","constraints":[],"preferences":[],"budget":"","budget_scope":"routine|item|unknown","context":""},"red_flags":[],"products":[{"name":"точное официальное название","category":"роль в подборе","reason":"почему подходит запросу без рекламных обещаний","match_score":0,"usage":"короткий безопасный способ применения или тестирования","tradeoffs":["честное ограничение"],"retailer_urls":[{"label":"магазин","url":"прямая карточка, только если точно известна"}]}]}.`,
+        `<user_request>${query}</user_request>`,
+        2100,
+      );
+      triage = parseTriage(raw);
+      candidates = parseCandidates(raw);
+      providerAvailable = true;
+    } catch {
+      triage.summary = "Подобрала надёжные базовые варианты из проверяемого каталога — запрос не потерялся, даже если экспертный слой временно отвечал дольше обычного.";
+    }
+  }
   if (triage.decision === "clarify") {
     triage = {
       ...triage,
@@ -629,7 +925,7 @@ ${config.triage}
       insight: resultInsight(mode),
       followUpQuestion: triage.question || "Уточните цель, ограничения и бюджет.",
       products: [],
-      methodology: "grounded-v3",
+      methodology: "grounded-v4",
     };
   }
   if (triage.decision === "safety") {
@@ -640,34 +936,17 @@ ${config.triage}
       insight: resultInsight(mode),
       followUpQuestion: "После очной оценки специалиста можно вернуться за подбором поддерживающего косметического ухода.",
       products: [],
-      methodology: "grounded-v3",
+      methodology: "grounded-v4",
     };
   }
 
-  const candidateRaw = await callModel(
-    `Ты профильный эксперт платформы «Красавица» по направлению «${config.label}». ${sharedContract}
-${config.specialist}
-${config.safety}
-  Сначала внутренне проверь каждый вариант по всем ограничениям, но не раскрывай цепочку рассуждений. Предложи 6 независимых кандидатов, чтобы после серверной проверки осталось минимум 3. Товар без известной прямой карточки маркетплейса не включай. Для каждого кандидата обязательны минимум три разные прямые карточки из списка goldapple.ru, market.yandex.ru, letu.ru, rivegauche.ru, wildberries.ru, ozon.ru, tsum.ru — только там, где видна цена конкретного товара. В user payload передан verified_catalog: это уже проверенные сервером товары и URL. Если товар из него соответствует запросу, используй его точное имя и marketplace_urls без изменений. Не указывай официальный сайт бренда. Не создавай поисковые или категорийные ссылки.
-Верни JSON {"products":[{"name":"точное официальное название","category":"роль","reason":"почему подходит именно профилю без неподтверждённых свойств","match_score":0,"usage":"короткий безопасный способ применения или тестирования","tradeoffs":["честное ограничение"],"retailer_urls":[{"label":"название маркетплейса","url":"https://прямая-карточка-товара"}]}]}. Не указывай цену и пользовательский рейтинг: сервер извлечёт актуальную цену из подтверждённых страниц и сам рассчитает диапазон min–max.`,
-    JSON.stringify({
-      user_query: query,
-      extracted_profile: triage.profile,
-      verified_catalog: curatedFallback[mode].map((product) => ({
-        name: product.name,
-        category: product.category,
-        marketplace_urls: product.marketplaces.map((link) => link.href),
-      })),
-    }),
-    1900,
-  );
-  const candidates = parseCandidates(candidateRaw).slice(0, 4);
-  const verified = (await Promise.all(candidates.map(verifyCandidate))).filter((item): item is VerifiedCandidate => Boolean(item));
-  if (!verified.length) {
+  const fallbackCandidates = curatedCandidates(mode);
+  const verified = await verifyInWaves(candidates, fallbackCandidates);
+  if (verified.length < 3) {
     return {
       status: "no_verified_products",
       mode,
-      summary: `${triage.summary} Не удалось подтвердить для одной позиции минимум три отдельные карточки с актуальной ценой. Поэтому подбор не публикую — без случайных ссылок и оценочных цен.`,
+      summary: `${triage.summary} Сейчас магазины не отдали достаточно подтверждений для трёх честных ценовых сравнений. Я сохранила запрос и не подменяю карточки поисковыми ссылками.`,
       insight: resultInsight(mode),
       products: ensureMinimumProducts(mode, query, []),
       methodology: "curated-fallback",
@@ -676,7 +955,7 @@ ${config.safety}
 
   let summary = triage.summary;
   let finalProducts = verified.sort((a, b) => b.matchScore - a.matchScore).slice(0, 4);
-  if (process.env.BEAUTY_ENABLE_AI_CRITIQUE === "1") {
+  if (providerAvailable && process.env.BEAUTY_ENABLE_AI_CRITIQUE === "1") {
     try {
       const reviewed = await critique(mode, query, triage.profile, verified);
       if (reviewed.products.length) {
@@ -696,7 +975,7 @@ ${config.safety}
       summary: `${summary} После финальной проверки осталось меньше трёх товаров с ценами минимум на трёх маркетплейсах. Уточните бюджет, объём или желаемые бренды — я повторю поиск.`,
       insight: resultInsight(mode),
       products: [],
-      methodology: "grounded-v3",
+      methodology: "grounded-v4",
     };
   }
   return {
@@ -705,7 +984,7 @@ ${config.safety}
     summary,
     insight: resultInsight(mode),
     products: publicProducts,
-    methodology: "grounded-v3",
+    methodology: "grounded-v4",
   };
 }
 
@@ -713,13 +992,24 @@ export function isSearchMode(value: unknown): value is SearchMode {
   return value === "skin" || value === "hair" || value === "perfume";
 }
 
-export function fallbackRecommendation(mode: SearchMode): BeautyRecommendation {
-  return {
-    status: "no_verified_products",
-    mode,
-    summary: "AI-провайдер временно недоступен, а три проверенные ценовые карточки собрать нельзя. Попробуйте повторить запрос позже.",
-    insight: resultInsight(mode),
-    products: ensureMinimumProducts(mode, "", []),
-    methodology: "curated-fallback",
-  };
+export async function fallbackRecommendation(mode: SearchMode): Promise<BeautyRecommendation> {
+  const verified = await verifyInWaves([], curatedCandidates(mode));
+  const products = ensureMinimumProducts(mode, "", verified.map((item, index) => toPublicProduct(mode, item, index)));
+  return products.length >= 3
+    ? {
+      status: "complete",
+      mode,
+      summary: "Экспертный слой временно недоступен, поэтому я собрала спокойные базовые варианты из проверяемого каталога и сверила реальные карточки магазинов.",
+      insight: resultInsight(mode),
+      products,
+      methodology: "curated-fallback",
+    }
+    : {
+      status: "no_verified_products",
+      mode,
+      summary: "Магазины временно не отдали достаточно данных для честного сравнения цен. Запрос можно безопасно повторить чуть позже.",
+      insight: resultInsight(mode),
+      products: [],
+      methodology: "curated-fallback",
+    };
 }

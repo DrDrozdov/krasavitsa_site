@@ -8,7 +8,7 @@ import { isSearchMode, type SearchMode } from "@/lib/beauty-engine";
 export const runtime = "nodejs";
 
 const sourceHosts = [
-  "goldapple.ru", "letu.ru", "rivegauche.ru", "wildberries.ru", "market.yandex.ru", "tsum.ru",
+  "goldapple.ru", "letu.ru", "rivegauche.ru", "wildberries.ru", "market.yandex.ru", "ozon.ru", "tsum.ru",
 ];
 
 const fallback: Record<SearchMode, string> = {

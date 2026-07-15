@@ -27,7 +27,7 @@ export async function POST(request: Request) {
       });
     } catch (error) {
       console.error("Beauty recommendation pipeline failed", error instanceof Error ? error.message : error);
-      return NextResponse.json(fallbackRecommendation(mode), {
+      return NextResponse.json(await fallbackRecommendation(mode), {
         headers: { "Cache-Control": "no-store" },
       });
     }
