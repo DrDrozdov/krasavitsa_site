@@ -19,7 +19,11 @@ export function DigitalLotus({ className, compact = false }: { className?: strin
         <defs>
           <linearGradient id={petalGradient} x1="0" y1="0" x2="1" y2="1">
             <stop offset="0" className="lotus-stop-pearl" />
-            <stop offset="0.44" className="lotus-stop-pink" />
+            <stop offset="0.18" className="lotus-stop-pink" />
+            <stop offset="0.34" className="lotus-stop-violet" />
+            <stop offset="0.51" className="lotus-stop-ice" />
+            <stop offset="0.68" className="lotus-stop-rose" />
+            <stop offset="0.84" className="lotus-stop-pearl" />
             <stop offset="1" className="lotus-stop-wine" />
           </linearGradient>
           <linearGradient id={edgeGradient} x1="0" y1="0" x2="0" y2="1">

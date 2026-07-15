@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, Sparkles } from "lucide-react";
+import { JournalReadingProgress } from "@/components/journal-reading-progress";
 import { BeautyPageShell, TelegramCTA } from "@/components/portal-components";
 import { blogPosts, getPost } from "@/data/blog";
 
@@ -33,6 +34,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
   return (
     <BeautyPageShell className="article-motion-page">
+      <JournalReadingProgress />
       <article className="longform-article section-shell">
         <header><Link href="/blog"><ArrowLeft />Назад в журнал</Link><p>{post.category} · {post.readTime}</p><h1>{post.title}</h1><strong>{post.excerpt}</strong></header>
         <div className="longform-cover"><Image src={post.image} alt="" fill priority sizes="(min-width: 1024px) 1200px, 100vw" /></div>

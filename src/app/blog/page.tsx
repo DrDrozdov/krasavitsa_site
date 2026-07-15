@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
-import Image from "next/image";
-import Link from "next/link";
-import { ArrowDownRight, ArrowRight, PenLine } from "lucide-react";
+import { PenLine } from "lucide-react";
 import { BlogFilter } from "@/components/blog-filter";
 import { BlogStudio } from "@/components/blog-studio";
+import { JournalStack } from "@/components/journal-stack";
 import { BeautyPageShell, TelegramCTA } from "@/components/portal-components";
 import { blogPosts } from "@/data/blog";
 
@@ -14,36 +13,22 @@ export const metadata: Metadata = {
 };
 
 export default function BlogPage() {
-  const featured = blogPosts[0];
   const categories = [...new Set(blogPosts.map((post) => post.category))];
 
   return (
     <BeautyPageShell className="journal-motion-page">
-      <header className="journal-masthead section-shell">
+      <header className="journal-masthead journal-press-nav section-shell">
         <div className="journal-utility"><span>Красавица · Журнал</span><span>Истории, опыт и ясные разборы</span><a href="#write"><PenLine />Создать статью</a></div>
         <nav className="journal-section-nav" aria-label="Темы журнала">
           {categories.map((category) => <a key={category} href="#articles">{category}</a>)}
         </nav>
-        <div className="journal-title-lockup"><h1>Журнал</h1><span>читать · обсуждать · писать</span></div>
-        <div className="journal-deck"><p>Разбираем уход, составы и ароматы с уважением к контексту — без тревожной ленты и рекламного шума.</p><a href="#articles">К историям <ArrowDownRight /></a></div>
       </header>
 
-      <section className="journal-lead section-shell" id="articles">
-        <Link href={`/blog/${featured.slug}`} className="journal-lead-image">
-          <Image src={featured.image} alt="" fill priority sizes="(min-width: 900px) 62vw, 100vw" />
-          <span>Выбор редакции</span>
-        </Link>
-        <article className="journal-lead-copy">
-          <p>{featured.category} · {featured.readTime}</p>
-          <h2><Link href={`/blog/${featured.slug}`}>{featured.title}</Link></h2>
-          <div><p>{featured.excerpt}</p><Link href={`/blog/${featured.slug}`}>Читать материал <ArrowRight /></Link></div>
-        </article>
-        <aside className="journal-editor-note"><span>Принцип журнала</span><strong>Один текст — одна ясная мысль.</strong><p>Авторы делятся опытом, читатели реагируют и обсуждают, а редакция помогает сохранить практический смысл.</p></aside>
-      </section>
+      <JournalStack posts={blogPosts} />
 
-      <section className="journal-index section-shell">
-        <div><p>Истории и опыт</p><h2>Читайте по задаче,<br />а не по тревоге.</h2></div>
-        <BlogFilter posts={blogPosts.slice(1)} categories={categories} />
+      <section className="journal-index journal-page-index section-shell" id="articles">
+        <div><p>Архив выпусков</p><h2>Читайте медленнее.<br />Выбирайте точнее.</h2><span>Каждый материал — отдельная глянцевая страница: одна тема, ясный вывод и место для обсуждения.</span></div>
+        <BlogFilter posts={blogPosts} categories={categories} />
       </section>
 
       <BlogStudio />

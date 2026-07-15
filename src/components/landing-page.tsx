@@ -7,6 +7,7 @@ import { useRef, type CSSProperties } from "react";
 import { InstagramIcon, SiteFooter, SiteHeader, VkIcon } from "@/components/portal-components";
 import { LinkButton } from "@/components/ui/button";
 import { DigitalLotus } from "@/components/digital-lotus";
+import { HeroRibbonField } from "@/components/hero-ribbon-field";
 
 const directions = [
   { label: "Кожа", number: "01", text: "Барьер, активы, чувствительность и SPF", Icon: Droplets },
@@ -31,21 +32,25 @@ export function LandingPage() {
   const mediaY = useTransform(smoothY, (value) => value * -0.55);
   const typeX = useTransform(smoothX, (value) => value * .24);
   const { scrollYProgress: heroProgress } = useScroll({ target: heroRef, offset: ["start start", "end end"] });
-  const heroScale = useTransform(heroProgress, [0, .58, .82, 1], [1, 1, .985, .96]);
-  const heroRadius = useTransform(heroProgress, [0, .58, .82, 1], [0, 0, 22, 42]);
-  const lotusScale = useTransform(heroProgress, [0, .16, .5, .72, .88], [.76, .94, 1.12, 3.8, 8.4]);
-  const lotusY = useTransform(heroProgress, [0, .48, .78, 1], [0, -8, -48, -160]);
-  const lotusRotate = useTransform(heroProgress, [0, .55, .82], [0, -2, 7]);
-  const lotusOpacity = useTransform(heroProgress, [.73, .88, .96], [1, .68, 0]);
-  const lotusBloom = useTransform(heroProgress, [0, .12, .3, .58], [0, .04, .36, 1]);
+  const heroScale = useTransform(heroProgress, [0, .54, .78, 1], [1, 1, .99, .955]);
+  const heroRadius = useTransform(heroProgress, [0, .54, .78, 1], [0, 0, 18, 42]);
+  const ribbonScale = useTransform(heroProgress, [0, .3, .57, .8], [1, 1.05, 1.48, 3.6]);
+  const ribbonRotate = useTransform(heroProgress, [0, .38, .8], [0, -2, 11]);
+  const ribbonOpacity = useTransform(heroProgress, [.56, .76, .9], [1, .76, 0]);
+  const lotusScale = useTransform(heroProgress, [0, .18, .48, .7], [.38, .46, .54, .82]);
+  const lotusY = useTransform(heroProgress, [0, .44, .76], [0, -4, -28]);
+  const lotusRotate = useTransform(heroProgress, [0, .5, .76], [0, -2, 4]);
+  const lotusOpacity = useTransform(heroProgress, [.68, .82, .9], [1, .5, 0]);
+  const lotusBloom = useTransform(heroProgress, [0, .16, .34, .48], [.08, .14, .56, 1]);
+  const lotusScatter = useTransform(heroProgress, [.38, .7], [0, 1]);
   const titleY = useTransform(heroProgress, [0, .28, .54], [0, -8, -72]);
   const titleScale = useTransform(heroProgress, [0, .3, .58], [1, .98, .9]);
   const titleOpacity = useTransform(heroProgress, [0, .3, .58], [1, .92, 0]);
   const detailOpacity = useTransform(heroProgress, [0, .2, .48], [1, .8, 0]);
-  const transitionY = useTransform(heroProgress, [.54, .9], ["101%", "0%"]);
-  const transitionRadius = useTransform(heroProgress, [.54, .9], [64, 0]);
-  const transitionCopyY = useTransform(heroProgress, [.68, .92], [80, 0]);
-  const transitionCopyOpacity = useTransform(heroProgress, [.68, .84, .94], [0, .6, 1]);
+  const transitionY = useTransform(heroProgress, [.53, .82], ["101%", "0%"]);
+  const transitionRadius = useTransform(heroProgress, [.53, .82], [72, 0]);
+  const transitionCopyY = useTransform(heroProgress, [.61, .84], [110, 0]);
+  const transitionCopyOpacity = useTransform(heroProgress, [.61, .76, .88], [0, .62, 1]);
 
   return (
     <main className="site-shell home-page cinematic-site">
@@ -65,6 +70,9 @@ export function LandingPage() {
         <div className="aerocore-sticky">
           <motion.div className="aerocore-hero" style={reduceMotion ? undefined : { scale: heroScale, borderRadius: heroRadius }}>
             <motion.div className="aerocore-media" style={reduceMotion ? undefined : { x: mediaX, y: mediaY }} aria-hidden="true">
+              <motion.div className="aerocore-ribbon-stage" style={reduceMotion ? undefined : { scale: ribbonScale, rotate: ribbonRotate, opacity: ribbonOpacity }}>
+                <HeroRibbonField />
+              </motion.div>
               <div className="aerocore-plane-lines" />
               <motion.div
                 className="aerocore-lotus-stage"
@@ -74,6 +82,7 @@ export function LandingPage() {
                   rotate: lotusRotate,
                   opacity: lotusOpacity,
                   "--lotus-bloom": lotusBloom,
+                  "--lotus-scatter": lotusScatter,
                 } as never}
               >
                 <DigitalLotus className="aerocore-lotus" />
