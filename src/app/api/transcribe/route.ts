@@ -17,7 +17,13 @@ function trustedOrigin(request: Request) {
   const origin = request.headers.get("origin");
   if (!origin) return true;
   try {
-    return new URL(origin).host === new URL(request.url).host;
+    const originHost = new URL(origin).host.toLowerCase();
+    const forwardedHost = request.headers.get("x-forwarded-host")?.split(",")[0]?.trim().toLowerCase();
+    const directHost = request.headers.get("host")?.trim().toLowerCase();
+    const publicHost = process.env.NEXT_PUBLIC_SITE_URL
+      ? new URL(process.env.NEXT_PUBLIC_SITE_URL).host.toLowerCase()
+      : null;
+    return [forwardedHost, directHost, publicHost].filter(Boolean).includes(originHost);
   } catch {
     return false;
   }
