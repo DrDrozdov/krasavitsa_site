@@ -467,9 +467,44 @@ function linkLabel(url: string, fallback: string): string {
   } catch { return fallback || "Карточка товара"; }
 }
 
+async function discoverMarketplaceUrls(name: string): Promise<Array<{ label: string; url: string }>> {
+  const sites = defaultAllowedHosts.map((host) => `site:${host}`).join(" OR ");
+  const query = encodeURIComponent(`"${name}" (${sites})`);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 6_000);
+  try {
+    const response = await fetch(`https://html.duckduckgo.com/html/?q=${query}`, {
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; KrasavitsaProductDiscovery/3.0)" },
+      cache: "no-store",
+      signal: controller.signal,
+    });
+    if (!response.ok) return [];
+    const html = await response.text();
+    const urls: Array<{ label: string; url: string }> = [];
+    for (const match of html.matchAll(/uddg=([^&"']+)/gi)) {
+      try {
+        const decoded = decodeURIComponent(match[1].replace(/&amp;/g, "&"));
+        const direct = isDirectProductUrl(decoded);
+        if (!direct || urls.some((item) => item.url === direct.toString())) continue;
+        urls.push({ label: linkLabel(direct.toString(), "Маркетплейс"), url: direct.toString() });
+        if (urls.length >= 12) break;
+      } catch { /* Ignore malformed search-result redirects. */ }
+    }
+    return urls;
+  } catch {
+    return [];
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 async function verifyCandidate(candidate: Candidate): Promise<VerifiedCandidate | null> {
+  const discovered = candidate.retailerUrls.length >= 4 ? [] : await discoverMarketplaceUrls(candidate.name);
+  const retailerUrls = [...candidate.retailerUrls, ...discovered]
+    .filter((item, index, array) => array.findIndex((other) => other.url === item.url) === index)
+    .slice(0, 12);
   const requests: Array<Promise<ProductLink | null>> = [];
-  for (const item of candidate.retailerUrls) requests.push(verifyLink(candidate.name, linkLabel(item.url, item.label), item.url, "marketplace"));
+  for (const item of retailerUrls) requests.push(verifyLink(candidate.name, linkLabel(item.url, item.label), item.url, "marketplace"));
   const links = (await Promise.all(requests)).filter((item): item is ProductLink => Boolean(item));
   const unique = links.filter((link, index, array) => array.findIndex((item) => item.href === link.href) === index).slice(0, 8);
   return unique.length ? { ...candidate, links: unique } : null;
