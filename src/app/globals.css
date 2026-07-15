@@ -3907,3 +3907,238 @@ p {
     display: none;
   }
 }
+
+/* AeroCore handoff: the hero recedes and the next chapter rises from the lotus. */
+.aerocore-stage {
+  height: 132svh;
+  background: var(--color-bg);
+}
+
+.aerocore-sticky {
+  padding: 0;
+  background: var(--color-bg);
+}
+
+.aerocore-hero {
+  z-index: 2;
+  background: #300714;
+  box-shadow: none;
+}
+
+.aerocore-media {
+  background: #300714;
+}
+
+.aerocore-lotus-stage {
+  position: absolute;
+  inset: -5%;
+  transform-origin: center 54%;
+  will-change: transform, opacity;
+}
+
+.aerocore-lotus {
+  object-fit: cover;
+  object-position: center 48%;
+  filter: saturate(.92) contrast(1.05) brightness(.74);
+}
+
+.aerocore-wash {
+  background:
+    linear-gradient(90deg, rgba(21, 2, 10, .54), transparent 36%, rgba(21, 2, 10, .22) 70%, rgba(21, 2, 10, .42)),
+    linear-gradient(0deg, rgba(18, 2, 9, .56), transparent 42%, rgba(18, 2, 9, .16));
+}
+
+.aerocore-title {
+  top: 53%;
+  font-size: clamp(4.3rem, 11.4vw, 11.2rem);
+  font-weight: 360;
+  letter-spacing: -.04em;
+}
+
+.aerocore-reveal-panel {
+  position: absolute;
+  z-index: 1;
+  inset: auto 0 0;
+  min-height: 22svh;
+  display: grid;
+  grid-template-columns: minmax(180px, .7fr) minmax(300px, 1.2fr) auto;
+  align-items: end;
+  gap: clamp(18px, 4vw, 72px);
+  padding: clamp(24px, 4vw, 56px) clamp(20px, 5vw, 86px) clamp(18px, 3vw, 38px);
+  background: var(--color-bg);
+  color: var(--color-text);
+  will-change: transform, opacity;
+}
+
+.aerocore-reveal-panel > span {
+  align-self: start;
+  color: var(--color-bordeaux);
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+
+.aerocore-reveal-panel > strong {
+  max-width: 620px;
+  font-family: "Unbounded", sans-serif;
+  font-size: clamp(1.15rem, 2.6vw, 3.2rem);
+  font-weight: 580;
+  line-height: 1.02;
+  letter-spacing: -.04em;
+}
+
+.aerocore-reveal-panel > div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.aerocore-reveal-panel i {
+  border: 1px solid var(--color-border-strong);
+  padding: 8px 11px;
+  color: var(--color-text-muted);
+  font-size: .66rem;
+  font-style: normal;
+  font-weight: 760;
+}
+
+.aerocore-stage + .direction-editorial {
+  margin-top: 0;
+  padding-top: clamp(42px, 5vw, 78px);
+  padding-bottom: clamp(76px, 9vw, 132px);
+}
+
+/* One persistent shared chrome. Core routes live in the bar; the full map lives in the burger. */
+.site-header {
+  height: 78px;
+  padding-top: max(12px, env(safe-area-inset-top));
+}
+
+.site-chrome,
+.site-header.is-scrolled .site-chrome,
+.site-header.is-home:not(.is-scrolled) .site-chrome {
+  width: min(1480px, calc(100% - 34px));
+  min-height: 58px;
+  border-color: color-mix(in srgb, var(--color-border-strong) 78%, transparent);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--color-glass-strong) 78%, transparent);
+  box-shadow: 0 8px 22px rgba(47, 8, 23, .1);
+  backdrop-filter: blur(22px) saturate(1.15);
+  -webkit-backdrop-filter: blur(22px) saturate(1.15);
+  animation: shared-chrome-enter .64s var(--ease-soft) both;
+}
+
+.site-header.is-scrolled .site-chrome {
+  transform: translateY(-2px) scale(.992);
+}
+
+.site-header.is-home:not(.is-scrolled) .brand-mark,
+.site-header.is-home:not(.is-scrolled) .desktop-nav-link,
+.site-header.is-home:not(.is-scrolled) .header-icon-button,
+.site-header.is-home:not(.is-scrolled) .theme-switch {
+  color: var(--color-text);
+}
+
+.site-header.is-home:not(.is-scrolled) .header-icon-button,
+.site-header.is-home:not(.is-scrolled) .theme-switch {
+  border-color: var(--color-border);
+  background: var(--color-surface);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.site-header.is-home:not(.is-scrolled) .desktop-nav-link::before {
+  background: var(--color-surface-muted);
+}
+
+.header-cta,
+.site-header.is-home:not(.is-scrolled) .header-cta {
+  border: 1px solid var(--color-border) !important;
+  background: var(--color-surface) !important;
+  color: var(--color-bordeaux) !important;
+}
+
+.menu-trigger {
+  display: grid;
+}
+
+@keyframes shared-chrome-enter {
+  from { opacity: 0; transform: translateY(-10px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (max-width: 767px) {
+  .site-header {
+    height: 70px;
+    padding-top: max(7px, env(safe-area-inset-top));
+  }
+
+  .site-chrome,
+  .site-header.is-scrolled .site-chrome,
+  .site-header.is-home:not(.is-scrolled) .site-chrome {
+    width: calc(100% - 16px);
+    min-height: 54px;
+    border-radius: 15px;
+  }
+
+  .aerocore-stage {
+    height: 124svh;
+  }
+
+  .aerocore-lotus-stage {
+    inset: -2% -24%;
+  }
+
+  .aerocore-lotus {
+    object-position: center 47%;
+  }
+
+  .aerocore-title {
+    top: 48%;
+    font-size: clamp(3.25rem, 16.4vw, 5rem);
+  }
+
+  .aerocore-reveal-panel {
+    min-height: 20svh;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    padding: 18px 16px 14px;
+  }
+
+  .aerocore-reveal-panel > span {
+    display: none;
+  }
+
+  .aerocore-reveal-panel > strong {
+    max-width: 260px;
+    font-size: clamp(1rem, 5vw, 1.38rem);
+  }
+
+  .aerocore-reveal-panel > div {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+
+  .aerocore-reveal-panel i {
+    padding: 6px 8px;
+    font-size: .58rem;
+  }
+
+  .aerocore-stage + .direction-editorial {
+    padding-top: 34px;
+    padding-bottom: 68px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aerocore-reveal-panel {
+    display: none;
+  }
+
+  .aerocore-lotus-stage {
+    transform: none !important;
+  }
+}

@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Bot, Droplets, Heart, History, Scissors, Send, Sparkles, UserRound } from "lucide-react";
 import { motion, useMotionValue, useReducedMotion, useScroll, useSpring, useTransform } from "motion/react";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { InstagramIcon, SiteFooter, SiteHeader, VkIcon } from "@/components/portal-components";
 import { LinkButton } from "@/components/ui/button";
 
@@ -23,7 +23,6 @@ const process = [
 export function LandingPage() {
   const reduceMotion = useReducedMotion();
   const heroRef = useRef<HTMLElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
   const pointerX = useMotionValue(0);
   const pointerY = useMotionValue(0);
   const smoothX = useSpring(pointerX, { stiffness: 80, damping: 22, mass: .7 });
@@ -32,22 +31,16 @@ export function LandingPage() {
   const mediaY = useTransform(smoothY, (value) => value * -0.55);
   const typeX = useTransform(smoothX, (value) => value * .24);
   const { scrollYProgress: heroProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
-  const heroScale = useTransform(heroProgress, [0, .56, 1], [1, .965, .84]);
-  const heroRadius = useTransform(heroProgress, [0, .55, 1], [0, 8, 20]);
-  const mediaScale = useTransform(heroProgress, [0, .65, 1], [1, 1.045, 1.12]);
-  const mediaScrollY = useTransform(heroProgress, [0, 1], [0, -42]);
-  const titleY = useTransform(heroProgress, [0, .55, 1], [0, -22, -86]);
-  const titleOpacity = useTransform(heroProgress, [0, .68, 1], [1, .9, .26]);
-  const detailOpacity = useTransform(heroProgress, [0, .35, .72], [1, .72, 0]);
-  const peekY = useTransform(heroProgress, [.48, 1], [52, 0]);
-  const peekOpacity = useTransform(heroProgress, [.42, .72, 1], [0, .56, 1]);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-    if (reduceMotion) video.pause();
-    else void video.play().catch(() => undefined);
-  }, [reduceMotion]);
+  const heroScale = useTransform(heroProgress, [0, .48, 1], [1, .972, .86]);
+  const heroRadius = useTransform(heroProgress, [0, .5, 1], [0, 10, 18]);
+  const lotusScale = useTransform(heroProgress, [0, .58, 1], [1, 1.1, 1.62]);
+  const lotusY = useTransform(heroProgress, [0, 1], [0, -126]);
+  const lotusOpacity = useTransform(heroProgress, [.5, 1], [1, .14]);
+  const titleY = useTransform(heroProgress, [0, .5, 1], [0, -18, -118]);
+  const titleOpacity = useTransform(heroProgress, [0, .62, 1], [1, .9, 0]);
+  const detailOpacity = useTransform(heroProgress, [0, .28, .66], [1, .76, 0]);
+  const revealY = useTransform(heroProgress, [.44, 1], [112, 0]);
+  const revealOpacity = useTransform(heroProgress, [.42, .7, 1], [0, .65, 1]);
 
   return (
     <main className="site-shell home-page cinematic-site">
@@ -69,20 +62,10 @@ export function LandingPage() {
             className="aerocore-hero"
             style={reduceMotion ? undefined : { scale: heroScale, borderRadius: heroRadius }}
           >
-            <motion.div className="aerocore-media" style={reduceMotion ? undefined : { scale: mediaScale, y: mediaScrollY }} aria-hidden="true">
-              <Image src="/krasavitsa-cinematic-hero-v2.png" alt="" fill priority sizes="100vw" className="aerocore-poster" />
-              <motion.video
-                ref={videoRef}
-                autoPlay
-                muted
-                loop
-                playsInline
-                preload="metadata"
-                poster="/krasavitsa-cinematic-hero-v2.png"
-                style={reduceMotion ? undefined : { x: mediaX, y: mediaY }}
-              >
-                <source src="/krasavitsa-beauty-loop-source.mp4" type="video/mp4" />
-              </motion.video>
+            <motion.div className="aerocore-media" style={reduceMotion ? undefined : { x: mediaX, y: mediaY }} aria-hidden="true">
+              <motion.div className="aerocore-lotus-stage" style={reduceMotion ? undefined : { scale: lotusScale, y: lotusY, opacity: lotusOpacity }}>
+                <Image src="/krasavitsa-lotus-hero-v1.png" alt="" fill priority sizes="100vw" className="aerocore-lotus" />
+              </motion.div>
               <div className="aerocore-wash" />
             </motion.div>
 
@@ -103,10 +86,10 @@ export function LandingPage() {
 
           </motion.div>
 
-          <motion.div className="aerocore-next-peek" style={reduceMotion ? undefined : { opacity: peekOpacity, y: peekY }} aria-hidden="true">
-            <span>Выберите направление</span>
-            <strong>Кожа · Волосы · Ароматы</strong>
-            <ArrowRight />
+          <motion.div className="aerocore-reveal-panel" style={reduceMotion ? undefined : { opacity: revealOpacity, y: revealY }} aria-hidden="true">
+            <span>Лотос раскрывается в ваш сценарий</span>
+            <strong>Выберите направление — и начнём.</strong>
+            <div><i>Кожа</i><i>Волосы</i><i>Ароматы</i></div>
           </motion.div>
         </div>
       </section>
