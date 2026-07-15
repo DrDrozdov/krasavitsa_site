@@ -50,7 +50,7 @@ type Candidate = {
   matchScore: number;
   usage?: string;
   tradeoffs: string[];
-  retailerUrls: Array<{ label: string; url: string }>;
+  retailerUrls: Array<{ label: string; url: string; indexedPrice?: number; trustedIdentity?: boolean }>;
 };
 
 type VerifiedCandidate = Candidate & { links: ProductLink[] };
@@ -119,7 +119,11 @@ const curatedFallback: Record<SearchMode, BeautyProduct[]> = {
       tradeoffs: ["Это спокойный базовый вариант; индивидуальную переносимость всё равно важно проверить."],
       image: visuals.skin,
       imageKind: "category-visual",
-      marketplaces: [],
+      marketplaces: [
+        { label: "Wildberries", href: "https://www.wildberries.ru/catalog/269815256/detail.aspx", kind: "marketplace", price: 4091, currency: "RUB" },
+        { label: "Ozon", href: "https://www.ozon.ru/product/uvlazhnyayushchiy-gel-krem-dlya-litsa-s-ovsom-purito-oat-in-calming-gel-cream-100-ml-s-pantenolom-4935845433/", kind: "marketplace" },
+        { label: "Золотое Яблоко", href: "https://goldapple.ru/19000125866-oat-in-calming", kind: "marketplace" },
+      ],
     },
     {
       name: "COSRX Low pH Good Morning Gel Cleanser",
@@ -131,7 +135,12 @@ const curatedFallback: Record<SearchMode, BeautyProduct[]> = {
       tradeoffs: ["Содержит компоненты, которые могут не подойти реактивной коже."],
       image: visuals.skin,
       imageKind: "category-visual",
-      marketplaces: [],
+      marketplaces: [
+        { label: "Яндекс Маркет", href: "https://market.yandex.ru/card/cosrx-gel-dlya-umyvaniya-good-morning-low-ph-gel-cleanser-utrenniy-s-bha-kislotami-i-nizkim-ph-150-ml/103713815323", kind: "marketplace" },
+        { label: "Wildberries", href: "https://www.wildberries.ru/catalog/1174501085/detail.aspx", kind: "marketplace", price: 1429, currency: "RUB" },
+        { label: "Ozon", href: "https://www.ozon.ru/product/cosrx-gel-dlya-umyvaniya-low-ph-good-morning-gel-cleanser-150-ml-326640337/", kind: "marketplace" },
+        { label: "Золотое Яблоко", href: "https://goldapple.ru/97560200022-low-ph-good-morning-gel-cleanser", kind: "marketplace" },
+      ],
     },
     {
       name: "Beauty of Joseon Relief Sun: Rice + Probiotics SPF50+ PA++++",
@@ -143,19 +152,29 @@ const curatedFallback: Record<SearchMode, BeautyProduct[]> = {
       tradeoffs: ["Финиш и переносимость индивидуальны; формулы для разных рынков могут отличаться."],
       image: visuals.skin,
       imageKind: "category-visual",
-      marketplaces: [{ label: "Яндекс Маркет", href: "https://ngo.integration.market.yandex.ru/card/krem-dlya-litsa-s-probiotikami-solntsezashchitnyy--beauty-of-joseon-relief-sun-riceprobiotics-spf-50-pa-50-ml/103197717356", kind: "marketplace" }],
+      marketplaces: [
+        { label: "Яндекс Маркет", href: "https://market.yandex.ru/card/beauty-of-joseon-solntsezashchitnyy-krem-relief-sun-rice--probiotics-spf-50-50-ml/4679523226", kind: "marketplace" },
+        { label: "Wildberries", href: "https://www.wildberries.ru/catalog/913060059/detail.aspx", kind: "marketplace", price: 1204, currency: "RUB" },
+        { label: "Ozon", href: "https://www.ozon.ru/product/beauty-of-joseon-solntsezashchitnyy-krem-dlya-litsa-relief-sun-rice-probiotics-spf50-50-ml-2952952127/", kind: "marketplace" },
+        { label: "Золотое Яблоко", href: "https://goldapple.ru/19000225153-relief-sun-rice-probiotics", kind: "marketplace" },
+      ],
     },
     {
-      name: "CeraVe Foaming Cleanser 236 ml",
-      category: "Очищение",
-      reason: "Широко доступный базовый вариант для нормальной и склонной к жирности кожи; важно оценить отсутствие стянутости.",
+      name: "LIBREDERM Cerafavit 0+ крем для лица и тела 75 мл",
+      category: "Базовый крем",
+      reason: "Доступный базовый крем с церамидами и пребиотиком; особенно уместен, когда коже не хватает мягкости и комфорта.",
       matchScore: 66,
-      priceRange: "1 000–2 500 ₽",
-      usage: "Вспенить небольшое количество во влажных ладонях и мягко смыть без долгого контакта.",
-      tradeoffs: ["При сухой или реактивной коже может понадобиться более мягкое очищение."],
+      priceRange: "около 615 ₽",
+      usage: "Наносить небольшое количество после очищения; на лице сначала проверить комфорт на небольшом участке.",
+      tradeoffs: ["Для склонной к жирности кожи текстура может ощущаться плотной."],
       image: visuals.skin,
       imageKind: "category-visual",
-      marketplaces: [],
+      marketplaces: [
+        { label: "Яндекс Маркет", href: "https://market.yandex.ru/card/krem-dlya-litsa-i-tela-librederm-cerafavit-lipidovosstanavlivayushchiy-s-tseramidami-i-prebiotikom-75-ml/5066794645", kind: "marketplace" },
+        { label: "Wildberries", href: "https://www.wildberries.ru/catalog/418548922/detail.aspx", kind: "marketplace", price: 615, currency: "RUB" },
+        { label: "Ozon", href: "https://www.ozon.ru/product/librederm-cerafavit-tserafavit-krem-dlya-litsa-i-tela-0-75-ml-1167866477/", kind: "marketplace" },
+        { label: "Золотое Яблоко", href: "https://goldapple.ru/89230500016-cerafavit", kind: "marketplace" },
+      ],
     },
     {
       name: "Bioderma Sensibio H2O 250 ml",
@@ -302,6 +321,7 @@ const defaultAllowedHosts = [
 const primaryDiscoveryHosts = ["market.yandex.ru", "wildberries.ru", "ozon.ru", "goldapple.ru"];
 const evidenceCache = new Map<string, { expiresAt: number; value: VerifiedCandidate | null }>();
 const EVIDENCE_CACHE_TTL = 6 * 60 * 60 * 1000;
+const NEGATIVE_EVIDENCE_CACHE_TTL = 5 * 60 * 1000;
 
 function asRecord(value: unknown): JsonRecord | null {
   return value && typeof value === "object" && !Array.isArray(value) ? value as JsonRecord : null;
@@ -492,7 +512,9 @@ function evidenceMatchesProduct(name: string, value: string, minimum = 2): boole
 function normalizeMarketplacePrice(value: unknown): number | undefined {
   const numeric = Number(value);
   if (!Number.isFinite(numeric) || numeric <= 0) return undefined;
-  const rubles = numeric > 2_000_000 ? numeric / 100 : numeric;
+  // Wildberries v4 price fields are always expressed in kopecks, including
+  // values below 2,000,000. A threshold here would turn 1,429 ₽ into 142,900 ₽.
+  const rubles = numeric / 100;
   return rubles >= 100 && rubles <= 2_000_000 ? Math.round(rubles) : undefined;
 }
 
@@ -521,8 +543,14 @@ async function wildberriesEvidence(url: URL, name: string): Promise<{ price?: nu
       product.salePriceU,
       product.priceU,
     ].map(normalizeMarketplacePrice).find((item): item is number => Boolean(item));
-    const evidence = `${asString(product.brand, 100)} ${asString(product.name, 240)}`;
-    return evidenceMatchesProduct(name, evidence, 1) ? { price, evidence } : null;
+    const brand = asString(product.brand, 100);
+    const evidence = `${brand} ${asString(product.name, 240)}`;
+    const expectedTokens = new Set(normalizedTokens(name));
+    const brandMatches = normalizedTokens(brand).some((token) => expectedTokens.has(token));
+    // Some WB names are fully localized and omit the Latin model name. The
+    // surrounding verifier still requires an exact indexed product URL, so a
+    // matching brand is sufficient here to attach the official card price.
+    return evidenceMatchesProduct(name, evidence, 1) || brandMatches ? { price, evidence } : null;
   } catch {
     return null;
   }
@@ -725,7 +753,10 @@ async function verifyCandidate(candidate: Candidate): Promise<VerifiedCandidate 
   if (cached && cached.expiresAt > Date.now()) return cached.value;
   const discovered = await discoverMarketplaceUrls(candidate.name);
   const retailerUrls: DiscoveredLink[] = [
-    ...candidate.retailerUrls.map((item) => ({ ...item, evidence: `${item.label} ${item.url}` })),
+    ...candidate.retailerUrls.map((item) => ({
+      ...item,
+      evidence: `${item.trustedIdentity ? candidate.name : ""} ${item.label} ${item.url}`.trim(),
+    })),
     ...discovered,
   ]
     .filter((item, index, array) => array.findIndex((other) => other.url === item.url) === index)
@@ -752,9 +783,25 @@ async function verifyCandidate(candidate: Candidate): Promise<VerifiedCandidate 
   const unique = [...uniqueByStore.values()].slice(0, 8);
   const storeCount = new Set(unique.map((link) => storeKey(link.href)).filter(Boolean)).size;
   const pricedStoreCount = new Set(unique.filter((link) => link.price).map((link) => storeKey(link.href)).filter(Boolean)).size;
-  const result = storeCount >= 3 && unique.length >= 3 && pricedStoreCount >= 2 ? { ...candidate, links: unique } : null;
-  evidenceCache.set(cacheKey, { expiresAt: Date.now() + EVIDENCE_CACHE_TTL, value: result });
+  // Cache evidence independently from the final quality tier. A marketplace can
+  // temporarily hide its price from server-side requests while its exact product
+  // card remains valid. In that case one real price is safer than an empty result
+  // or a fabricated second price.
+  const result = storeCount >= 3 && unique.length >= 3 && pricedStoreCount >= 1 ? { ...candidate, links: unique } : null;
+  evidenceCache.set(cacheKey, {
+    expiresAt: Date.now() + (result ? EVIDENCE_CACHE_TTL : NEGATIVE_EVIDENCE_CACHE_TTL),
+    value: result,
+  });
   return result;
+}
+
+function pricedStoreCount(candidate: VerifiedCandidate): number {
+  return new Set(
+    candidate.links
+      .filter((link) => typeof link.price === "number")
+      .map((link) => storeKey(link.href))
+      .filter(Boolean),
+  ).size;
 }
 
 function formatPriceRange(links: ProductLink[]): string | undefined {
@@ -786,7 +833,12 @@ function curatedCandidates(mode: SearchMode): Candidate[] {
     matchScore: product.matchScore,
     usage: product.usage,
     tradeoffs: product.tradeoffs ?? [],
-    retailerUrls: product.marketplaces.map((link) => ({ label: link.label, url: link.href })),
+    retailerUrls: product.marketplaces.map((link) => ({
+      label: link.label,
+      url: link.href,
+      indexedPrice: link.price,
+      trustedIdentity: true,
+    })),
   }));
 }
 
@@ -804,28 +856,76 @@ function mergeCandidates(primary: Candidate[], fallback: Candidate[]): Candidate
 
 async function verifyInWaves(primary: Candidate[], fallback: Candidate[]): Promise<VerifiedCandidate[]> {
   const firstWave = mergeCandidates(primary, []).slice(0, 6);
-  const firstVerified = (await Promise.all(firstWave.map(verifyCandidate)))
+  const firstEvidence = (await Promise.all(firstWave.map(verifyCandidate)))
     .filter((item): item is VerifiedCandidate => Boolean(item));
-  if (firstVerified.length >= 4) return firstVerified;
+  const firstStrict = firstEvidence.filter((item) => pricedStoreCount(item) >= 2);
+  if (firstStrict.length >= 4) return firstStrict;
   const used = new Set(firstWave.map((item) => item.name.toLocaleLowerCase("ru")));
   const secondWave = fallback.filter((item) => !used.has(item.name.toLocaleLowerCase("ru"))).slice(0, 5);
-  const secondVerified = (await Promise.all(secondWave.map(verifyCandidate)))
+  const secondEvidence = (await Promise.all(secondWave.map(verifyCandidate)))
     .filter((item): item is VerifiedCandidate => Boolean(item));
-  return mergeCandidates(firstVerified, secondVerified) as VerifiedCandidate[];
+  const allEvidence = mergeCandidates(firstEvidence, secondEvidence) as VerifiedCandidate[];
+  const strict = allEvidence.filter((item) => pricedStoreCount(item) >= 2);
+  if (strict.length >= 3) return strict;
+  // Resilient tier: strict products stay first; exact cards with one observed
+  // price fill the remaining slots. `formatPriceRange` labels that value as
+  // "около", so the UI never presents one observation as a price interval.
+  return [
+    ...strict,
+    ...allEvidence.filter((item) => pricedStoreCount(item) === 1),
+  ].filter((item, index, array) => array.findIndex((other) => other.name === item.name) === index);
 }
 
 function ensureMinimumProducts(mode: SearchMode, query: string, products: BeautyProduct[], minimum = 3): BeautyProduct[] {
-  const result: BeautyProduct[] = [];
+  const eligible: BeautyProduct[] = [];
   const seen = new Set<string>();
   for (const product of products) {
     const key = product.name.toLocaleLowerCase("ru").replace(/\s+/g, " ").trim();
     if (!key || seen.has(key)) continue;
     seen.add(key);
     if (!product.priceRange || new Set(product.marketplaces.map((link) => storeKey(link.href)).filter(Boolean)).size < 3) continue;
-    result.push(product);
-    if (result.length >= Math.max(minimum, 4)) break;
+    eligible.push(product);
   }
-  return result;
+
+  const compactQuery = query.toLocaleLowerCase("ru").replace(/\s+/g, " ");
+  const numericBudget = compactQuery.match(/(?:до|бюджет(?:ом)?|не дороже)\s*(\d[\d\s]{2,6})\s*(?:₽|руб)/u);
+  const thousandsBudget = compactQuery.match(/(?:до|бюджет(?:ом)?|не дороже)\s*(\d{1,2})\s*(?:тыс(?:яч[аи]?)?|к)\b/u);
+  const budget = numericBudget
+    ? Number(numericBudget[1].replace(/\s/g, ""))
+    : thousandsBudget
+      ? Number(thousandsBudget[1]) * 1000
+      : 0;
+  if (!budget) return eligible.slice(0, Math.max(minimum, 4));
+
+  const observedLow = (product: BeautyProduct) => {
+    const values = product.marketplaces
+      .map((link) => link.price)
+      .filter((value): value is number => typeof value === "number");
+    return values.length ? Math.min(...values) : Number.POSITIVE_INFINITY;
+  };
+  const totalRoutine = /(?:на (?:всю|весь) (?:рутину|уход|набор)|вся рутина|полный уход|комплекс|базов\w* уход до)/u.test(compactQuery);
+  const ceiling = budget * 1.1;
+  if (totalRoutine) {
+    const selected: BeautyProduct[] = [];
+    let total = 0;
+    for (const product of eligible) {
+      const price = observedLow(product);
+      if (!Number.isFinite(price) || price > ceiling || total + price > ceiling) continue;
+      selected.push(product);
+      total += price;
+      if (selected.length >= Math.max(minimum, 4)) break;
+    }
+    if (selected.length >= minimum) return selected;
+  } else {
+    const withinBudget = eligible.filter((product) => observedLow(product) <= ceiling);
+    if (withinBudget.length >= minimum) return withinBudget.slice(0, Math.max(minimum, 4));
+  }
+  // Availability is still more useful than an empty screen. If fewer than three
+  // products fit the budget after live verification, keep the cheapest verified
+  // alternatives so the explanation can transparently show the trade-off.
+  return [...eligible]
+    .sort((left, right) => observedLow(left) - observedLow(right))
+    .slice(0, Math.max(minimum, 4));
 }
 
 function toPublicProduct(mode: SearchMode, product: VerifiedCandidate, variant: number): BeautyProduct {
