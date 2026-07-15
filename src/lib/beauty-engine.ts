@@ -221,6 +221,7 @@ const curatedFallback: Record<SearchMode, BeautyProduct[]> = {
 const defaultAllowedHosts = [
   "goldapple.ru", "letu.ru", "rivegauche.ru", "wildberries.ru", "market.yandex.ru", "ozon.ru", "tsum.ru",
 ];
+const primaryDiscoveryHosts = ["market.yandex.ru", "wildberries.ru", "ozon.ru"];
 
 function asRecord(value: unknown): JsonRecord | null {
   return value && typeof value === "object" && !Array.isArray(value) ? value as JsonRecord : null;
@@ -488,7 +489,7 @@ async function discoverMarketplaceUrls(name: string): Promise<Array<{ label: str
       clearTimeout(timeout);
     }
   };
-  const found = await Promise.all(defaultAllowedHosts.map(discoverOnHost));
+  const found = await Promise.all(primaryDiscoveryHosts.map(discoverOnHost));
   return found.filter((item): item is { label: string; url: string } => Boolean(item));
 }
 
@@ -664,7 +665,7 @@ ${config.safety}
     }),
     1900,
   );
-  const candidates = parseCandidates(candidateRaw);
+  const candidates = parseCandidates(candidateRaw).slice(0, 4);
   const verified = (await Promise.all(candidates.map(verifyCandidate))).filter((item): item is VerifiedCandidate => Boolean(item));
   if (!verified.length) {
     return {
