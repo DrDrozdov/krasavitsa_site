@@ -14,10 +14,11 @@ type Product = {
   category: string;
   reason: string;
   matchScore: number;
+  priceRange?: string;
   usage?: string;
   tradeoffs?: string[];
   image?: string;
-  marketplaces?: Array<{ label: string; href: string; kind?: "official" | "retailer" }>;
+  marketplaces?: Array<{ label: string; href: string; kind?: "marketplace"; price?: number; currency?: "RUB" }>;
 };
 
 const modeVisual: Record<Mode, string> = {
@@ -448,20 +449,19 @@ export function BeautyFinder() {
                 {results.map((product, index) => (
                   <motion.article key={product.name} initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 28, scale: .985 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ duration: .58, delay: index * .07, ease: [0.16, 1, 0.3, 1] }} className="product-result-card overflow-hidden border border-[var(--color-border)] bg-[var(--color-surface)]">
                     <div className="product-result-visual relative aspect-[16/9] overflow-hidden bg-[var(--color-soft)]">
-                      {/* The browser requests all product compositions in parallel; the endpoint validates the official image and always has a local fallback. */}
+                      {/* The endpoint validates a product image and always returns a branded PNG fallback. */}
                       <Image src={product.image || modeVisual[mode]} alt={`Визуал для рекомендации: ${product.name}`} fill unoptimized priority={index < 2} sizes="(min-width: 768px) 50vw, 100vw" className="object-cover" onError={(event) => { if (!event.currentTarget.dataset.fallback) { event.currentTarget.dataset.fallback = "true"; event.currentTarget.src = modeVisual[mode]; } }} />
                     </div>
                     <div className="p-4 md:p-5">
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0"><p className="text-xs font-black text-[var(--color-bordeaux)]">{product.category}</p><div className="mt-2 flex items-start gap-2"><h3 className="text-[clamp(1.35rem,3vw,2rem)] font-black leading-[1.05] tracking-[-.035em]">{product.name}</h3><button type="button" onClick={() => void copyProductName(product.name)} aria-label={`Скопировать название ${product.name}`} className="apple-glass-button mt-0.5 grid size-8 shrink-0 place-items-center rounded-full border border-[var(--color-border)] bg-[var(--color-soft)] text-[var(--color-bordeaux)]">{copiedName === product.name ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}</button></div></div>
-                      <span className="rating-badge shrink-0 rounded-full bg-[var(--color-bordeaux)] px-3 py-2 text-xs font-black text-white" tabIndex={0} title="Степень соответствия именно вашему запросу, а не пользовательский рейтинг">{Math.round(product.matchScore)}% совпадение</span>
                     </div>
-                    <p className="mt-4 text-sm font-semibold leading-6 text-[var(--color-text-muted)]">{product.reason}</p>
+                    <p className="mt-4 text-sm font-semibold leading-6 text-[var(--color-text-muted)]"><span className="font-black text-[var(--color-bordeaux)]">Почему здесь:</span> {product.reason}</p>
                     {product.usage ? <p className="mt-3 text-sm font-semibold leading-6"><span className="font-black text-[var(--color-bordeaux)]">Как использовать:</span> {product.usage}</p> : null}
-                    {product.tradeoffs?.length ? <p className="mt-3 text-xs font-semibold leading-5 text-[var(--color-text-soft)]">Важно: {product.tradeoffs.join(" · ")}</p> : null}
-                    <div className="mt-4 flex items-center justify-between gap-3 border-y border-[var(--color-border)] py-3 text-xs font-bold text-[var(--color-text-muted)]"><span>Рейтинг сообщества</span><span>Новый · оценок пока нет</span></div>
+                    {product.tradeoffs?.length ? <p className="mt-3 text-xs font-semibold leading-5 text-[var(--color-text-soft)]"><span className="font-black text-[var(--color-bordeaux)]">Учесть:</span> {product.tradeoffs.join(" · ")}</p> : null}
+                    <div className="mt-4 flex items-center justify-between gap-3 border-y border-[var(--color-border)] py-3 text-xs font-bold text-[var(--color-text-muted)]"><span>Ориентир цены</span><span className="text-right text-[var(--color-text)]">{product.priceRange || "уточняется в магазинах"}</span></div>
                     <div className="mt-5 flex flex-wrap gap-2">
-                      {product.marketplaces?.map((link) => <a key={link.href} href={link.href} target="_blank" rel="noopener noreferrer" className="apple-glass-button inline-flex items-center gap-1 rounded-full border border-[var(--color-border)] bg-white/48 px-3 py-2 text-xs font-black">{link.label}<ExternalLink className="size-3" /></a>)}
+                      {product.marketplaces?.map((link) => <a key={link.href} href={link.href} target="_blank" rel="noopener noreferrer" className="apple-glass-button inline-flex items-center gap-1 rounded-full border border-[var(--color-border)] bg-white/48 px-3 py-2 text-xs font-black">🛍️ {link.label}<ExternalLink className="size-3" /></a>)}
                       <button type="button" onClick={() => void toggleFavorite(product)} aria-label="Сохранить в избранное" className={`apple-glass-button grid size-9 place-items-center rounded-full border border-[var(--color-border)] bg-white/48 ${savedNames.includes(product.name) ? "text-[var(--color-bordeaux)]" : "text-[var(--color-text-muted)]"}`}><Heart className={`size-4 ${savedNames.includes(product.name) ? "fill-current" : ""}`} /></button>
                     </div>
                     </div>

@@ -8,9 +8,7 @@ import { isSearchMode, type SearchMode } from "@/lib/beauty-engine";
 export const runtime = "nodejs";
 
 const sourceHosts = [
-  "purito.com", "cosrx.com", "beautyofjoseon.com", "lador.co.kr", "olaplex.com", "chi.com",
-  "maisonmargiela.com", "maisonmargiela-fragrances.us", "jomalone.com", "diptyqueparis.com",
-  "goldapple.ru", "letu.ru", "rivegauche.ru", "ozon.ru", "wildberries.ru", "market.yandex.ru",
+  "goldapple.ru", "letu.ru", "rivegauche.ru", "wildberries.ru", "market.yandex.ru", "tsum.ru",
 ];
 
 const fallback: Record<SearchMode, string> = {
@@ -192,16 +190,27 @@ async function fallbackImage(mode: SearchMode) {
   return { bytes: new Uint8Array(await readFile(path.join(process.cwd(), "public", "recommendations", fallback[mode]))), type: "image/webp", verified: false };
 }
 
-function xml(value: string) { return value.replace(/[<>&'"]/g, (char) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", "'": "&apos;", '"': "&quot;" }[char] ?? char)); }
-
-function composition(name: string, asset: { bytes: Uint8Array; type: string; verified: boolean }) {
-  const data = Buffer.from(asset.bytes).toString("base64");
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" role="img" aria-labelledby="title description">
-  <title id="title">${xml(name)}</title><desc id="description">${asset.verified ? "Проверенный packshot товара на белом фоне" : "Резервный визуал категории"}</desc>
-  <rect width="1200" height="760" rx="24" fill="#fff"/>
-  <image href="data:${asset.type};base64,${data}" x="80" y="42" width="1040" height="648" preserveAspectRatio="xMidYMid meet"/>
-  ${asset.verified ? "" : '<rect x="30" y="694" width="1140" height="38" rx="19" fill="#f7edf1"/><text x="600" y="720" text-anchor="middle" fill="#6c2943" font-family="Arial,sans-serif" font-size="16" font-weight="700">ТОЧНЫЙ PACKSHOT ПРОВЕРЯЕТСЯ</text>'}
-  </svg>`;
+async function composition(asset: { bytes: Uint8Array; type: string; verified: boolean }) {
+  const publicRoot = path.join(process.cwd(), "public");
+  const [stage, logo] = await Promise.all([
+    readFile(path.join(publicRoot, "recommendations", "krasavitsa-product-stage-v1.png")),
+    readFile(path.join(publicRoot, "krasavitsa-lotus-logo.png")),
+  ]);
+  const base = await sharp(stage).resize(1200, 760, { fit: "cover", position: "centre" }).png().toBuffer();
+  const product = await sharp(asset.bytes, { limitInputPixels: 40_000_000 })
+    .rotate()
+    .flatten({ background: "#ffffff" })
+    .resize(760, 580, { fit: "contain", background: { r: 255, g: 255, b: 255, alpha: 0 } })
+    .png()
+    .toBuffer();
+  const brand = await sharp(logo).resize(72, 72, { fit: "cover" }).png().toBuffer();
+  return sharp(base)
+    .composite([
+      { input: product, left: 220, top: 80, blend: "over" },
+      { input: brand, left: 1090, top: 36, blend: "over" },
+    ])
+    .png({ compressionLevel: 9, palette: true })
+    .toBuffer();
 }
 
 export async function GET(request: Request) {
@@ -220,7 +229,7 @@ export async function GET(request: Request) {
     try { asset = await imageVerificationAgent(name, await imageSearchAgent(name)); } catch { /* Search is a best-effort discovery stage. */ }
   }
   asset ??= await fallbackImage(mode);
-  return new NextResponse(composition(name, asset), {
-    headers: { "Content-Type": "image/svg+xml; charset=utf-8", "Cache-Control": "public, max-age=86400, s-maxage=604800, stale-while-revalidate=2592000", "X-Content-Type-Options": "nosniff", "X-Krasavitsa-Packshot": asset.verified ? "verified" : "fallback" },
+  return new NextResponse(new Uint8Array(await composition(asset)), {
+    headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=86400, s-maxage=604800, stale-while-revalidate=2592000", "X-Content-Type-Options": "nosniff", "X-Krasavitsa-Packshot": asset.verified ? "verified" : "fallback" },
   });
 }

@@ -5,7 +5,9 @@ export type SearchMode = "skin" | "hair" | "perfume";
 export type ProductLink = {
   label: string;
   href: string;
-  kind: "official" | "retailer";
+  kind: "marketplace";
+  price?: number;
+  currency?: "RUB";
 };
 
 export type BeautyProduct = {
@@ -13,6 +15,7 @@ export type BeautyProduct = {
   category: string;
   reason: string;
   matchScore: number;
+  priceRange?: string;
   usage?: string;
   tradeoffs?: string[];
   image: string;
@@ -46,7 +49,6 @@ type Candidate = {
   matchScore: number;
   usage?: string;
   tradeoffs: string[];
-  officialUrl?: string;
   retailerUrls: Array<{ label: string; url: string }>;
 };
 
@@ -65,7 +67,7 @@ const sharedContract = `
 3. Не выдумывай товар, вариант, концентрацию, объём, состав, сертификацию, цену, рейтинг, наличие, продавца или URL.
 4. Если факта нет в надёжной памяти — не используй его как аргумент. Не делай вывод о полной формуле по одному активу.
 5. Название товара: бренд + точная линейка + тип/концентрация или EDT/EDP, если это часть официального названия.
-6. URL допустим только для отдельной карточки именно этого товара на официальном сайте или у продавца. Поиск, категория, главная страница и сокращённая ссылка запрещены. Если точный URL неизвестен — пустая строка.
+6. URL допустим только для отдельной карточки именно этого товара на одном из разрешённых маркетплейсов: Золотое Яблоко, Яндекс Маркет, Лэтуаль, Рив Гош, Wildberries или ЦУМ. Официальный сайт бренда, поиск, категория, главная страница и сокращённая ссылка запрещены. Если точный URL неизвестен — пустая строка.
 7. Не ставь диагнозы, не назначай лекарства и не обещай лечение. Рекомендация информационная и должна быть консервативной.
 8. Не заполняй пробелы догадками. Лучше задать один точный вопрос или вернуть меньше товаров.
 9. Учитывай все явные ограничения пользователя. Противоречие с аллергеном, нежелательной нотой, бюджетом или форматом — причина исключить товар.
@@ -109,7 +111,7 @@ const curatedFallback: Record<SearchMode, BeautyProduct[]> = {
       tradeoffs: ["Это базовый пример, а не персональный вывод без работающего AI-провайдера."],
       image: visuals.skin,
       imageKind: "category-visual",
-      marketplaces: [{ label: "Официальная карточка", href: "https://purito.com/product/oat-in-calming-gel-cream/", kind: "official" }],
+      marketplaces: [],
     },
     {
       name: "COSRX Low pH Good Morning Gel Cleanser",
@@ -120,7 +122,7 @@ const curatedFallback: Record<SearchMode, BeautyProduct[]> = {
       tradeoffs: ["Содержит компоненты, которые могут не подойти реактивной коже."],
       image: visuals.skin,
       imageKind: "category-visual",
-      marketplaces: [{ label: "Официальная карточка", href: "https://www.cosrx.com/products/low-ph-good-morning-gel-cleanser", kind: "official" }],
+      marketplaces: [],
     },
     {
       name: "Beauty of Joseon Relief Sun: Rice + Probiotics SPF50+ PA++++",
@@ -131,7 +133,7 @@ const curatedFallback: Record<SearchMode, BeautyProduct[]> = {
       tradeoffs: ["Финиш и переносимость индивидуальны; формулы для разных рынков могут отличаться."],
       image: visuals.skin,
       imageKind: "category-visual",
-      marketplaces: [{ label: "Официальная карточка", href: "https://beautyofjoseon.com/products/relief-sun-rice-probiotics-spf50-pa-uk", kind: "official" }],
+      marketplaces: [{ label: "Яндекс Маркет", href: "https://ngo.integration.market.yandex.ru/card/krem-dlya-litsa-s-probiotikami-solntsezashchitnyy--beauty-of-joseon-relief-sun-riceprobiotics-spf-50-pa-50-ml/103197717356", kind: "marketplace" }],
     },
   ],
   hair: [
@@ -144,7 +146,7 @@ const curatedFallback: Record<SearchMode, BeautyProduct[]> = {
       tradeoffs: ["При выраженном выпадении нужен врач, а не косметический шампунь."],
       image: visuals.hair,
       imageKind: "category-visual",
-      marketplaces: [{ label: "Официальная карточка", href: "https://en.lador.co.kr/product/dermatical-hair-loss-shampoo-200ml/274/", kind: "official" }],
+      marketplaces: [],
     },
     {
       name: "OLAPLEX Nº.5 Bond Maintenance® Conditioner",
@@ -155,7 +157,7 @@ const curatedFallback: Record<SearchMode, BeautyProduct[]> = {
       tradeoffs: ["Для очень тонких волос количество особенно важно."],
       image: visuals.hair,
       imageKind: "category-visual",
-      marketplaces: [{ label: "Официальная карточка", href: "https://olaplex.com/products/olaplex-n-5-bond-maintenance-conditioner-us", kind: "official" }],
+      marketplaces: [{ label: "Яндекс Маркет", href: "https://ngo.integration.market.yandex.ru/card/olaplex-no-5-bond-maintenance---konditsioner-vosstanavlivayushchiy-250ml/103527276110", kind: "marketplace" }],
     },
     {
       name: "CHI 44 Iron Guard Thermal Protection Spray",
@@ -166,7 +168,7 @@ const curatedFallback: Record<SearchMode, BeautyProduct[]> = {
       tradeoffs: ["Количество и дистанцию нанесения нужно подбирать под толщину волос."],
       image: visuals.hair,
       imageKind: "category-visual",
-      marketplaces: [{ label: "Официальная карточка", href: "https://chi.com/es/categories/styling/sprays/44-iron-guard-thermal-protection-spray/1088.html?lang=en_US", kind: "official" }],
+      marketplaces: [],
     },
   ],
   perfume: [
@@ -179,7 +181,7 @@ const curatedFallback: Record<SearchMode, BeautyProduct[]> = {
       tradeoffs: ["Стойкость и шлейф зависят от кожи и условий."],
       image: visuals.perfume,
       imageKind: "category-visual",
-      marketplaces: [{ label: "Официальная карточка", href: "https://www.maisonmargiela-fragrances.us/fragrances/replica/replica-lazy-sunday-morning/MM009.html", kind: "official" }],
+      marketplaces: [],
     },
     {
       name: "Jo Malone London Wood Sage & Sea Salt Cologne",
@@ -190,7 +192,7 @@ const curatedFallback: Record<SearchMode, BeautyProduct[]> = {
       tradeoffs: ["Не стоит ожидать одинаковой стойкости на разной коже."],
       image: visuals.perfume,
       imageKind: "category-visual",
-      marketplaces: [{ label: "Официальная карточка", href: "https://www.jomalone.com/product/25946/32241/colognes/wood-sage-sea-salt-cologne", kind: "official" }],
+      marketplaces: [{ label: "ЦУМ", href: "https://www.tsum.ru/product/he00455756-odekolon-wood-sage-sea-salt-50ml-jo-malone-london-bestcvetnyi/", kind: "marketplace", price: 5600, currency: "RUB" }],
     },
     {
       name: "Diptyque Eau Duelle Eau de Parfum",
@@ -201,15 +203,13 @@ const curatedFallback: Record<SearchMode, BeautyProduct[]> = {
       tradeoffs: ["Ваниль и дымные нюансы могут ощущаться интенсивнее в тепле."],
       image: visuals.perfume,
       imageKind: "category-visual",
-      marketplaces: [{ label: "Официальная карточка", href: "https://www.diptyqueparis.com/en_us/p/fragrances/all-fragrances/eau-duelle-eau-de-parfum-75ml-1.html", kind: "official" }],
+      marketplaces: [],
     },
   ],
 };
 
 const defaultAllowedHosts = [
-  "purito.com", "cosrx.com", "beautyofjoseon.com", "lador.co.kr", "olaplex.com", "chi.com",
-  "maisonmargiela.com", "maisonmargiela-fragrances.us", "jomalone.com", "diptyqueparis.com",
-  "goldapple.ru", "letu.ru", "rivegauche.ru", "ozon.ru", "wildberries.ru", "market.yandex.ru",
+  "goldapple.ru", "letu.ru", "rivegauche.ru", "wildberries.ru", "market.yandex.ru", "tsum.ru",
 ];
 
 function asRecord(value: unknown): JsonRecord | null {
@@ -312,7 +312,7 @@ function parseCandidates(raw: JsonRecord): Candidate[] {
     const retailerUrls = Array.isArray(product.retailer_urls)
       ? product.retailer_urls.map(asRecord).filter((value): value is JsonRecord => Boolean(value)).map((value) => ({
         label: asString(value.label, 40), url: asString(value.url, 700),
-      })).filter((value) => value.label && value.url).slice(0, 4)
+      })).filter((value) => value.label && value.url).slice(0, 6)
       : [];
     result.push({
       name,
@@ -321,7 +321,6 @@ function parseCandidates(raw: JsonRecord): Candidate[] {
       matchScore: clampScore(product.match_score),
       usage: asString(product.usage, 400) || undefined,
       tradeoffs: asStringArray(product.tradeoffs, 4),
-      officialUrl: asString(product.official_url, 700) || undefined,
       retailerUrls,
     });
   }
@@ -336,6 +335,7 @@ function normalizedTokens(value: string): string[] {
 function curatedForQuery(mode: SearchMode, query: string): BeautyProduct[] {
   const queryTokens = normalizedTokens(query);
   return curatedFallback[mode]
+    .filter((product) => product.marketplaces.some((link) => Boolean(isDirectProductUrl(link.href))))
     .map((product, index) => {
       const searchable = `${product.name} ${product.category} ${product.reason}`.toLocaleLowerCase("ru");
       const matches = queryTokens.filter((token) => searchable.includes(token)).length;
@@ -344,6 +344,7 @@ function curatedForQuery(mode: SearchMode, query: string): BeautyProduct[] {
       return {
         ...product,
         matchScore: clampScore(product.matchScore + Math.min(22, matches * 4 + categoryMatches * 8)),
+        priceRange: formatPriceRange(product.marketplaces),
         image: productImage(mode, product.name, product.marketplaces[0]?.href, index),
         imageKind: "verified-composite" as const,
       };
@@ -352,8 +353,7 @@ function curatedForQuery(mode: SearchMode, query: string): BeautyProduct[] {
 }
 
 function allowedHosts(): string[] {
-  const extra = (process.env.PRODUCT_LINK_ALLOWED_HOSTS ?? "").split(",").map((item) => item.trim().toLowerCase()).filter(Boolean);
-  return [...new Set([...defaultAllowedHosts, ...extra])];
+  return defaultAllowedHosts;
 }
 
 function isAllowedHost(hostname: string): boolean {
@@ -366,7 +366,7 @@ function isDirectProductUrl(value: string): URL | null {
     const url = new URL(value);
     if (url.protocol !== "https:" || !isAllowedHost(url.hostname)) return null;
     const route = `${url.pathname} ${url.search}`.toLowerCase();
-    if (/\/(search|catalogsearch|catalog\/0\/search|category|collections\/all)(\/|\?|$)/.test(route)) return null;
+    if (/\/(search|catalogsearch|catalog\/0\/search|category|collections\/all|review)(\/|\?|$)/.test(route)) return null;
     if (["q", "query", "text", "search"].some((key) => url.searchParams.has(key))) return null;
     if (url.pathname === "/" || url.pathname.length < 8) return null;
     return url;
@@ -387,6 +387,25 @@ async function readLimitedText(response: Response, limit = 180_000): Promise<str
   }
   await reader.cancel().catch(() => undefined);
   return output.slice(0, limit);
+}
+
+function extractRublePrice(html: string): number | undefined {
+  const patterns = [
+    /"price"\s*:\s*"?(\d{2,7}(?:[.,]\d{1,2})?)"?/gi,
+    /(?:product:price:amount|priceAmount)[^>]{0,160}(?:content=|:)\s*["']?(\d{2,7}(?:[.,]\d{1,2})?)/gi,
+  ];
+  const prices: number[] = [];
+  for (const pattern of patterns) {
+    for (const match of html.matchAll(pattern)) {
+      const value = Number(match[1].replace(",", "."));
+      if (Number.isFinite(value) && value >= 100 && value <= 2_000_000) prices.push(Math.round(value));
+    }
+  }
+  if (!prices.length) return undefined;
+  const counts = new Map<number, number>();
+  for (const price of prices) counts.set(price, (counts.get(price) ?? 0) + 1);
+  return [...counts.entries()]
+    .sort((left, right) => right[1] - left[1] || left[0] - right[0])[0]?.[0];
 }
 
 async function verifyLink(name: string, label: string, value: string, kind: ProductLink["kind"]): Promise<ProductLink | null> {
@@ -411,10 +430,13 @@ async function verifyLink(name: string, label: string, value: string, kind: Prod
       : null;
     const contentType = response.headers.get("content-type") ?? "";
     if (!contentType.includes("text/html")) return null;
-    const html = (await readLimitedText(response)).toLocaleLowerCase("ru").replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<style[\s\S]*?<\/style>/gi, " ").replace(/<[^>]+>/g, " ").replace(/&\w+;/g, " ");
+    const rawHtml = await readLimitedText(response);
+    const html = rawHtml.toLocaleLowerCase("ru").replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<style[\s\S]*?<\/style>/gi, " ").replace(/<[^>]+>/g, " ").replace(/&\w+;/g, " ");
     const matches = tokens.filter((token) => html.includes(token)).length;
     const required = Math.min(3, Math.max(2, Math.ceil(tokens.length * 0.45)));
-    return matches >= required ? { label, href: finalUrl.toString(), kind } : null;
+    if (matches < required) return null;
+    const price = extractRublePrice(rawHtml);
+    return { label, href: finalUrl.toString(), kind, ...(price ? { price, currency: "RUB" as const } : {}) };
   } catch {
     return pathMatches >= 3 ? { label, href: url.toString(), kind } : null;
   } finally {
@@ -428,20 +450,28 @@ function linkLabel(url: string, fallback: string): string {
     if (host.includes("goldapple")) return "Золотое Яблоко";
     if (host.includes("letu")) return "Лэтуаль";
     if (host.includes("rivegauche")) return "Рив Гош";
-    if (host.includes("ozon")) return "Ozon";
     if (host.includes("wildberries")) return "Wildberries";
     if (host.includes("market.yandex")) return "Яндекс Маркет";
-    return fallback || "Официальная карточка";
+    if (host.includes("tsum")) return "ЦУМ";
+    return fallback || "Маркетплейс";
   } catch { return fallback || "Карточка товара"; }
 }
 
 async function verifyCandidate(candidate: Candidate): Promise<VerifiedCandidate | null> {
   const requests: Array<Promise<ProductLink | null>> = [];
-  if (candidate.officialUrl) requests.push(verifyLink(candidate.name, "Официальная карточка", candidate.officialUrl, "official"));
-  for (const item of candidate.retailerUrls) requests.push(verifyLink(candidate.name, linkLabel(item.url, item.label), item.url, "retailer"));
+  for (const item of candidate.retailerUrls) requests.push(verifyLink(candidate.name, linkLabel(item.url, item.label), item.url, "marketplace"));
   const links = (await Promise.all(requests)).filter((item): item is ProductLink => Boolean(item));
-  const unique = links.filter((link, index, array) => array.findIndex((item) => item.href === link.href) === index).slice(0, 4);
+  const unique = links.filter((link, index, array) => array.findIndex((item) => item.href === link.href) === index).slice(0, 6);
   return unique.length ? { ...candidate, links: unique } : null;
+}
+
+function formatPriceRange(links: ProductLink[]): string | undefined {
+  const prices = links.map((link) => link.price).filter((price): price is number => typeof price === "number");
+  if (!prices.length) return undefined;
+  const format = (value: number) => new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 0 }).format(value);
+  const min = Math.min(...prices);
+  const max = Math.max(...prices);
+  return min === max ? `около ${format(min)} ₽` : `${format(min)}–${format(max)} ₽`;
 }
 
 function productImage(mode: SearchMode, name: string, source: string | undefined, variant: number) {
@@ -456,9 +486,10 @@ function toPublicProduct(mode: SearchMode, product: VerifiedCandidate, variant: 
     category: product.category,
     reason: product.reason,
     matchScore: product.matchScore,
+    priceRange: formatPriceRange(product.links),
     usage: product.usage,
     tradeoffs: product.tradeoffs,
-    image: productImage(mode, product.name, product.links.find((link) => link.kind === "official")?.href ?? product.links[0]?.href, variant),
+    image: productImage(mode, product.name, product.links[0]?.href, variant),
     imageKind: "verified-composite",
     marketplaces: product.links,
   };
@@ -556,15 +587,15 @@ ${config.triage}
     `Ты профильный эксперт платформы «Красавица» по направлению «${config.label}». ${sharedContract}
 ${config.specialist}
 ${config.safety}
-Сначала внутренне проверь каждый вариант по всем ограничениям, но не раскрывай цепочку рассуждений. Предложи до 4 независимых кандидатов, чтобы сервер мог проверить ссылки и отсеять ошибки. Товар без известной прямой карточки не включай. В user payload передан verified_catalog: это уже проверенные сервером товары и URL. Если товар из него соответствует запросу, используй его точное имя и official_url без изменений. Новые товары добавляй только при уверенности в точной прямой карточке.
-Верни JSON {"products":[{"name":"точное официальное название","category":"роль","reason":"почему подходит именно профилю без неподтверждённых свойств","match_score":0,"usage":"короткий безопасный способ применения или тестирования","tradeoffs":["честное ограничение"],"official_url":"https://прямая-карточка-бренда","retailer_urls":[{"label":"магазин","url":"https://прямая-карточка-товара"}]}]}. Не указывай цену и пользовательский рейтинг.`,
+  Сначала внутренне проверь каждый вариант по всем ограничениям, но не раскрывай цепочку рассуждений. Предложи до 4 независимых кандидатов, чтобы сервер мог проверить ссылки и отсеять ошибки. Товар без известной прямой карточки маркетплейса не включай. В user payload передан verified_catalog: это уже проверенные сервером товары и URL. Если товар из него соответствует запросу, используй его точное имя и marketplace_urls без изменений. Новые товары добавляй только при уверенности в точной прямой карточке. Для каждого товара постарайся указать карточки на всех доступных площадках из списка: goldapple.ru, market.yandex.ru, letu.ru, rivegauche.ru, wildberries.ru, tsum.ru. Не указывай официальный сайт бренда. Не создавай поисковые или категорийные ссылки.
+Верни JSON {"products":[{"name":"точное официальное название","category":"роль","reason":"почему подходит именно профилю без неподтверждённых свойств","match_score":0,"usage":"короткий безопасный способ применения или тестирования","tradeoffs":["честное ограничение"],"retailer_urls":[{"label":"название маркетплейса","url":"https://прямая-карточка-товара"}]}]}. Не указывай цену и пользовательский рейтинг: сервер извлечёт актуальную цену из подтверждённых страниц.`,
     JSON.stringify({
       user_query: query,
       extracted_profile: triage.profile,
       verified_catalog: curatedFallback[mode].map((product) => ({
         name: product.name,
         category: product.category,
-        official_url: product.marketplaces[0]?.href,
+        marketplace_urls: product.marketplaces.map((link) => link.href),
       })),
     }),
     1900,
