@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight, Bot, Droplets, Heart, History, Scissors, Send, Sparkles, UserRound } from "lucide-react";
 import { motion, useMotionValue, useReducedMotion, useScroll, useSpring, useTransform } from "motion/react";
-import { useRef } from "react";
+import { useRef, type CSSProperties } from "react";
 import { InstagramIcon, SiteFooter, SiteHeader, VkIcon } from "@/components/portal-components";
 import { LinkButton } from "@/components/ui/button";
 import { DigitalLotus } from "@/components/digital-lotus";
@@ -30,17 +30,22 @@ export function LandingPage() {
   const mediaX = useTransform(smoothX, (value) => value * -0.7);
   const mediaY = useTransform(smoothY, (value) => value * -0.55);
   const typeX = useTransform(smoothX, (value) => value * .24);
-  const { scrollYProgress: heroProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
-  const heroScale = useTransform(heroProgress, [0, .58, 1], [1, .965, .78]);
-  const heroRadius = useTransform(heroProgress, [0, .56, 1], [0, 18, 38]);
-  const lotusScale = useTransform(heroProgress, [0, .45, .86, 1], [1, 1.12, 3.9, 5.4]);
-  const lotusY = useTransform(heroProgress, [0, .5, 1], [0, -18, -120]);
-  const lotusOpacity = useTransform(heroProgress, [.66, .91, 1], [1, .72, 0]);
-  const titleY = useTransform(heroProgress, [0, .44, 1], [0, -18, -118]);
-  const titleOpacity = useTransform(heroProgress, [0, .44, .72], [1, .86, 0]);
-  const detailOpacity = useTransform(heroProgress, [0, .25, .58], [1, .82, 0]);
-  const revealY = useTransform(heroProgress, [.39, .79], [120, 0]);
-  const revealOpacity = useTransform(heroProgress, [.36, .6, .82], [0, .72, 1]);
+  const { scrollYProgress: heroProgress } = useScroll({ target: heroRef, offset: ["start start", "end end"] });
+  const heroScale = useTransform(heroProgress, [0, .58, .82, 1], [1, 1, .985, .96]);
+  const heroRadius = useTransform(heroProgress, [0, .58, .82, 1], [0, 0, 22, 42]);
+  const lotusScale = useTransform(heroProgress, [0, .16, .5, .72, .88], [.76, .94, 1.12, 3.8, 8.4]);
+  const lotusY = useTransform(heroProgress, [0, .48, .78, 1], [0, -8, -48, -160]);
+  const lotusRotate = useTransform(heroProgress, [0, .55, .82], [0, -2, 7]);
+  const lotusOpacity = useTransform(heroProgress, [.73, .88, .96], [1, .68, 0]);
+  const lotusBloom = useTransform(heroProgress, [0, .12, .3, .58], [0, .04, .36, 1]);
+  const titleY = useTransform(heroProgress, [0, .28, .54], [0, -8, -72]);
+  const titleScale = useTransform(heroProgress, [0, .3, .58], [1, .98, .9]);
+  const titleOpacity = useTransform(heroProgress, [0, .3, .58], [1, .92, 0]);
+  const detailOpacity = useTransform(heroProgress, [0, .2, .48], [1, .8, 0]);
+  const transitionY = useTransform(heroProgress, [.54, .9], ["101%", "0%"]);
+  const transitionRadius = useTransform(heroProgress, [.54, .9], [64, 0]);
+  const transitionCopyY = useTransform(heroProgress, [.68, .92], [80, 0]);
+  const transitionCopyOpacity = useTransform(heroProgress, [.68, .84, .94], [0, .6, 1]);
 
   return (
     <main className="site-shell home-page cinematic-site">
@@ -58,38 +63,45 @@ export function LandingPage() {
         onPointerLeave={() => { pointerX.set(0); pointerY.set(0); }}
       >
         <div className="aerocore-sticky">
-          <motion.div
-            className="aerocore-hero"
-            style={reduceMotion ? undefined : { scale: heroScale, borderRadius: heroRadius }}
-          >
+          <motion.div className="aerocore-hero" style={reduceMotion ? undefined : { scale: heroScale, borderRadius: heroRadius }}>
             <motion.div className="aerocore-media" style={reduceMotion ? undefined : { x: mediaX, y: mediaY }} aria-hidden="true">
-              <motion.div className="aerocore-lotus-stage" style={reduceMotion ? undefined : { scale: lotusScale, y: lotusY, opacity: lotusOpacity }}>
+              <div className="aerocore-plane-lines" />
+              <motion.div
+                className="aerocore-lotus-stage"
+                style={reduceMotion ? { "--lotus-bloom": 1 } as CSSProperties : {
+                  scale: lotusScale,
+                  y: lotusY,
+                  rotate: lotusRotate,
+                  opacity: lotusOpacity,
+                  "--lotus-bloom": lotusBloom,
+                } as never}
+              >
                 <DigitalLotus className="aerocore-lotus" />
               </motion.div>
               <div className="aerocore-wash" />
             </motion.div>
 
-            <motion.h1
-              className="aerocore-title"
-              style={reduceMotion ? undefined : { x: typeX, y: titleY, opacity: titleOpacity }}
-            >
-              Красавица
-            </motion.h1>
-
-            <motion.div
-              className="aerocore-hero-detail"
-              style={reduceMotion ? undefined : { opacity: detailOpacity }}
-            >
-              <p>AI-подбор без лишнего шума.</p>
-              <LinkButton href="/care" className="aerocore-action" data-analytics="hero_search">Начать подбор <ArrowRight /></LinkButton>
+            <motion.div className="aerocore-intro" style={reduceMotion ? undefined : { x: typeX, y: titleY, scale: titleScale, opacity: titleOpacity }}>
+              <span>PERSONAL BEAUTY INTELLIGENCE</span>
+              <h1>Красавица</h1>
+              <p>AI-подбор ухода, волос и ароматов.</p>
             </motion.div>
 
+            <motion.div className="aerocore-hero-detail" style={reduceMotion ? undefined : { opacity: detailOpacity }}>
+              <p>Точный выбор без лишнего шума.</p>
+              <LinkButton href="/care" className="aerocore-action" data-analytics="hero_search">Начать подбор <ArrowRight /></LinkButton>
+            </motion.div>
           </motion.div>
 
-          <motion.div className="aerocore-reveal-panel" style={reduceMotion ? undefined : { opacity: revealOpacity, y: revealY }}>
-            <span>Красота, собранная в систему</span>
-            <strong>Запрос превращается в понятный выбор.</strong>
-            <div><i>Кожа</i><i>Волосы</i><i>Ароматы</i></div>
+          <motion.div
+            className="aerocore-transition-sheet"
+            style={reduceMotion ? undefined : { y: transitionY, borderTopLeftRadius: transitionRadius, borderTopRightRadius: transitionRadius }}
+          >
+            <motion.div style={reduceMotion ? undefined : { y: transitionCopyY, opacity: transitionCopyOpacity }}>
+              <span>01 · ЗАПРОС СТАНОВИТСЯ СИСТЕМОЙ</span>
+              <strong>Красота начинается с вопроса.</strong>
+              <p>Три направления. Одна ясная логика выбора.</p>
+            </motion.div>
           </motion.div>
         </div>
       </section>

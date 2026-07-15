@@ -74,10 +74,10 @@ export function SiteHeader() {
       frame = 0;
       const progress = pathname === "/" ? Math.min(1, Math.max(0, window.scrollY / 150)) : 1;
       headerRef.current?.style.setProperty("--chrome-progress", progress.toFixed(3));
-      headerRef.current?.style.setProperty("--chrome-alpha", (progress * .88).toFixed(3));
-      headerRef.current?.style.setProperty("--chrome-border-alpha", (progress * .22).toFixed(3));
-      headerRef.current?.style.setProperty("--chrome-shadow-alpha", (progress * .14).toFixed(3));
-      headerRef.current?.style.setProperty("--chrome-blur", `${(progress * 28).toFixed(1)}px`);
+      headerRef.current?.style.setProperty("--chrome-alpha", (progress * .44).toFixed(3));
+      headerRef.current?.style.setProperty("--chrome-border-alpha", (progress * .16).toFixed(3));
+      headerRef.current?.style.setProperty("--chrome-shadow-alpha", (progress * .08).toFixed(3));
+      headerRef.current?.style.setProperty("--chrome-blur", `${(progress * 34).toFixed(1)}px`);
       const next = progress > 0.08;
       setScrolled((current) => current === next ? current : next);
     };
@@ -143,10 +143,10 @@ export function SiteHeader() {
       ref={headerRef}
       style={{
         "--chrome-progress": pathname === "/" ? 0 : 1,
-        "--chrome-alpha": pathname === "/" ? 0 : .88,
-        "--chrome-border-alpha": pathname === "/" ? 0 : .22,
-        "--chrome-shadow-alpha": pathname === "/" ? 0 : .14,
-        "--chrome-blur": pathname === "/" ? "0px" : "28px",
+        "--chrome-alpha": pathname === "/" ? 0 : .44,
+        "--chrome-border-alpha": pathname === "/" ? 0 : .16,
+        "--chrome-shadow-alpha": pathname === "/" ? 0 : .08,
+        "--chrome-blur": pathname === "/" ? "0px" : "34px",
       } as React.CSSProperties}
       className={cn("site-header", pathname === "/" && "is-home", scrolled && "is-scrolled")}
     >
