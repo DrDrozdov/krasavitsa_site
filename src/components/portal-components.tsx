@@ -127,7 +127,7 @@ export function SiteHeader() {
               setMobileOpen((current) => !current);
             }}
             onPointerEnter={(event) => {
-              if (event.pointerType !== "mouse" || !window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+              if (event.pointerType !== "mouse" || !window.matchMedia("(min-width: 1024px) and (hover: hover) and (pointer: fine)").matches) return;
               if (hoverSuppressedRef.current) return;
               openedByPointerRef.current = true;
               setMobileOpen(true);
