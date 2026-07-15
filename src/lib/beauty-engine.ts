@@ -613,16 +613,12 @@ ${config.triage}
     `<user_request>${query}</user_request>`,
     800,
   );
-  const triage = parseTriage(triageRaw);
+  let triage = parseTriage(triageRaw);
   if (triage.decision === "clarify") {
-    return {
-      status: "needs_input",
-      mode,
-      summary: triage.summary,
-      insight: resultInsight(mode),
-      followUpQuestion: triage.question,
-      products: ensureMinimumProducts(mode, query, []),
-      methodology: "curated-fallback",
+    triage = {
+      ...triage,
+      decision: "ready",
+      summary: `${triage.summary} Недостающие детали можно уточнить следующим сообщением; сначала покажу подходящие варианты.`,
     };
   }
   if (triage.decision === "decline") {
