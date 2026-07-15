@@ -342,25 +342,6 @@ function normalizedTokens(value: string): string[] {
   return value.toLocaleLowerCase("ru").replace(/ё/g, "е").replace(/[^a-zа-я0-9]+/g, " ").split(/\s+/).filter((token) => token.length >= 3 && !stop.has(token));
 }
 
-function curatedForQuery(mode: SearchMode, query: string): BeautyProduct[] {
-  const queryTokens = normalizedTokens(query);
-  return curatedFallback[mode]
-    .map((product, index) => {
-      const searchable = `${product.name} ${product.category} ${product.reason}`.toLocaleLowerCase("ru");
-      const matches = queryTokens.filter((token) => searchable.includes(token)).length;
-      const category = product.category.toLocaleLowerCase("ru");
-      const categoryMatches = queryTokens.filter((token) => category.includes(token)).length;
-      return {
-        ...product,
-        matchScore: clampScore(product.matchScore + Math.min(22, matches * 4 + categoryMatches * 8)),
-        priceRange: formatPriceRange(product.marketplaces) || product.priceRange,
-        image: productImage(mode, product.name, product.marketplaces[0]?.href, index),
-        imageKind: "verified-composite" as const,
-      };
-    })
-    .sort((left, right) => right.matchScore - left.matchScore);
-}
-
 function allowedHosts(): string[] {
   return defaultAllowedHosts;
 }
@@ -401,6 +382,7 @@ async function readLimitedText(response: Response, limit = 180_000): Promise<str
 function extractRublePrice(html: string): number | undefined {
   const patterns = [
     /"price"\s*:\s*"?(\d{2,7}(?:[.,]\d{1,2})?)"?/gi,
+    /"(?:priceValue|currentPrice|salePrice|discountPrice|finalPrice)"\s*:\s*"?(\d{2,7}(?:[.,]\d{1,2})?)"?/gi,
     /(?:product:price:amount|priceAmount)[^>]{0,160}(?:content=|:)\s*["']?(\d{2,7}(?:[.,]\d{1,2})?)/gi,
   ];
   const prices: number[] = [];
@@ -421,8 +403,6 @@ async function verifyLink(name: string, label: string, value: string, kind: Prod
   const url = isDirectProductUrl(value);
   if (!url) return null;
   const tokens = [...new Set(normalizedTokens(name))].slice(0, 8);
-  const pathText = decodeURIComponent(url.pathname).toLocaleLowerCase("ru").replace(/[^a-zа-я0-9]+/g, " ");
-  const pathMatches = tokens.filter((token) => pathText.includes(token)).length;
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 7_000);
   try {
@@ -434,9 +414,7 @@ async function verifyLink(name: string, label: string, value: string, kind: Prod
     });
     const finalUrl = isDirectProductUrl(response.url);
     if (!finalUrl) return null;
-    if (!response.ok) return [403, 429].includes(response.status) && pathMatches >= 2
-      ? { label, href: finalUrl.toString(), kind }
-      : null;
+    if (!response.ok) return null;
     const contentType = response.headers.get("content-type") ?? "";
     if (!contentType.includes("text/html")) return null;
     const rawHtml = await readLimitedText(response);
@@ -445,9 +423,9 @@ async function verifyLink(name: string, label: string, value: string, kind: Prod
     const required = Math.min(3, Math.max(2, Math.ceil(tokens.length * 0.45)));
     if (matches < required) return null;
     const price = extractRublePrice(rawHtml);
-    return { label, href: finalUrl.toString(), kind, ...(price ? { price, currency: "RUB" as const } : {}) };
+    return price ? { label, href: finalUrl.toString(), kind, price, currency: "RUB" as const } : null;
   } catch {
-    return pathMatches >= 3 ? { label, href: url.toString(), kind } : null;
+    return null;
   } finally {
     clearTimeout(timeout);
   }
@@ -467,39 +445,55 @@ function linkLabel(url: string, fallback: string): string {
   } catch { return fallback || "Карточка товара"; }
 }
 
-async function discoverMarketplaceUrls(name: string): Promise<Array<{ label: string; url: string }>> {
-  const sites = defaultAllowedHosts.map((host) => `site:${host}`).join(" OR ");
-  const query = encodeURIComponent(`"${name}" (${sites})`);
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 6_000);
+function storeKey(url: string): string {
   try {
-    const response = await fetch(`https://html.duckduckgo.com/html/?q=${query}`, {
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; KrasavitsaProductDiscovery/3.0)" },
-      cache: "no-store",
-      signal: controller.signal,
-    });
-    if (!response.ok) return [];
-    const html = await response.text();
-    const urls: Array<{ label: string; url: string }> = [];
-    for (const match of html.matchAll(/uddg=([^&"']+)/gi)) {
-      try {
-        const decoded = decodeURIComponent(match[1].replace(/&amp;/g, "&"));
-        const direct = isDirectProductUrl(decoded);
-        if (!direct || urls.some((item) => item.url === direct.toString())) continue;
-        urls.push({ label: linkLabel(direct.toString(), "Маркетплейс"), url: direct.toString() });
-        if (urls.length >= 12) break;
-      } catch { /* Ignore malformed search-result redirects. */ }
+    const host = new URL(url).hostname.replace(/^www\./, "");
+    if (host.includes("goldapple")) return "goldapple";
+    if (host.includes("letu")) return "letu";
+    if (host.includes("rivegauche")) return "rivegauche";
+    if (host.includes("wildberries")) return "wildberries";
+    if (host.includes("market.yandex")) return "yandex";
+    if (host.includes("ozon")) return "ozon";
+    if (host.includes("tsum")) return "tsum";
+  } catch { /* Invalid URLs are rejected by isDirectProductUrl. */ }
+  return "";
+}
+
+async function discoverMarketplaceUrls(name: string): Promise<Array<{ label: string; url: string }>> {
+  const discoverOnHost = async (host: string): Promise<{ label: string; url: string } | null> => {
+    const query = encodeURIComponent(`"${name}" site:${host}`);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 4_000);
+    try {
+      const response = await fetch(`https://html.duckduckgo.com/html/?q=${query}`, {
+        headers: { "User-Agent": "Mozilla/5.0 (compatible; KrasavitsaProductDiscovery/3.1)" },
+        cache: "no-store",
+        signal: controller.signal,
+      });
+      if (!response.ok) return null;
+      const html = await response.text();
+      for (const match of html.matchAll(/uddg=([^&"']+)/gi)) {
+        try {
+          const decoded = decodeURIComponent(match[1].replace(/&amp;/g, "&"));
+          const direct = isDirectProductUrl(decoded);
+          if (direct && storeKey(direct.toString()) === storeKey(`https://${host}`)) {
+            return { label: linkLabel(direct.toString(), "Маркетплейс"), url: direct.toString() };
+          }
+        } catch { /* Ignore malformed search-result redirects. */ }
+      }
+      return null;
+    } catch {
+      return null;
+    } finally {
+      clearTimeout(timeout);
     }
-    return urls;
-  } catch {
-    return [];
-  } finally {
-    clearTimeout(timeout);
-  }
+  };
+  const found = await Promise.all(defaultAllowedHosts.map(discoverOnHost));
+  return found.filter((item): item is { label: string; url: string } => Boolean(item));
 }
 
 async function verifyCandidate(candidate: Candidate): Promise<VerifiedCandidate | null> {
-  const discovered = candidate.retailerUrls.length >= 4 ? [] : await discoverMarketplaceUrls(candidate.name);
+  const discovered = await discoverMarketplaceUrls(candidate.name);
   const retailerUrls = [...candidate.retailerUrls, ...discovered]
     .filter((item, index, array) => array.findIndex((other) => other.url === item.url) === index)
     .slice(0, 12);
@@ -507,7 +501,8 @@ async function verifyCandidate(candidate: Candidate): Promise<VerifiedCandidate 
   for (const item of retailerUrls) requests.push(verifyLink(candidate.name, linkLabel(item.url, item.label), item.url, "marketplace"));
   const links = (await Promise.all(requests)).filter((item): item is ProductLink => Boolean(item));
   const unique = links.filter((link, index, array) => array.findIndex((item) => item.href === link.href) === index).slice(0, 8);
-  return unique.length ? { ...candidate, links: unique } : null;
+  const storeCount = new Set(unique.map((link) => storeKey(link.href)).filter(Boolean)).size;
+  return storeCount >= 3 && unique.length >= 3 ? { ...candidate, links: unique } : null;
 }
 
 function formatPriceRange(links: ProductLink[]): string | undefined {
@@ -525,13 +520,6 @@ function productImage(mode: SearchMode, name: string, source: string | undefined
   return `/api/product-image?${params.toString()}`;
 }
 
-function estimatedPriceRange(mode: SearchMode, category: string): string {
-  const value = category.toLocaleLowerCase("ru");
-  if (mode === "perfume") return value.includes("набор") || value.includes("мини") ? "3 000–12 000 ₽" : "7 000–28 000 ₽";
-  if (mode === "hair") return value.includes("шамп") ? "800–3 500 ₽" : "1 200–5 500 ₽";
-  return value.includes("spf") || value.includes("солнц") ? "1 200–3 500 ₽" : "900–4 500 ₽";
-}
-
 function resultInsight(mode: SearchMode): string {
   if (mode === "skin") return "Новый уход вводите по одному средству и сначала проверяйте переносимость на небольшом участке кожи — так проще понять реальную реакцию.";
   if (mode === "hair") return "Кожу головы и длину оценивают отдельно: шампунь отвечает прежде всего за очищение, а кондиционер и защита — за состояние длины.";
@@ -541,11 +529,12 @@ function resultInsight(mode: SearchMode): string {
 function ensureMinimumProducts(mode: SearchMode, query: string, products: BeautyProduct[], minimum = 3): BeautyProduct[] {
   const result: BeautyProduct[] = [];
   const seen = new Set<string>();
-  for (const product of [...products, ...curatedForQuery(mode, query)]) {
+  for (const product of products) {
     const key = product.name.toLocaleLowerCase("ru").replace(/\s+/g, " ").trim();
     if (!key || seen.has(key)) continue;
     seen.add(key);
-    result.push({ ...product, priceRange: product.priceRange || estimatedPriceRange(mode, product.category) });
+    if (!product.priceRange || new Set(product.marketplaces.map((link) => storeKey(link.href)).filter(Boolean)).size < 3) continue;
+    result.push(product);
     if (result.length >= Math.max(minimum, 4)) break;
   }
   return result;
@@ -557,7 +546,7 @@ function toPublicProduct(mode: SearchMode, product: VerifiedCandidate, variant: 
     category: product.category,
     reason: product.reason,
     matchScore: product.matchScore,
-    priceRange: formatPriceRange(product.links) || estimatedPriceRange(mode, product.category),
+    priceRange: formatPriceRange(product.links)!,
     usage: product.usage,
     tradeoffs: product.tradeoffs,
     image: productImage(mode, product.name, product.links[0]?.href, variant),
@@ -606,9 +595,9 @@ export async function recommendBeauty(query: string, mode: SearchMode): Promise<
   const config = modes[mode];
   if (!process.env.DEEPSEEK_API_KEY?.trim()) {
     return {
-      status: "complete",
+      status: "no_verified_products",
       mode,
-      summary: "AI-провайдер не настроен, поэтому показываю только небольшой проверенный базовый каталог без персональных обещаний.",
+      summary: "Сейчас не могу собрать три подтверждённые карточки с ценами на разных маркетплейсах. Попробуйте повторить запрос позже.",
       insight: resultInsight(mode),
       products: ensureMinimumProducts(mode, query, []),
       methodology: "curated-fallback",
@@ -626,9 +615,9 @@ ${config.triage}
   const triage = parseTriage(triageRaw);
   if (triage.decision === "clarify") {
     return {
-      status: "complete",
+      status: "needs_input",
       mode,
-      summary: `${triage.summary} Для старта показываю проверенные варианты; ${triage.question?.toLocaleLowerCase("ru") || "параметры можно уточнить следующим запросом"}`,
+      summary: triage.summary,
       insight: resultInsight(mode),
       followUpQuestion: triage.question,
       products: ensureMinimumProducts(mode, query, []),
@@ -662,8 +651,8 @@ ${config.triage}
     `Ты профильный эксперт платформы «Красавица» по направлению «${config.label}». ${sharedContract}
 ${config.specialist}
 ${config.safety}
-  Сначала внутренне проверь каждый вариант по всем ограничениям, но не раскрывай цепочку рассуждений. Предложи 6 независимых кандидатов, чтобы после серверной проверки осталось минимум 3. Товар без известной прямой карточки маркетплейса не включай. В user payload передан verified_catalog: это уже проверенные сервером товары и URL. Если товар из него соответствует запросу, используй его точное имя и marketplace_urls без изменений. Новые товары добавляй только при уверенности в точной прямой карточке. Для каждого товара постарайся указать карточки на всех доступных площадках из списка: goldapple.ru, market.yandex.ru, letu.ru, rivegauche.ru, wildberries.ru, ozon.ru, tsum.ru. Не указывай официальный сайт бренда. Не создавай поисковые или категорийные ссылки.
-Верни JSON {"products":[{"name":"точное официальное название","category":"роль","reason":"почему подходит именно профилю без неподтверждённых свойств","match_score":0,"usage":"короткий безопасный способ применения или тестирования","tradeoffs":["честное ограничение"],"retailer_urls":[{"label":"название маркетплейса","url":"https://прямая-карточка-товара"}]}]}. Не указывай цену и пользовательский рейтинг: сервер извлечёт актуальную цену из подтверждённых страниц.`,
+  Сначала внутренне проверь каждый вариант по всем ограничениям, но не раскрывай цепочку рассуждений. Предложи 6 независимых кандидатов, чтобы после серверной проверки осталось минимум 3. Товар без известной прямой карточки маркетплейса не включай. Для каждого кандидата обязательны минимум три разные прямые карточки из списка goldapple.ru, market.yandex.ru, letu.ru, rivegauche.ru, wildberries.ru, ozon.ru, tsum.ru — только там, где видна цена конкретного товара. В user payload передан verified_catalog: это уже проверенные сервером товары и URL. Если товар из него соответствует запросу, используй его точное имя и marketplace_urls без изменений. Не указывай официальный сайт бренда. Не создавай поисковые или категорийные ссылки.
+Верни JSON {"products":[{"name":"точное официальное название","category":"роль","reason":"почему подходит именно профилю без неподтверждённых свойств","match_score":0,"usage":"короткий безопасный способ применения или тестирования","tradeoffs":["честное ограничение"],"retailer_urls":[{"label":"название маркетплейса","url":"https://прямая-карточка-товара"}]}]}. Не указывай цену и пользовательский рейтинг: сервер извлечёт актуальную цену из подтверждённых страниц и сам рассчитает диапазон min–max.`,
     JSON.stringify({
       user_query: query,
       extracted_profile: triage.profile,
@@ -679,9 +668,9 @@ ${config.safety}
   const verified = (await Promise.all(candidates.map(verifyCandidate))).filter((item): item is VerifiedCandidate => Boolean(item));
   if (!verified.length) {
     return {
-      status: "complete",
+      status: "no_verified_products",
       mode,
-      summary: `${triage.summary} Новые карточки не прошли строгую проверку источников, поэтому показываю наиболее близкие варианты из проверенного каталога — без вымышленных товаров и поисковых ссылок.`,
+      summary: `${triage.summary} Не удалось подтвердить для одной позиции минимум три отдельные карточки с актуальной ценой. Поэтому подбор не публикую — без случайных ссылок и оценочных цен.`,
       insight: resultInsight(mode),
       products: ensureMinimumProducts(mode, query, []),
       methodology: "curated-fallback",
@@ -702,12 +691,23 @@ ${config.safety}
     }
   }
 
+  const publicProducts = ensureMinimumProducts(mode, query, finalProducts.map((item, index) => toPublicProduct(mode, item, index)));
+  if (publicProducts.length < 3) {
+    return {
+      status: "no_verified_products",
+      mode,
+      summary: `${summary} После финальной проверки осталось меньше трёх товаров с ценами минимум на трёх маркетплейсах. Уточните бюджет, объём или желаемые бренды — я повторю поиск.`,
+      insight: resultInsight(mode),
+      products: [],
+      methodology: "grounded-v3",
+    };
+  }
   return {
     status: "complete",
     mode,
     summary,
     insight: resultInsight(mode),
-    products: ensureMinimumProducts(mode, query, finalProducts.map((item, index) => toPublicProduct(mode, item, index))),
+    products: publicProducts,
     methodology: "grounded-v3",
   };
 }
@@ -718,9 +718,9 @@ export function isSearchMode(value: unknown): value is SearchMode {
 
 export function fallbackRecommendation(mode: SearchMode): BeautyRecommendation {
   return {
-    status: "complete",
+    status: "no_verified_products",
     mode,
-    summary: "AI-провайдер временно недоступен. Показываю только проверенный базовый каталог; это не персональная подборка.",
+    summary: "AI-провайдер временно недоступен, а три проверенные ценовые карточки собрать нельзя. Попробуйте повторить запрос позже.",
     insight: resultInsight(mode),
     products: ensureMinimumProducts(mode, "", []),
     methodology: "curated-fallback",
