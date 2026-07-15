@@ -34,8 +34,8 @@ export const metadata: Metadata = {
     images: [
       {
         url: "/opengraph-image.png",
-        width: 640,
-        height: 640,
+        width: 1254,
+        height: 1254,
         alt: "Логотип Красавица",
       },
     ],

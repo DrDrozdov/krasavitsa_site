@@ -37,7 +37,16 @@ NEXT_PUBLIC_SITE_URL=https://your-domain.ru
 DEEPSEEK_API_KEY=your_api_key
 DEEPSEEK_BASE_URL=https://api.deepseek.com
 DEEPSEEK_MODEL=deepseek-chat
+OPENAI_API_KEY=your_openai_api_key
+OPENAI_TRANSCRIBE_MODEL=gpt-4o-mini-transcribe
 ```
+
+The microphone in AI search records no more than 20 seconds and sends the
+audio directly to the server-side `/api/transcribe` route. Audio is not saved
+by the application. In the current two-resource Dokploy layout, production
+traffic is served by the ordinary **`krasavitsa` Application**, so voice and
+admin variables must be present there; adding them only to
+`krasavitsa-compose` does not configure the live site.
 
 The website route `/api/recommendations` is the canonical recommendation engine
 for the website and Telegram bot. In the bot project set:

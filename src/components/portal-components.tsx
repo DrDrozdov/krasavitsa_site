@@ -12,19 +12,19 @@ import {
   Menu,
   MessageCircle,
   Send,
-  Sparkles,
   UserRound,
   X,
 } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { ThemePreferences, ThemeToggle } from "@/components/theme-toggle";
 import { LinkButton } from "@/components/ui/button";
+import { BrandMark } from "@/components/brand-mark";
 import { cn } from "@/lib/utils";
 
 export const navLinks = [
   ["Главная", "/"],
   ["AI-подбор", "/care"],
-  ["Блог", "/blog"],
+  ["Журнал", "/blog"],
   ["О проекте", "/about"],
   ["Профиль", "/profile"],
 ];
@@ -40,6 +40,25 @@ export function SiteHeader() {
   const triggerRef = useRef<HTMLButtonElement>(null);
   const openedByPointerRef = useRef(false);
   const hoverSuppressedRef = useRef(false);
+  const hoverCloseTimerRef = useRef<number | null>(null);
+
+  const cancelHoverClose = () => {
+    if (hoverCloseTimerRef.current !== null) {
+      window.clearTimeout(hoverCloseTimerRef.current);
+      hoverCloseTimerRef.current = null;
+    }
+  };
+
+  const scheduleHoverClose = () => {
+    if (!openedByPointerRef.current) return;
+    cancelHoverClose();
+    hoverCloseTimerRef.current = window.setTimeout(() => {
+      openedByPointerRef.current = false;
+      setMobileOpen(false);
+    }, 140);
+  };
+
+  useEffect(() => () => cancelHoverClose(), []);
 
   useEffect(() => {
     if (!mobileOpen) return;
@@ -91,8 +110,8 @@ export function SiteHeader() {
     <header className="site-header">
       <div className="site-chrome">
         <Link href="/" className="brand-mark" aria-label="Красавица, на главную">
-          <span>К</span>
-          <Sparkles aria-hidden="true" />
+          <BrandMark priority />
+          <span className="brand-word">Красавица</span>
         </Link>
 
         <nav className="desktop-nav" aria-label="Основная навигация">
@@ -122,17 +141,22 @@ export function SiteHeader() {
             aria-expanded={mobileOpen}
             aria-controls="mobile-navigation-panel"
             onClick={() => {
+              cancelHoverClose();
               openedByPointerRef.current = false;
               hoverSuppressedRef.current = mobileOpen;
               setMobileOpen((current) => !current);
             }}
             onPointerEnter={(event) => {
-              if (event.pointerType !== "mouse" || !window.matchMedia("(min-width: 1024px) and (hover: hover) and (pointer: fine)").matches) return;
+              if (event.pointerType !== "mouse" || window.innerWidth < 1024) return;
               if (hoverSuppressedRef.current) return;
+              cancelHoverClose();
               openedByPointerRef.current = true;
               setMobileOpen(true);
             }}
-            onPointerLeave={() => { hoverSuppressedRef.current = false; }}
+            onPointerLeave={(event) => {
+              hoverSuppressedRef.current = false;
+              if (event.pointerType === "mouse") scheduleHoverClose();
+            }}
             className="header-icon-button menu-trigger"
           >
             {mobileOpen ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
@@ -168,6 +192,12 @@ export function SiteHeader() {
                   : { clipPath: reduceMotion ? "inset(0% 0% 0% 100% round 24px)" : "inset(0% 0% 0% 100% round 36px)", opacity: 0, scale: .985, filter: reduceMotion ? "blur(0px)" : "blur(12px)" }}
                 transition={{ duration: reduceMotion ? 0 : 0.28, ease: [0.16, 1, 0.3, 1] }}
                 className="mobile-menu-panel"
+                onPointerEnter={(event) => {
+                  if (event.pointerType === "mouse") cancelHoverClose();
+                }}
+                onPointerLeave={(event) => {
+                  if (event.pointerType === "mouse") scheduleHoverClose();
+                }}
               >
                 <div className="mobile-menu-head">
                   <div>
@@ -191,6 +221,7 @@ export function SiteHeader() {
 
                 <div className="mobile-menu-art" aria-hidden="true">
                   <Image src="/krasavitsa-cinematic-hero-v2.png" alt="" fill sizes="420px" />
+                  <BrandMark className="mobile-menu-logo" />
                   <span>BEAUTY INTELLIGENCE · 2026</span>
                 </div>
 
@@ -248,6 +279,7 @@ export function SiteFooter() {
   return (
     <footer id="contacts" className="site-footer">
       <div className="footer-lead">
+        <BrandMark className="footer-brand-mark" />
         <p className="eyebrow">Красавица</p>
         <h2>Красота без лишнего шума.</h2>
         <p>AI-подбор ухода, волос и ароматов с понятным объяснением каждого шага.</p>
@@ -401,5 +433,5 @@ export function InstagramIcon({ className }: { className?: string }) {
 }
 
 export function VkIcon({ className }: { className?: string }) {
-  return <svg viewBox="3 7 13 9" fill="none" aria-hidden="true" className={className}><path d="M4 7.6c.16 4.88 2.45 7.81 6.38 7.81h.22v-2.8c1.58.16 2.77 1.3 3.25 2.8H16c-.6-2.2-2.15-3.42-3.12-3.9.97-.57 2.33-1.95 2.65-3.91h-1.87c-.42 1.6-1.68 2.98-3.06 3.11V7.6H8.73v3.7C7.33 10.95 5.57 9.45 5.49 7.6H4Z" fill="currentColor" /></svg>;
+  return <svg viewBox="2.6 6.4 14 10" fill="none" aria-hidden="true" className={cn("vk-icon", className)}><path d="M4 7.6c.16 4.88 2.45 7.81 6.38 7.81h.22v-2.8c1.58.16 2.77 1.3 3.25 2.8H16c-.6-2.2-2.15-3.42-3.12-3.9.97-.57 2.33-1.95 2.65-3.91h-1.87c-.42 1.6-1.68 2.98-3.06 3.11V7.6H8.73v3.7C7.33 10.95 5.57 9.45 5.49 7.6H4Z" fill="currentColor" /></svg>;
 }

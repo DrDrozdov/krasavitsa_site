@@ -1,12 +1,14 @@
 "use client";
 
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { Check, Copy, Droplets, ExternalLink, Heart, Scissors, Sparkles } from "lucide-react";
+import { Check, Copy, Droplets, ExternalLink, Heart, Mic, Scissors, Send, Sparkles, Square } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { BrandMark } from "@/components/brand-mark";
 import { trackAnalyticsEvent } from "@/lib/analytics-client";
 
 type Mode = "skin" | "hair" | "perfume";
+type VoiceState = "idle" | "recording" | "transcribing";
 type Product = {
   name: string;
   category: string;
@@ -115,6 +117,12 @@ export function BeautyFinder() {
   const [copiedName, setCopiedName] = useState("");
   const [examplePage, setExamplePage] = useState(0);
   const [placeholderPage, setPlaceholderPage] = useState(0);
+  const [voiceState, setVoiceState] = useState<VoiceState>("idle");
+  const [voiceError, setVoiceError] = useState("");
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+  const recordingChunksRef = useRef<Blob[]>([]);
+  const recordingTimerRef = useRef<number | null>(null);
   const reduceMotion = useReducedMotion();
   const active = useMemo(() => modes.find((item) => item.id === mode)!, [mode]);
   const activeExamples = exampleSets[mode][examplePage % exampleSets[mode].length];
@@ -135,6 +143,78 @@ export function BeautyFinder() {
     const timer = window.setInterval(() => setPlaceholderPage((page) => page + 1), 4200);
     return () => window.clearInterval(timer);
   }, [mode]);
+
+  useEffect(() => () => {
+    if (recordingTimerRef.current !== null) window.clearTimeout(recordingTimerRef.current);
+    if (mediaRecorderRef.current?.state === "recording") mediaRecorderRef.current.stop();
+    mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
+  }, []);
+
+  const stopVoiceRecording = () => {
+    if (recordingTimerRef.current !== null) {
+      window.clearTimeout(recordingTimerRef.current);
+      recordingTimerRef.current = null;
+    }
+    if (mediaRecorderRef.current?.state === "recording") mediaRecorderRef.current.stop();
+  };
+
+  const toggleVoiceInput = async () => {
+    setVoiceError("");
+    if (voiceState === "recording") {
+      stopVoiceRecording();
+      return;
+    }
+    if (voiceState === "transcribing") return;
+    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
+      setVoiceError("Этот браузер не поддерживает запись голоса. Можно продиктовать запрос системной клавиатуре.");
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true }, video: false });
+      mediaStreamRef.current = stream;
+      recordingChunksRef.current = [];
+      const preferredType = ["audio/webm;codecs=opus", "audio/mp4", "audio/webm"].find((type) => MediaRecorder.isTypeSupported(type));
+      const recorder = new MediaRecorder(stream, preferredType ? { mimeType: preferredType } : undefined);
+      mediaRecorderRef.current = recorder;
+      recorder.addEventListener("dataavailable", (event) => { if (event.data.size) recordingChunksRef.current.push(event.data); });
+      recorder.addEventListener("stop", async () => {
+        stream.getTracks().forEach((track) => track.stop());
+        mediaStreamRef.current = null;
+        const audio = new Blob(recordingChunksRef.current, { type: recorder.mimeType || preferredType || "audio/webm" });
+        recordingChunksRef.current = [];
+        if (audio.size < 700) {
+          setVoiceState("idle");
+          setVoiceError("Запись получилась слишком короткой. Попробуйте ещё раз.");
+          return;
+        }
+        setVoiceState("transcribing");
+        const startedAt = Date.now();
+        try {
+          const body = new FormData();
+          const extension = audio.type.includes("mp4") ? "m4a" : "webm";
+          body.append("file", audio, `voice-query.${extension}`);
+          const response = await fetch("/api/transcribe", { method: "POST", body });
+          const data = await response.json().catch(() => ({})) as { text?: string; error?: string };
+          if (!response.ok || !data.text) throw new Error(data.error || "Не удалось распознать голос.");
+          setQuery((current) => [current.trim(), data.text?.trim()].filter(Boolean).join(current.trim() ? " " : ""));
+          trackAnalyticsEvent("voice_transcribe", `unified_${mode}`, { mode, durationMs: Date.now() - startedAt, result: "success" });
+        } catch (voiceFailure) {
+          setVoiceError(voiceFailure instanceof Error ? voiceFailure.message : "Не удалось распознать голос. Попробуйте ещё раз.");
+          trackAnalyticsEvent("voice_transcribe", `unified_${mode}`, { mode, durationMs: Date.now() - startedAt, result: "error" });
+        } finally {
+          setVoiceState("idle");
+        }
+      }, { once: true });
+      recorder.start(250);
+      setVoiceState("recording");
+      trackAnalyticsEvent("voice_record_start", `unified_${mode}`, { mode });
+      recordingTimerRef.current = window.setTimeout(stopVoiceRecording, 20_000);
+    } catch {
+      setVoiceState("idle");
+      setVoiceError("Разрешите доступ к микрофону в настройках браузера и попробуйте снова.");
+    }
+  };
 
   const changeMode = (next: Mode) => {
     if (next === mode) return;
@@ -284,10 +364,26 @@ export function BeautyFinder() {
                 />
                 {!query ? <AnimatePresence mode="wait" initial={false}><motion.span key={`${mode}-${placeholderPage}`} initial={{ opacity: 0, y: 12, filter: "blur(5px)" }} animate={{ opacity: 0.52, y: 0, filter: "blur(0px)" }} exit={{ opacity: 0, y: -9, filter: "blur(5px)" }} transition={{ duration: 0.44, ease: [0.16, 1, 0.3, 1] }} className="pointer-events-none absolute left-5 right-5 top-5 z-20 text-base font-semibold leading-7 text-white/70">{activePlaceholder}</motion.span></AnimatePresence> : null}
               </div>
-              <button type="button" onClick={() => void search()} disabled={loading} className="apple-glass-button min-h-14 rounded-[var(--radius-lg)] bg-white px-8 text-base font-black text-[var(--color-bordeaux)] disabled:opacity-60 md:min-h-full">
-                {loading ? "Собираю…" : "Подобрать"}
-              </button>
+              <div className="finder-action-stack">
+                <button
+                  type="button"
+                  onClick={() => void toggleVoiceInput()}
+                  disabled={loading || voiceState === "transcribing"}
+                  aria-label={voiceState === "recording" ? "Остановить запись" : voiceState === "transcribing" ? "Распознаю голос" : "Продиктовать запрос"}
+                  aria-pressed={voiceState === "recording"}
+                  className={`finder-voice-button apple-glass-button ${voiceState === "recording" ? "is-recording" : ""}`}
+                >
+                  {voiceState === "recording" ? <Square aria-hidden="true" /> : <Mic aria-hidden="true" />}
+                  <span className="finder-action-label">{voiceState === "recording" ? "Остановить" : voiceState === "transcribing" ? "Слушаю…" : "Голосом"}</span>
+                  {voiceState === "recording" ? <span className="voice-wave" aria-hidden="true"><i /><i /><i /><i /></span> : null}
+                </button>
+                <button type="button" onClick={() => void search()} disabled={loading || voiceState === "transcribing"} aria-label={loading ? "Подбор выполняется" : "Отправить запрос на подбор"} className="finder-submit-button apple-glass-button">
+                  <span className="finder-submit-label">{loading ? "Собираю…" : "Подобрать"}</span>
+                  <Send aria-hidden="true" />
+                </button>
+              </div>
             </div>
+            {voiceError ? <p className="finder-voice-error" role="status">{voiceError}</p> : null}
             <div className="mt-3 md:mt-4">
               <AnimatePresence initial={false} mode="wait">
                 <motion.div key={`${mode}-${examplePage}`} initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 26, filter: "blur(8px)" }} animate={{ opacity: 1, y: 0, filter: "blur(0px)" }} exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -26, filter: "blur(7px)" }} transition={{ duration: 0.52, ease: [0.16, 1, 0.3, 1] }} className="flex items-stretch gap-2 overflow-x-auto pb-1 md:grid md:grid-cols-3 md:overflow-visible">
@@ -314,15 +410,18 @@ export function BeautyFinder() {
               aria-live="polite"
               className="search-discovery mt-5 overflow-hidden rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-glass)] p-5 text-center shadow-[var(--shadow-soft)] backdrop-blur-2xl md:mt-7 md:rounded-[var(--radius-xxl)] md:p-8"
             >
-              <div className="search-prism-stage" aria-hidden="true">
-                <span className="search-prism-halo" />
-                <span className="search-prism-orbit" />
-                <span className="search-prism">
-                  <i className="search-prism-face" />
-                  <i className="search-prism-face" />
-                  <i className="search-prism-face" />
-                  <Sparkles className="search-prism-core" strokeWidth={1.8} />
+              <div className="search-liquid-stage" aria-hidden="true">
+                <span className="search-liquid-aura" />
+                <span className="search-liquid-shadow" />
+                <span className="search-liquid-orbit search-liquid-orbit-back"><i /><i /></span>
+                <span className="search-liquid-pearl">
+                  <i className="search-liquid-refraction" />
+                  <i className="search-liquid-membrane" />
+                  <BrandMark className="search-liquid-logo" />
                 </span>
+                <span className="search-liquid-orbit search-liquid-orbit-front"><i /><i /><i /></span>
+                <span className="search-liquid-satellite search-liquid-satellite-a" />
+                <span className="search-liquid-satellite search-liquid-satellite-b" />
               </div>
               <p className="mt-5 text-xs font-black uppercase tracking-[0.14em] text-[var(--color-text-soft)]">Подбор уже в процессе</p>
               <h2 className="mt-2 text-2xl font-black tracking-tight md:text-3xl">Сверяю детали вашего запроса</h2>
@@ -339,9 +438,8 @@ export function BeautyFinder() {
                   {searchFacts[mode][searchFactIndices[searchFactStep]]}
                 </motion.p>
               </AnimatePresence>
-              <div className="mx-auto mt-6 h-1 w-full max-w-md overflow-hidden rounded-full bg-[var(--color-border)]">
-                <span className="search-discovery-progress block h-full w-2/5 rounded-full bg-[var(--color-bordeaux)]" />
-              </div>
+              <p className="search-liquid-note">Проверяю составы, формат и соответствие запросу</p>
+              <div className="search-liquid-channel" aria-hidden="true"><i /></div>
             </motion.div>
           ) : results.length ? (
             <motion.div key={`${mode}-${summary}`} initial={{ opacity: 0, y: 22 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mt-5">

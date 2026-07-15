@@ -3,8 +3,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowDownRight, ArrowRight, Bot, Droplets, Heart, History, Scissors, Send, Sparkles, UserRound } from "lucide-react";
-import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } from "motion/react";
+import { motion, useMotionValue, useReducedMotion, useScroll, useSpring, useTransform } from "motion/react";
 import { useEffect, useRef } from "react";
+import { BrandMark } from "@/components/brand-mark";
 import { InstagramIcon, SiteFooter, SiteHeader, VkIcon } from "@/components/portal-components";
 import { LinkButton } from "@/components/ui/button";
 
@@ -22,6 +23,7 @@ const process = [
 
 export function LandingPage() {
   const reduceMotion = useReducedMotion();
+  const heroRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const pointerX = useMotionValue(0);
   const pointerY = useMotionValue(0);
@@ -31,6 +33,13 @@ export function LandingPage() {
   const mediaY = useTransform(smoothY, (value) => value * -0.55);
   const typeX = useTransform(smoothX, (value) => value * .24);
   const typeY = useTransform(smoothY, (value) => value * .18);
+  const { scrollYProgress: heroProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
+  const heroScale = useTransform(heroProgress, [0, .68, 1], [1, .975, .84]);
+  const wordScrollY = useTransform(heroProgress, [0, 1], [0, 190]);
+  const wordOpacity = useTransform(heroProgress, [0, .58, 1], [.58, .48, 0]);
+  const coreScale = useTransform(heroProgress, [0, .52, 1], [1, 1.18, .48]);
+  const handoffY = useTransform(heroProgress, [.4, 1], [56, 0]);
+  const handoffOpacity = useTransform(heroProgress, [.35, .82, 1], [0, .65, 1]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -44,7 +53,8 @@ export function LandingPage() {
       <SiteHeader />
 
       <section
-        className="cinematic-hero"
+        ref={heroRef}
+        className="beauty-film-stage"
         onPointerMove={(event) => {
           if (reduceMotion || event.pointerType !== "mouse") return;
           const rect = event.currentTarget.getBoundingClientRect();
@@ -53,34 +63,50 @@ export function LandingPage() {
         }}
         onPointerLeave={() => { pointerX.set(0); pointerY.set(0); }}
       >
-        <div className="cinematic-hero-backdrop" aria-hidden="true">
-          <Image src="/krasavitsa-cinematic-hero-v2.png" alt="" fill priority sizes="100vw" className="cinematic-hero-poster" />
-          <motion.div className="cinematic-video-window" style={{ x: mediaX, y: mediaY }}>
-            <video ref={videoRef} autoPlay muted loop playsInline preload="metadata" poster="/krasavitsa-cinematic-hero-v2.png">
-              <source src="/krasavitsa-beauty-loop-source.mp4" type="video/mp4" />
-            </video>
-          </motion.div>
-          <div className="cinematic-vignette" />
-          <span className="hero-orbit hero-orbit-one" /><span className="hero-orbit hero-orbit-two" />
-        </div>
-
-        <motion.div className="cinematic-wordmark" style={{ x: typeX, y: typeY }} aria-label="Красавица">
-          <span>КРАСА</span><span>ВИЦА</span>
-        </motion.div>
-
-        <motion.div className="hero-manifest" initial={false} animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}>
-          <p className="hero-index">BEAUTY INTELLIGENCE / 2026</p>
-          <h1>Не ещё одна полка.<br /><em>Ваш понятный выбор.</em></h1>
-          <p>AI-подбор ухода и ароматов, который учитывает реальную жизнь: чувствительность, привычки, бюджет и контекст.</p>
-          <div className="hero-actions-v2">
-            <LinkButton href="/care" className="hero-primary-v2" data-analytics="hero_search">Собрать подбор <ArrowRight /></LinkButton>
-            <LinkButton href="/about" tone="secondary" className="hero-ghost-v2">Как это устроено</LinkButton>
+        <motion.div className="beauty-film-hero" style={reduceMotion ? undefined : { scale: heroScale }}>
+          <div className="beauty-film-backdrop" aria-hidden="true">
+            <Image src="/krasavitsa-cinematic-hero-v2.png" alt="" fill priority sizes="100vw" className="beauty-film-poster" />
+            <motion.div className="beauty-film-video" style={reduceMotion ? undefined : { x: mediaX, y: mediaY }}>
+              <video ref={videoRef} autoPlay muted loop playsInline preload="metadata" poster="/krasavitsa-cinematic-hero-v2.png">
+                <source src="/krasavitsa-beauty-loop-source.mp4" type="video/mp4" />
+              </video>
+            </motion.div>
+            <div className="beauty-film-vignette" />
+            <span className="beauty-film-light beauty-film-light-a" />
+            <span className="beauty-film-light beauty-film-light-b" />
           </div>
-        </motion.div>
 
-        <div className="hero-signal" aria-hidden="true"><span>SCROLL TO DISCOVER</span><ArrowDownRight /></div>
-        <div className="hero-proof" aria-label="Особенности сервиса"><span>03 направления</span><span>02 этапа проверки</span><span>01 понятный сценарий</span></div>
+          <motion.div className="beauty-film-type-track" style={reduceMotion ? undefined : { y: wordScrollY, opacity: wordOpacity }} aria-hidden="true">
+            <motion.div className="beauty-film-word" style={reduceMotion ? undefined : { x: typeX, y: typeY }}>КРАСАВИЦА</motion.div>
+          </motion.div>
+
+          <motion.div className="beauty-film-core" style={reduceMotion ? undefined : { scale: coreScale }} aria-hidden="true">
+            <span className="beauty-film-orbit" />
+            <span className="beauty-film-orbit beauty-film-orbit-inner" />
+            <BrandMark className="beauty-film-logo" priority />
+          </motion.div>
+
+          <motion.div className="beauty-film-manifest" initial={reduceMotion ? false : { opacity: 0, y: 30, filter: "blur(12px)" }} animate={{ opacity: 1, y: 0, filter: "blur(0px)" }} transition={{ duration: reduceMotion ? 0 : .9, delay: .12, ease: [0.16, 1, 0.3, 1] }}>
+            <p className="hero-index">BEAUTY INTELLIGENCE / 2026</p>
+            <h1>Ваш beauty‑контекст.<br /><em>Собран в ясный выбор.</em></h1>
+            <p>AI-подбор ухода и ароматов с учётом чувствительности, привычек, бюджета и реальной жизни.</p>
+            <div className="hero-actions-v2">
+              <LinkButton href="/care" className="hero-primary-v2" data-analytics="hero_search">Собрать подбор <ArrowRight /></LinkButton>
+              <LinkButton href="/about" tone="secondary" className="hero-ghost-v2">Как это устроено</LinkButton>
+            </div>
+          </motion.div>
+
+          <div className="beauty-film-caption" aria-hidden="true"><span>MACRO BEAUTY STUDY / NO. 01</span><span>SCROLL TO DISCOVER</span></div>
+          <div className="beauty-film-proof" aria-label="Особенности сервиса"><span>03 направления</span><span>02 этапа проверки</span><span>01 понятный сценарий</span></div>
+        </motion.div>
       </section>
+
+      <motion.section className="hero-handoff section-shell" style={reduceMotion ? undefined : { y: handoffY, opacity: handoffOpacity }} aria-label="Переход к возможностям Красавицы">
+        <span className="hero-handoff-line" aria-hidden="true" />
+        <BrandMark className="hero-handoff-logo" />
+        <p>Один запрос проходит путь от контекста к проверенным карточкам — продолжайте вниз.</p>
+        <ArrowDownRight aria-hidden="true" />
+      </motion.section>
 
       <section className="kinetic-marquee" aria-hidden="true"><div><span>Кожа</span><i>✦</i><span>Волосы</span><i>✦</i><span>Ароматы</span><i>✦</i><span>Ваш ритм</span><i>✦</i><span>Кожа</span><i>✦</i><span>Волосы</span><i>✦</i><span>Ароматы</span></div></section>
 

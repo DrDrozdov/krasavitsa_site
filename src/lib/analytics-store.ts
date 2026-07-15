@@ -66,7 +66,7 @@ const allowedEvents = new Set([
   "page_view", "page_leave", "engaged_visit", "scroll_depth", "cta_click", "telegram_click", "social_click", "navigation_click",
   "search_submit", "search_success", "search_rejected", "search_image", "article_create_start", "article_draft_save", "article_save",
   "article_like", "article_delete", "profile_register", "profile_login", "favorite_save", "history_save", "copy_product_name",
-  "form_error", "client_error", "web_vital", "bot_action", "bot_error",
+  "voice_record_start", "voice_transcribe", "form_error", "client_error", "web_vital", "bot_action", "bot_error",
 ]);
 
 const storePath = process.env.ANALYTICS_DATA_DIR

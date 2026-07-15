@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowDownRight, ArrowRight, PenLine } from "lucide-react";
 import { BlogFilter } from "@/components/blog-filter";
 import { BlogStudio } from "@/components/blog-studio";
+import { BrandMark } from "@/components/brand-mark";
 import { BeautyPageShell, TelegramCTA } from "@/components/portal-components";
 import { blogPosts } from "@/data/blog";
 
@@ -21,8 +22,8 @@ export default function BlogPage() {
   return (
     <BeautyPageShell>
       <header className="journal-masthead section-shell">
-        <div className="journal-utility"><span>Независимый beauty journal</span><span>{edition}</span><a href="#write"><PenLine />Создать статью</a></div>
-        <h1>Красавица<span>Journal</span></h1>
+        <div className="journal-utility"><span><BrandMark /> Независимый beauty journal</span><span>{edition}</span><a href="#write"><PenLine />Создать статью</a></div>
+        <div className="journal-title-lockup"><h1>Красавица</h1><span>Journal</span></div>
         <div className="journal-deck"><p>Разбираем уход, составы и ароматы с уважением к контексту — без тревожной ленты и рекламного шума.</p><a href="#articles">К свежему выпуску <ArrowDownRight /></a></div>
       </header>
 
