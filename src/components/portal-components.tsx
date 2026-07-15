@@ -39,6 +39,7 @@ export function SiteHeader() {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const openedByPointerRef = useRef(false);
+  const hoverSuppressedRef = useRef(false);
 
   useEffect(() => {
     if (!mobileOpen) return;
@@ -52,6 +53,8 @@ export function SiteHeader() {
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
+        hoverSuppressedRef.current = true;
+        openedByPointerRef.current = false;
         setMobileOpen(false);
         return;
       }
@@ -118,12 +121,18 @@ export function SiteHeader() {
             aria-label={mobileOpen ? "Закрыть меню" : "Открыть меню"}
             aria-expanded={mobileOpen}
             aria-controls="mobile-navigation-panel"
-            onClick={() => { openedByPointerRef.current = false; setMobileOpen((current) => !current); }}
+            onClick={() => {
+              openedByPointerRef.current = false;
+              hoverSuppressedRef.current = mobileOpen;
+              setMobileOpen((current) => !current);
+            }}
             onPointerEnter={(event) => {
               if (event.pointerType !== "mouse" || !window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+              if (hoverSuppressedRef.current) return;
               openedByPointerRef.current = true;
               setMobileOpen(true);
             }}
+            onPointerLeave={() => { hoverSuppressedRef.current = false; }}
             className="header-icon-button menu-trigger"
           >
             {mobileOpen ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
@@ -141,7 +150,11 @@ export function SiteHeader() {
                 type="button"
                 className="mobile-menu-backdrop"
                 aria-label="Закрыть меню"
-                onClick={() => setMobileOpen(false)}
+                onClick={() => {
+                  hoverSuppressedRef.current = true;
+                  openedByPointerRef.current = false;
+                  setMobileOpen(false);
+                }}
                 tabIndex={mobileOpen ? 0 : -1}
               />
               <motion.aside
@@ -165,7 +178,11 @@ export function SiteHeader() {
                     ref={closeButtonRef}
                     type="button"
                     aria-label="Закрыть меню"
-                    onClick={() => setMobileOpen(false)}
+                    onClick={() => {
+                      hoverSuppressedRef.current = true;
+                      openedByPointerRef.current = false;
+                      setMobileOpen(false);
+                    }}
                     className="mobile-menu-close"
                   >
                     <X aria-hidden="true" />
@@ -183,7 +200,11 @@ export function SiteHeader() {
                       key={href}
                       href={href}
                       tabIndex={mobileOpen ? 0 : -1}
-                      onClick={() => setMobileOpen(false)}
+                      onClick={() => {
+                        hoverSuppressedRef.current = true;
+                        openedByPointerRef.current = false;
+                        setMobileOpen(false);
+                      }}
                       className={cn("mobile-nav-link", isActivePath(pathname, href) && "is-active")}
                     >
                       <span>{String(index + 1).padStart(2, "0")}</span>
@@ -196,7 +217,7 @@ export function SiteHeader() {
                 <div className="mobile-menu-foot">
                   <p>Тема интерфейса</p>
                   <ThemePreferences />
-                  <LinkButton href="/care" className="mobile-menu-cta" tabIndex={mobileOpen ? 0 : -1}>
+                  <LinkButton href="/care" className="mobile-menu-cta" tabIndex={mobileOpen ? 0 : -1} onClick={() => setMobileOpen(false)}>
                     Начать AI-подбор
                     <ArrowRight aria-hidden="true" />
                   </LinkButton>
