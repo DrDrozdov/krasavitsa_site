@@ -6,6 +6,7 @@ import { Camera, Heart, History, LogOut, ShieldCheck, SlidersHorizontal, UserRou
 import { AnimatePresence, motion } from "motion/react";
 import { FormEvent, useEffect, useState } from "react";
 import { trackAnalyticsEvent } from "@/lib/analytics-client";
+import { DigitalLotus } from "@/components/digital-lotus";
 
 type User = { id: string; email: string; nickname: string; avatarUrl?: string; createdAt: string };
 type Library = {
@@ -95,6 +96,7 @@ export function ProfileDemo() {
     if (data.consents) {
       setLibrary((current) => current ? { ...current, consents: data.consents! } : current);
       document.cookie = `krasavitsa_cookie_consent=${analytics ? "all" : "essential"}; Path=/; Max-Age=31536000; SameSite=Lax`;
+      document.cookie = `krasavitsa_cookie_consent_v2=${analytics ? "all" : "essential"}; Path=/; Max-Age=31536000; SameSite=Lax`;
       window.dispatchEvent(new CustomEvent("krasavitsa-cookie-consent", { detail: analytics ? "all" : "essential" }));
     }
   };
@@ -102,12 +104,16 @@ export function ProfileDemo() {
   if (loading) return <div className="mx-auto min-h-[360px] max-w-[1180px] animate-pulse rounded-[var(--radius-xxl)] bg-[var(--color-glass)] md:min-h-[520px]" />;
 
   return (
-    <section className="px-3 pb-10 pt-4 md:px-5 md:pb-24 md:pt-12">
+    <section className="profile-dashboard px-3 pb-10 pt-4 md:px-5 md:pb-24 md:pt-12">
       <div className="mx-auto grid max-w-[1180px] gap-3 md:grid-cols-[0.88fr_1.12fr]">
-        <div className="brand-panel flex min-h-[360px] flex-col justify-between rounded-[var(--radius-xxl)] border border-white/18 p-5 text-white md:min-h-[500px] md:p-9">
+        <div className="profile-story brand-panel flex min-h-[360px] flex-col justify-between rounded-[var(--radius-xxl)] border border-white/18 p-5 text-white md:min-h-[500px] md:p-9">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.18em] text-white/48">Личный контекст</p>
             <h1 className="mt-5 text-[clamp(2.45rem,11vw,4.8rem)] font-black leading-[0.92] tracking-[-0.035em]">Профиль, который помнит главное</h1>
+          </div>
+          <div className="profile-memory-visual" aria-hidden="true">
+            <DigitalLotus compact />
+            <span>ИЗБРАННОЕ</span><span>ИСТОРИЯ</span><span>СТАТЬИ</span>
           </div>
           <div className="mt-8 grid gap-3 text-sm font-semibold leading-6 text-white/72 md:mt-16 md:gap-4">
             <p>Аккаунт и аватар сохраняются на сервере проекта в России. Текст AI-запросов не связывается с email профиля.</p>

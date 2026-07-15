@@ -34,7 +34,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   return (
     <BeautyPageShell className="article-motion-page">
       <article className="longform-article section-shell">
-        <header><Link href="/blog"><ArrowLeft />Назад в Journal</Link><p>{post.category} · {post.readTime}</p><h1>{post.title}</h1><strong>{post.excerpt}</strong></header>
+        <header><Link href="/blog"><ArrowLeft />Назад в журнал</Link><p>{post.category} · {post.readTime}</p><h1>{post.title}</h1><strong>{post.excerpt}</strong></header>
         <div className="longform-cover"><Image src={post.image} alt="" fill priority sizes="(min-width: 1024px) 1200px, 100vw" /></div>
         <div className="longform-layout"><aside><span>Красавица / редакция</span><p>Материал носит информационный характер и не заменяет очную консультацию специалиста.</p></aside><div className="longform-copy">{post.body.map((paragraph, index) => index === 1 ? <div key={paragraph} className="longform-pullquote"><Sparkles /><p>{paragraph}</p></div> : <p key={paragraph}>{paragraph}</p>)}</div></div>
       </article>

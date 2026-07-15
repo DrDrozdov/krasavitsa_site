@@ -32,10 +32,12 @@ function trustedOrigin(request: Request) {
 export async function POST(request: Request) {
   if (!trustedOrigin(request)) return NextResponse.json({ error: "Недопустимый источник запроса." }, { status: 403 });
 
-  const apiKey = process.env.OPENAI_API_KEY;
+  const officialKey = process.env.OPENAI_API_KEY;
+  const tunnelKey = process.env.AI_TUNNEL_API_KEY ?? process.env.DEEPSEEK_API_KEY;
+  const apiKey = officialKey ?? tunnelKey;
   if (!apiKey) {
     return NextResponse.json(
-      { error: "Голосовой ввод ещё не подключён на сервере. Добавьте OPENAI_API_KEY в основной сервис krasavitsa." },
+      { error: "Голосовой ввод ещё не подключён на сервере. Добавьте OPENAI_API_KEY или AI_TUNNEL_API_KEY в основной сервис krasavitsa." },
       { status: 503 },
     );
   }
@@ -58,13 +60,17 @@ export async function POST(request: Request) {
 
   const upstreamBody = new FormData();
   upstreamBody.append("file", file, file.name || "voice-query.webm");
-  upstreamBody.append("model", process.env.OPENAI_TRANSCRIBE_MODEL ?? "gpt-4o-mini-transcribe");
+  upstreamBody.append("model", process.env.OPENAI_TRANSCRIBE_MODEL ?? process.env.AI_TUNNEL_TRANSCRIBE_MODEL ?? "whisper-1");
   upstreamBody.append("language", "ru");
   upstreamBody.append("response_format", "json");
   upstreamBody.append("prompt", "Короткий запрос о косметике, уходе за кожей, волосами или парфюмерии. Сохраняй названия брендов, суммы и единицы измерения.");
 
   try {
-    const response = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+    const configuredBase = officialKey
+      ? process.env.OPENAI_BASE_URL
+      : process.env.AI_TUNNEL_BASE_URL ?? process.env.DEEPSEEK_BASE_URL;
+    const baseUrl = (configuredBase ?? "https://api.openai.com/v1").replace(/\/+$/, "");
+    const response = await fetch(`${baseUrl}/audio/transcriptions`, {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}` },
       body: upstreamBody,

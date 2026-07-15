@@ -4,7 +4,6 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Check, Copy, Droplets, ExternalLink, Heart, Mic, Scissors, Send, Sparkles, Square } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { BrandMark } from "@/components/brand-mark";
 import { trackAnalyticsEvent } from "@/lib/analytics-client";
 
 type Mode = "skin" | "hair" | "perfume";
@@ -125,10 +124,56 @@ export function BeautyFinder() {
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const recordingChunksRef = useRef<Blob[]>([]);
   const recordingTimerRef = useRef<number | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const voiceFrameRef = useRef<number | null>(null);
+  const voiceVisualRef = useRef<HTMLSpanElement | null>(null);
   const reduceMotion = useReducedMotion();
   const active = useMemo(() => modes.find((item) => item.id === mode)!, [mode]);
   const activeExamples = exampleSets[mode][examplePage % exampleSets[mode].length];
   const activePlaceholder = [placeholders[mode], ...exampleSets[mode].flat()][placeholderPage % (exampleSets[mode].flat().length + 1)];
+
+  const stopVoiceMeter = () => {
+    if (voiceFrameRef.current !== null) {
+      window.cancelAnimationFrame(voiceFrameRef.current);
+      voiceFrameRef.current = null;
+    }
+    voiceVisualRef.current?.style.setProperty("--voice-level", "0.08");
+    const context = audioContextRef.current;
+    audioContextRef.current = null;
+    if (context && context.state !== "closed") void context.close();
+  };
+
+  const startVoiceMeter = (stream: MediaStream) => {
+    const AudioContextConstructor = window.AudioContext ?? (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!AudioContextConstructor) return;
+    const context = new AudioContextConstructor();
+    const analyser = context.createAnalyser();
+    analyser.fftSize = 256;
+    analyser.smoothingTimeConstant = .82;
+    context.createMediaStreamSource(stream).connect(analyser);
+    audioContextRef.current = context;
+    const values = new Uint8Array(analyser.fftSize);
+    const renderLevel = () => {
+      analyser.getByteTimeDomainData(values);
+      let energy = 0;
+      for (const sample of values) {
+        const normalized = (sample - 128) / 128;
+        energy += normalized * normalized;
+      }
+      const level = Math.min(1, Math.sqrt(energy / values.length) * 5.8);
+      const visibleLevel = Math.max(.08, level);
+      const visual = voiceVisualRef.current;
+      visual?.style.setProperty("--voice-level", visibleLevel.toFixed(3));
+      visual?.style.setProperty("--voice-width", `${(20 + visibleLevel * 26).toFixed(1)}px`);
+      visual?.style.setProperty("--voice-height", `${(16 + visibleLevel * 32).toFixed(1)}px`);
+      visual?.style.setProperty("--voice-glow", `${(10 + visibleLevel * 28).toFixed(1)}px`);
+      visual?.style.setProperty("--voice-shift", `${(18 + visibleLevel * 8).toFixed(1)}px`);
+      visual?.style.setProperty("--voice-shift-negative", `${(-18 - visibleLevel * 8).toFixed(1)}px`);
+      visual?.style.setProperty("--voice-opacity", Math.min(.97, .42 + visibleLevel * .55).toFixed(3));
+      voiceFrameRef.current = window.requestAnimationFrame(renderLevel);
+    };
+    renderLevel();
+  };
 
   useEffect(() => {
     const timer = window.setInterval(() => setExamplePage((page) => (page + 1) % exampleSets[mode].length), 6400);
@@ -150,6 +195,7 @@ export function BeautyFinder() {
     if (recordingTimerRef.current !== null) window.clearTimeout(recordingTimerRef.current);
     if (mediaRecorderRef.current?.state === "recording") mediaRecorderRef.current.stop();
     mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
+    stopVoiceMeter();
   }, []);
 
   const stopVoiceRecording = () => {
@@ -157,6 +203,7 @@ export function BeautyFinder() {
       window.clearTimeout(recordingTimerRef.current);
       recordingTimerRef.current = null;
     }
+    stopVoiceMeter();
     if (mediaRecorderRef.current?.state === "recording") mediaRecorderRef.current.stop();
   };
 
@@ -175,12 +222,14 @@ export function BeautyFinder() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true }, video: false });
       mediaStreamRef.current = stream;
+      startVoiceMeter(stream);
       recordingChunksRef.current = [];
       const preferredType = ["audio/webm;codecs=opus", "audio/mp4", "audio/webm"].find((type) => MediaRecorder.isTypeSupported(type));
       const recorder = new MediaRecorder(stream, preferredType ? { mimeType: preferredType } : undefined);
       mediaRecorderRef.current = recorder;
       recorder.addEventListener("dataavailable", (event) => { if (event.data.size) recordingChunksRef.current.push(event.data); });
       recorder.addEventListener("stop", async () => {
+        stopVoiceMeter();
         stream.getTracks().forEach((track) => track.stop());
         mediaStreamRef.current = null;
         const audio = new Blob(recordingChunksRef.current, { type: recorder.mimeType || preferredType || "audio/webm" });
@@ -316,11 +365,15 @@ export function BeautyFinder() {
   };
 
   return (
-    <section className="ai-finder px-3 pb-6 pt-4 md:px-5 md:pb-12">
+    <section className="ai-finder bio-digital-finder px-3 pb-6 pt-4 md:px-5 md:pb-12">
+      <div className="bio-digital-field" aria-hidden="true">
+        <i /><i /><i /><i />
+        <span>CONTEXT / SIGNAL / MATCH</span>
+      </div>
       <div className="mx-auto max-w-[1320px]">
         <div className="text-center">
           <p className="text-xs font-black uppercase tracking-[0.18em] text-[var(--color-text-soft)]">Единый AI-подбор</p>
-          <h1 className="mx-auto mt-5 max-w-4xl text-[clamp(2.8rem,7vw,7rem)] font-black leading-[0.9] tracking-tight">Что вы хотите подобрать?</h1>
+          <h1 className="mx-auto mt-5 max-w-4xl text-[clamp(2.8rem,7vw,6rem)] font-black leading-[0.9] tracking-tight">Что вы хотите подобрать?</h1>
           <p className="mx-auto mt-6 max-w-2xl text-base font-semibold leading-7 text-[var(--color-text-muted)]">Выберите направление. Правила, примеры и контекст AI изменятся вместе с ним.</p>
         </div>
 
@@ -381,7 +434,7 @@ export function BeautyFinder() {
                 >
                   {voiceState === "recording" ? <Square aria-hidden="true" /> : <Mic aria-hidden="true" />}
                   <span className="finder-action-label">{voiceState === "recording" ? "Остановить" : voiceState === "transcribing" ? "Слушаю…" : "Голосом"}</span>
-                  {voiceState === "recording" ? <span className="voice-wave" aria-hidden="true"><i /><i /><i /><i /></span> : null}
+                  {voiceState === "recording" ? <span ref={voiceVisualRef} className="voice-liquid" aria-hidden="true"><i /><i /><i /></span> : null}
                 </button>
                 <button type="button" onClick={() => void search()} disabled={loading || voiceState === "transcribing"} aria-label={loading ? "Подбор выполняется" : "Отправить запрос на подбор"} className="finder-submit-button apple-glass-button">
                   <span className="finder-submit-label">{loading ? "Собираю…" : "Подобрать"}</span>
@@ -423,7 +476,7 @@ export function BeautyFinder() {
                 <span className="search-liquid-pearl">
                   <i className="search-liquid-refraction" />
                   <i className="search-liquid-membrane" />
-                  <BrandMark className="search-liquid-logo" />
+                  <span className="search-liquid-nucleus"><i /><i /><i /></span>
                 </span>
                 <span className="search-liquid-orbit search-liquid-orbit-front"><i /><i /><i /></span>
                 <span className="search-liquid-satellite search-liquid-satellite-a" />

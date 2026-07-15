@@ -2,7 +2,7 @@
 
 import { ArrowRight, Heart, ImagePlus, MessageCircle, PenLine, Save, Send, Trash2, X } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { trackAnalyticsEvent } from "@/lib/analytics-client";
 
@@ -24,9 +24,14 @@ export function BlogStudio() {
   const [image, setImage] = useState<string>();
   const [notice, setNotice] = useState("");
   const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
-  const mounted = useSyncExternalStore(() => () => undefined, () => true, () => false);
+  const [mounted, setMounted] = useState(false);
   const reduceMotion = useReducedMotion();
   const closeRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => setMounted(true));
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
 
   useEffect(() => { void fetch("/api/articles", { cache: "no-store" }).then((response) => response.json()).then((data: { articles?: PersonalPost[] }) => setPosts(data.articles ?? [])); }, []);
 
@@ -79,12 +84,12 @@ export function BlogStudio() {
   };
 
   return <section className="journal-studio section-shell" id="write">
-    <div className="journal-studio-invite"><div><p>Открытая редакция / ваш голос</p><h2>Есть опыт,<br />который стоит<br /><em>сохранить?</em></h2></div><div><p>Напишите полноценный материал с обложкой. Он сохранится в профиле и после автоматической проверки появится в журнале.</p><button type="button" onClick={openComposer} className="apple-glass-button"><PenLine />Создать статью<ArrowRight /></button></div></div>
+    <div className="journal-studio-invite"><div><p>Ваш опыт — часть журнала</p><h2>Есть история,<br />которой хочется<br /><em>поделиться?</em></h2></div><div><p>Напишите материал с обложкой. Черновик сохранится на устройстве, а опубликованная статья получит реакции и комментарии читателей.</p><button type="button" onClick={openComposer} className="apple-glass-button"><PenLine />Создать статью<ArrowRight /></button></div></div>
 
     {posts.length ? <div className="reader-dispatches"><div className="reader-dispatches-title"><span>Материалы сообщества</span><strong>{posts.length.toString().padStart(2, "0")}</strong></div>{posts.map((post) => <motion.article key={post.id} layout className="reader-dispatch"><div className="reader-dispatch-cover" style={post.image ? { backgroundImage: `url(${post.image})` } : undefined} /><div><p>{post.category} · {new Date(post.createdAt).toLocaleDateString("ru-RU")}</p><h3>{post.title}</h3><span>{post.excerpt || post.content.slice(0, 180)}</span></div><div className="reader-dispatch-actions"><button type="button" onClick={() => { void toggleLike(post); trackAnalyticsEvent("article_like", "article"); }}><Heart className={post.likes.length ? "fill-current" : ""} />{post.likes.length}</button><button type="button" onClick={() => { void deletePost(post); trackAnalyticsEvent("article_delete", "article"); }} aria-label="Удалить"><Trash2 /></button></div><div className="reader-comments"><p><MessageCircle /> {post.comments.length} комментариев</p>{post.comments.slice(-2).map((comment) => <div key={comment.id}><span><strong>{comment.author}</strong> {comment.text}</span><button type="button" onClick={() => void deleteComment(post, comment.id)}>Удалить</button></div>)}<label><input value={commentDrafts[post.id] ?? ""} onChange={(event) => setCommentDrafts((current) => ({ ...current, [post.id]: event.target.value }))} placeholder="Добавить комментарий" /><button type="button" onClick={() => void addComment(post)} aria-label="Отправить"><Send /></button></label></div></motion.article>)}</div> : null}
 
     {mounted ? createPortal(<AnimatePresence>{composerOpen ? <motion.div className="article-composer-root" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}><button className="article-composer-backdrop" aria-label="Закрыть редактор" onClick={() => setComposerOpen(false)} /><motion.section role="dialog" aria-modal="true" aria-labelledby="composer-title" className="article-composer" initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 24, scale: .985, filter: "blur(8px)" }} animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }} exit={{ opacity: 0, y: 14, scale: .99 }} transition={{ duration: reduceMotion ? 0 : .28, ease: [0.16, 1, 0.3, 1] }}>
-      <header><div><span>KRASAVITSA · OPEN EDITION</span><h2 id="composer-title">Новая статья</h2></div><button ref={closeRef} type="button" onClick={() => setComposerOpen(false)} aria-label="Закрыть"><X /></button></header>
+      <header><div><span>КРАСАВИЦА · РЕДАКТОР</span><h2 id="composer-title">Новая статья</h2></div><button ref={closeRef} type="button" onClick={() => setComposerOpen(false)} aria-label="Закрыть"><X /></button></header>
       <div className="article-composer-grid"><div className="article-composer-main"><EditorField label="Заголовок" value={title} onChange={setTitle} placeholder="Ясный вопрос или ваш главный вывод" large /><div className="editor-meta"><EditorField label="Краткое описание" value={excerpt} onChange={setExcerpt} placeholder="Два предложения для обложки" /><label><span>Рубрика</span><select value={category} onChange={(event) => setCategory(event.target.value)}>{["Личный опыт", "Уход", "Составы", "SPF", "Парфюм"].map((item) => <option key={item}>{item}</option>)}</select></label></div><label className="editor-body"><span>Текст статьи</span><textarea value={content} onChange={(event) => setContent(event.target.value)} placeholder="Начните с контекста. Затем расскажите о шагах, наблюдениях и результате…" /></label></div><aside className="article-composer-side"><div className="editor-cover" style={image ? { backgroundImage: `url(${image})` } : undefined}><label><ImagePlus />{image ? "Заменить обложку" : "Добавить обложку"}<input type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => loadImage(event.target.files?.[0])} /></label></div><div className="editor-count"><span>{content.trim() ? content.trim().split(/\s+/).length : 0}</span><p>слов · минимум 80 символов</p></div><p className="editor-notice">{notice || "Черновик хранится только на этом устройстве. Публикация требует входа в профиль."}</p></aside></div>
       <footer><button type="button" onClick={saveDraft} className="apple-glass-button editor-draft"><Save />Сохранить черновик</button><button type="button" onClick={() => void publish()} className="apple-glass-button editor-publish">Отправить в журнал<ArrowRight /></button></footer>
     </motion.section></motion.div> : null}</AnimatePresence>, document.body) : null}

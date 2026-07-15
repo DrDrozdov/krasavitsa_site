@@ -1,12 +1,12 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Bot, Droplets, Heart, History, Scissors, Send, Sparkles, UserRound } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Bot, Droplets, Heart, History, Scissors, Send, Sparkles, UserRound } from "lucide-react";
 import { motion, useMotionValue, useReducedMotion, useScroll, useSpring, useTransform } from "motion/react";
 import { useRef } from "react";
 import { InstagramIcon, SiteFooter, SiteHeader, VkIcon } from "@/components/portal-components";
 import { LinkButton } from "@/components/ui/button";
+import { DigitalLotus } from "@/components/digital-lotus";
 
 const directions = [
   { label: "Кожа", number: "01", text: "Барьер, активы, чувствительность и SPF", Icon: Droplets },
@@ -31,18 +31,16 @@ export function LandingPage() {
   const mediaY = useTransform(smoothY, (value) => value * -0.55);
   const typeX = useTransform(smoothX, (value) => value * .24);
   const { scrollYProgress: heroProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
-  const heroScale = useTransform(heroProgress, [0, .48, 1], [1, .985, .87]);
-  const heroRadius = useTransform(heroProgress, [0, .5, 1], [0, 8, 22]);
-  const lotusScale = useTransform(heroProgress, [0, .54, 1], [1, 1.08, 1.42]);
-  const lotusY = useTransform(heroProgress, [0, .56, 1], [0, -32, -286]);
-  const lotusOpacity = useTransform(heroProgress, [.62, .92, 1], [1, .78, .18]);
-  const titleY = useTransform(heroProgress, [0, .46, 1], [0, -12, -154]);
-  const titleOpacity = useTransform(heroProgress, [0, .58, .9], [1, .92, 0]);
-  const detailOpacity = useTransform(heroProgress, [0, .28, .66], [1, .76, 0]);
-  const revealY = useTransform(heroProgress, [.42, 1], [160, 0]);
-  const revealOpacity = useTransform(heroProgress, [.44, .72, 1], [0, .64, 1]);
-  const launchOpacity = useTransform(heroProgress, [.28, .56, .92], [0, .85, 0]);
-  const launchScale = useTransform(heroProgress, [.28, .88], [.55, 1.38]);
+  const heroScale = useTransform(heroProgress, [0, .58, 1], [1, .965, .78]);
+  const heroRadius = useTransform(heroProgress, [0, .56, 1], [0, 18, 38]);
+  const lotusScale = useTransform(heroProgress, [0, .45, .86, 1], [1, 1.12, 3.9, 5.4]);
+  const lotusY = useTransform(heroProgress, [0, .5, 1], [0, -18, -120]);
+  const lotusOpacity = useTransform(heroProgress, [.66, .91, 1], [1, .72, 0]);
+  const titleY = useTransform(heroProgress, [0, .44, 1], [0, -18, -118]);
+  const titleOpacity = useTransform(heroProgress, [0, .44, .72], [1, .86, 0]);
+  const detailOpacity = useTransform(heroProgress, [0, .25, .58], [1, .82, 0]);
+  const revealY = useTransform(heroProgress, [.39, .79], [120, 0]);
+  const revealOpacity = useTransform(heroProgress, [.36, .6, .82], [0, .72, 1]);
 
   return (
     <main className="site-shell home-page cinematic-site">
@@ -66,21 +64,8 @@ export function LandingPage() {
           >
             <motion.div className="aerocore-media" style={reduceMotion ? undefined : { x: mediaX, y: mediaY }} aria-hidden="true">
               <motion.div className="aerocore-lotus-stage" style={reduceMotion ? undefined : { scale: lotusScale, y: lotusY, opacity: lotusOpacity }}>
-                <video
-                  className="aerocore-lotus"
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  preload="metadata"
-                  poster="/krasavitsa-lotus-hero-v1.png"
-                  tabIndex={-1}
-                >
-                  <source src="/krasavitsa-lotus-loop-v1.mp4" type="video/mp4" />
-                </video>
+                <DigitalLotus className="aerocore-lotus" />
               </motion.div>
-              <motion.div className="aerocore-launch-aura" style={reduceMotion ? undefined : { opacity: launchOpacity, scale: launchScale }} />
-              <motion.div className="aerocore-launch-trail" style={reduceMotion ? undefined : { opacity: launchOpacity }}><i /><i /><i /></motion.div>
               <div className="aerocore-wash" />
             </motion.div>
 
@@ -95,15 +80,15 @@ export function LandingPage() {
               className="aerocore-hero-detail"
               style={reduceMotion ? undefined : { opacity: detailOpacity }}
             >
-              <p>Персональный AI-подбор ухода, волос и ароматов.</p>
+              <p>AI-подбор без лишнего шума.</p>
               <LinkButton href="/care" className="aerocore-action" data-analytics="hero_search">Начать подбор <ArrowRight /></LinkButton>
             </motion.div>
 
           </motion.div>
 
-          <motion.div className="aerocore-reveal-panel" style={reduceMotion ? undefined : { opacity: revealOpacity, y: revealY }} aria-hidden="true">
-            <span>Первая глава</span>
-            <strong>Три направления. Один ясный сценарий.</strong>
+          <motion.div className="aerocore-reveal-panel" style={reduceMotion ? undefined : { opacity: revealOpacity, y: revealY }}>
+            <span>Красота, собранная в систему</span>
+            <strong>Запрос превращается в понятный выбор.</strong>
             <div><i>Кожа</i><i>Волосы</i><i>Ароматы</i></div>
           </motion.div>
         </div>
@@ -128,7 +113,10 @@ export function LandingPage() {
 
       <section className="intelligence-stage section-shell">
         <div className="intelligence-visual">
-          <Image src="/krasavitsa-cinematic-hero-v2.png" alt="Абстрактная композиция с косметическими флаконами без лиц" fill sizes="(min-width: 900px) 48vw, 100vw" />
+          <div className="intelligence-orbital" aria-hidden="true">
+            <span /><span /><span /><span />
+            <DigitalLotus compact />
+          </div>
           <div className="intelligence-scan" aria-hidden="true" />
           <div className="intelligence-object" aria-hidden="true"><span /><span /><span /><Sparkles /></div>
           <p>Не магия. Система проверок.</p>
@@ -151,6 +139,7 @@ export function LandingPage() {
           <LinkButton href="/profile" className="memory-action"><UserRound /> Открыть профиль</LinkButton>
         </div>
         <div className="memory-ledger">
+          <div className="memory-orbit-art" aria-hidden="true"><span /><span /><span /><UserRound /></div>
           <article><Heart /><span>01</span><div><strong>Избранное</strong><p>Средства, к которым хочется вернуться</p></div></article>
           <article><History /><span>02</span><div><strong>История</strong><p>Контекст прошлых решений без повторного старта</p></div></article>
           <article><Sparkles /><span>03</span><div><strong>Редакция</strong><p>Собственный материал и живой опыт сообщества</p></div></article>
@@ -174,5 +163,5 @@ export function LandingPage() {
 
 function CommunityLink({ href, label, children }: { href: string; label: string; children: React.ReactNode }) {
   const reduceMotion = useReducedMotion();
-  return <motion.a href={href} target="_blank" rel="noreferrer" aria-label={label} whileHover={reduceMotion ? undefined : { y: -6, rotate: -1.4 }} whileTap={reduceMotion ? undefined : { scale: .96 }}><span>{children}</span><strong>{label}</strong><ArrowRight /></motion.a>;
+  return <motion.a href={href} target="_blank" rel="noreferrer" aria-label={label} whileHover={reduceMotion ? undefined : { y: -6, rotate: -1.4 }} whileTap={reduceMotion ? undefined : { scale: .96 }}><span>{children}</span><strong>{label}</strong><ArrowUpRight /></motion.a>;
 }

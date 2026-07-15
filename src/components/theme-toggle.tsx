@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Gauge, Laptop, Moon, Sparkles, Sun } from "lucide-react";
+import { BookOpenText, Check, Gauge, Laptop, Moon, Sparkles, Sun, Text } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
   applyTheme,
@@ -113,6 +113,42 @@ export function MotionPreferences({ className }: { className?: string }) {
       </button>
       <button type="button" className={cn(preference === "reduced" && "is-active")} aria-pressed={preference === "reduced"} onClick={() => select("reduced")}>
         <Gauge aria-hidden="true" /><span>Спокойная</span>
+      </button>
+    </div>
+  );
+}
+
+type ReadingPreference = "standard" | "focus";
+const readingPreferenceKey = "krasavitsa-reading-preference";
+
+export function ReadingPreferences({ className }: { className?: string }) {
+  const [preference, setPreference] = useState<ReadingPreference>("standard");
+
+  useEffect(() => {
+    let stored: ReadingPreference = "standard";
+    try {
+      stored = window.localStorage.getItem(readingPreferenceKey) === "focus" ? "focus" : "standard";
+    } catch {}
+    document.documentElement.dataset.reading = stored;
+    const frame = window.requestAnimationFrame(() => setPreference(stored));
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+
+  const select = (value: ReadingPreference) => {
+    setPreference(value);
+    document.documentElement.dataset.reading = value;
+    try {
+      window.localStorage.setItem(readingPreferenceKey, value);
+    } catch {}
+  };
+
+  return (
+    <div className={cn("reading-preferences", className)} role="group" aria-label="Режим чтения">
+      <button type="button" className={cn(preference === "standard" && "is-active")} aria-pressed={preference === "standard"} onClick={() => select("standard")}>
+        <Text aria-hidden="true" /><span>Обычный</span>
+      </button>
+      <button type="button" className={cn(preference === "focus" && "is-active")} aria-pressed={preference === "focus"} onClick={() => select("focus")}>
+        <BookOpenText aria-hidden="true" /><span>Фокус</span>
       </button>
     </div>
   );

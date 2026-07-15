@@ -97,6 +97,11 @@ const themeScript = `
     motion = window.localStorage.getItem("krasavitsa-motion-preference") === "reduced" ? "reduced" : "full";
   } catch {}
   root.dataset.motion = motion;
+  let reading = "standard";
+  try {
+    reading = window.localStorage.getItem("krasavitsa-reading-preference") === "focus" ? "focus" : "standard";
+  } catch {}
+  root.dataset.reading = reading;
   root.style.colorScheme = theme;
   document.querySelector("#krasavitsa-theme-color")?.setAttribute("content", theme === "dark" ? "#160b11" : "#fff8f6");
 })();

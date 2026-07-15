@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { ReactNode } from "react";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 import {
@@ -16,9 +16,10 @@ import {
   X,
 } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
-import { MotionPreferences, ThemePreferences, ThemeToggle } from "@/components/theme-toggle";
+import { MotionPreferences, ReadingPreferences, ThemePreferences, ThemeToggle } from "@/components/theme-toggle";
 import { LinkButton } from "@/components/ui/button";
 import { BrandMark } from "@/components/brand-mark";
+import { DigitalLotus } from "@/components/digital-lotus";
 import { cn } from "@/lib/utils";
 
 export const navLinks = [
@@ -36,9 +37,10 @@ export function SiteHeader() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const reduceMotion = useReducedMotion();
-  const mounted = useSyncExternalStore(() => () => undefined, () => true, () => false);
+  const [mounted, setMounted] = useState(false);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
   const openedByPointerRef = useRef(false);
   const hoverSuppressedRef = useRef(false);
   const hoverCloseTimerRef = useRef<number | null>(null);
@@ -62,10 +64,21 @@ export function SiteHeader() {
   useEffect(() => () => cancelHoverClose(), []);
 
   useEffect(() => {
+    const frame = window.requestAnimationFrame(() => setMounted(true));
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+
+  useEffect(() => {
     let frame = 0;
     const update = () => {
       frame = 0;
-      const next = window.scrollY > 24;
+      const progress = pathname === "/" ? Math.min(1, Math.max(0, window.scrollY / 150)) : 1;
+      headerRef.current?.style.setProperty("--chrome-progress", progress.toFixed(3));
+      headerRef.current?.style.setProperty("--chrome-alpha", (progress * .88).toFixed(3));
+      headerRef.current?.style.setProperty("--chrome-border-alpha", (progress * .22).toFixed(3));
+      headerRef.current?.style.setProperty("--chrome-shadow-alpha", (progress * .14).toFixed(3));
+      headerRef.current?.style.setProperty("--chrome-blur", `${(progress * 28).toFixed(1)}px`);
+      const next = progress > 0.08;
       setScrolled((current) => current === next ? current : next);
     };
     const onScroll = () => {
@@ -77,7 +90,7 @@ export function SiteHeader() {
       window.removeEventListener("scroll", onScroll);
       if (frame) window.cancelAnimationFrame(frame);
     };
-  }, []);
+  }, [pathname]);
 
   useEffect(() => {
     if (!mobileOpen) return;
@@ -126,7 +139,17 @@ export function SiteHeader() {
   }, [mobileOpen]);
 
   return (
-    <header className={cn("site-header", pathname === "/" && "is-home", scrolled && "is-scrolled")}>
+    <header
+      ref={headerRef}
+      style={{
+        "--chrome-progress": pathname === "/" ? 0 : 1,
+        "--chrome-alpha": pathname === "/" ? 0 : .88,
+        "--chrome-border-alpha": pathname === "/" ? 0 : .22,
+        "--chrome-shadow-alpha": pathname === "/" ? 0 : .14,
+        "--chrome-blur": pathname === "/" ? "0px" : "28px",
+      } as React.CSSProperties}
+      className={cn("site-header", pathname === "/" && "is-home", scrolled && "is-scrolled")}
+    >
       <div className="site-chrome">
         <Link href="/" className="brand-mark" aria-label="Красавица, на главную">
           <BrandMark priority />
@@ -161,7 +184,13 @@ export function SiteHeader() {
             aria-controls="mobile-navigation-panel"
             onClick={() => {
               cancelHoverClose();
+              const wasOpenedByPointer = openedByPointerRef.current;
               openedByPointerRef.current = false;
+              if (wasOpenedByPointer && mobileOpen) {
+                hoverSuppressedRef.current = false;
+                setMobileOpen(true);
+                return;
+              }
               hoverSuppressedRef.current = mobileOpen;
               setMobileOpen((current) => !current);
             }}
@@ -197,6 +226,9 @@ export function SiteHeader() {
                   hoverSuppressedRef.current = true;
                   openedByPointerRef.current = false;
                   setMobileOpen(false);
+                }}
+                onPointerEnter={(event) => {
+                  if (event.pointerType === "mouse") scheduleHoverClose();
                 }}
                 tabIndex={mobileOpen ? 0 : -1}
               />
@@ -239,8 +271,7 @@ export function SiteHeader() {
                 </div>
 
                 <div className="mobile-menu-art" aria-hidden="true">
-                  <Image src="/krasavitsa-cinematic-hero-v2.png" alt="" fill sizes="420px" />
-                  <BrandMark className="mobile-menu-logo" />
+                  <DigitalLotus compact />
                   <span>BEAUTY INTELLIGENCE · 2026</span>
                 </div>
 
@@ -276,6 +307,8 @@ export function SiteHeader() {
                   <ThemePreferences />
                   <p className="mobile-menu-motion-label">Анимация интерфейса</p>
                   <MotionPreferences />
+                  <p className="mobile-menu-motion-label">Комфорт чтения</p>
+                  <ReadingPreferences />
                   <LinkButton href="/care" className="mobile-menu-cta" tabIndex={mobileOpen ? 0 : -1} onClick={() => setMobileOpen(false)}>
                     Начать AI-подбор
                     <ArrowRight aria-hidden="true" />

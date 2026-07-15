@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Bot, Brain, Send, ShieldCheck, Sparkles } from "lucide-react";
 import {
@@ -8,6 +7,7 @@ import {
   VkIcon,
 } from "@/components/portal-components";
 import { LinkButton } from "@/components/ui/button";
+import { DigitalLotus } from "@/components/digital-lotus";
 
 export const metadata: Metadata = {
   title: "О проекте | Красавица",
@@ -49,7 +49,11 @@ export default function AboutPage() {
           </div>
         </div>
         <div className="about-new-visual">
-          <Image src="/about/about-beauty-path-v2.png" alt="Абстрактная композиция косметических флаконов" fill priority sizes="(min-width: 900px) 52vw, 100vw" />
+          <div className="about-synthesis-field" aria-hidden="true">
+            <i /><i /><i />
+            <DigitalLotus compact />
+            <span>CONTEXT</span><span>CHOICE</span><span>TRUST</span>
+          </div>
           <div className="about-new-stamp"><span>01</span><strong>Запрос становится сценарием</strong></div>
         </div>
       </section>
