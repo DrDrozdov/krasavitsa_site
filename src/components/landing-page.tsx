@@ -2,10 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowDownRight, ArrowRight, Bot, Droplets, Heart, History, Scissors, Send, Sparkles, UserRound } from "lucide-react";
+import { ArrowRight, Bot, Droplets, Heart, History, Scissors, Send, Sparkles, UserRound } from "lucide-react";
 import { motion, useMotionValue, useReducedMotion, useScroll, useSpring, useTransform } from "motion/react";
 import { useEffect, useRef } from "react";
-import { BrandMark } from "@/components/brand-mark";
 import { InstagramIcon, SiteFooter, SiteHeader, VkIcon } from "@/components/portal-components";
 import { LinkButton } from "@/components/ui/button";
 
@@ -32,14 +31,16 @@ export function LandingPage() {
   const mediaX = useTransform(smoothX, (value) => value * -0.7);
   const mediaY = useTransform(smoothY, (value) => value * -0.55);
   const typeX = useTransform(smoothX, (value) => value * .24);
-  const typeY = useTransform(smoothY, (value) => value * .18);
   const { scrollYProgress: heroProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
-  const heroScale = useTransform(heroProgress, [0, .68, 1], [1, .975, .84]);
-  const wordScrollY = useTransform(heroProgress, [0, 1], [0, 190]);
-  const wordOpacity = useTransform(heroProgress, [0, .58, 1], [.58, .48, 0]);
-  const coreScale = useTransform(heroProgress, [0, .52, 1], [1, 1.18, .48]);
-  const handoffY = useTransform(heroProgress, [.4, 1], [56, 0]);
-  const handoffOpacity = useTransform(heroProgress, [.35, .82, 1], [0, .65, 1]);
+  const heroScale = useTransform(heroProgress, [0, .56, 1], [1, .965, .84]);
+  const heroRadius = useTransform(heroProgress, [0, .55, 1], [0, 8, 20]);
+  const mediaScale = useTransform(heroProgress, [0, .65, 1], [1, 1.045, 1.12]);
+  const mediaScrollY = useTransform(heroProgress, [0, 1], [0, -42]);
+  const titleY = useTransform(heroProgress, [0, .55, 1], [0, -22, -86]);
+  const titleOpacity = useTransform(heroProgress, [0, .68, 1], [1, .9, .26]);
+  const detailOpacity = useTransform(heroProgress, [0, .35, .72], [1, .72, 0]);
+  const peekY = useTransform(heroProgress, [.48, 1], [52, 0]);
+  const peekOpacity = useTransform(heroProgress, [.42, .72, 1], [0, .56, 1]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -54,7 +55,7 @@ export function LandingPage() {
 
       <section
         ref={heroRef}
-        className="beauty-film-stage"
+        className="aerocore-stage"
         onPointerMove={(event) => {
           if (reduceMotion || event.pointerType !== "mouse") return;
           const rect = event.currentTarget.getBoundingClientRect();
@@ -63,52 +64,52 @@ export function LandingPage() {
         }}
         onPointerLeave={() => { pointerX.set(0); pointerY.set(0); }}
       >
-        <motion.div className="beauty-film-hero" style={reduceMotion ? undefined : { scale: heroScale }}>
-          <div className="beauty-film-backdrop" aria-hidden="true">
-            <Image src="/krasavitsa-cinematic-hero-v2.png" alt="" fill priority sizes="100vw" className="beauty-film-poster" />
-            <motion.div className="beauty-film-video" style={reduceMotion ? undefined : { x: mediaX, y: mediaY }}>
-              <video ref={videoRef} autoPlay muted loop playsInline preload="metadata" poster="/krasavitsa-cinematic-hero-v2.png">
+        <div className="aerocore-sticky">
+          <motion.div
+            className="aerocore-hero"
+            style={reduceMotion ? undefined : { scale: heroScale, borderRadius: heroRadius }}
+          >
+            <motion.div className="aerocore-media" style={reduceMotion ? undefined : { scale: mediaScale, y: mediaScrollY }} aria-hidden="true">
+              <Image src="/krasavitsa-cinematic-hero-v2.png" alt="" fill priority sizes="100vw" className="aerocore-poster" />
+              <motion.video
+                ref={videoRef}
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="metadata"
+                poster="/krasavitsa-cinematic-hero-v2.png"
+                style={reduceMotion ? undefined : { x: mediaX, y: mediaY }}
+              >
                 <source src="/krasavitsa-beauty-loop-source.mp4" type="video/mp4" />
-              </video>
+              </motion.video>
+              <div className="aerocore-wash" />
             </motion.div>
-            <div className="beauty-film-vignette" />
-            <span className="beauty-film-light beauty-film-light-a" />
-            <span className="beauty-film-light beauty-film-light-b" />
-          </div>
 
-          <motion.div className="beauty-film-type-track" style={reduceMotion ? undefined : { y: wordScrollY, opacity: wordOpacity }} aria-hidden="true">
-            <motion.div className="beauty-film-word" style={reduceMotion ? undefined : { x: typeX, y: typeY }}>КРАСАВИЦА</motion.div>
+            <motion.h1
+              className="aerocore-title"
+              style={reduceMotion ? undefined : { x: typeX, y: titleY, opacity: titleOpacity }}
+            >
+              Красавица
+            </motion.h1>
+
+            <motion.div
+              className="aerocore-hero-detail"
+              style={reduceMotion ? undefined : { opacity: detailOpacity }}
+            >
+              <p>Персональный AI-подбор ухода, волос и ароматов.</p>
+              <LinkButton href="/care" className="aerocore-action" data-analytics="hero_search">Начать подбор <ArrowRight /></LinkButton>
+            </motion.div>
+
           </motion.div>
 
-          <motion.div className="beauty-film-core" style={reduceMotion ? undefined : { scale: coreScale }} aria-hidden="true">
-            <span className="beauty-film-orbit" />
-            <span className="beauty-film-orbit beauty-film-orbit-inner" />
-            <BrandMark className="beauty-film-logo" priority />
+          <motion.div className="aerocore-next-peek" style={reduceMotion ? undefined : { opacity: peekOpacity, y: peekY }} aria-hidden="true">
+            <span>Выберите направление</span>
+            <strong>Кожа · Волосы · Ароматы</strong>
+            <ArrowRight />
           </motion.div>
-
-          <motion.div className="beauty-film-manifest" initial={reduceMotion ? false : { opacity: 0, y: 30, filter: "blur(12px)" }} animate={{ opacity: 1, y: 0, filter: "blur(0px)" }} transition={{ duration: reduceMotion ? 0 : .9, delay: .12, ease: [0.16, 1, 0.3, 1] }}>
-            <p className="hero-index">BEAUTY INTELLIGENCE / 2026</p>
-            <h1>Ваш beauty‑контекст.<br /><em>Собран в ясный выбор.</em></h1>
-            <p>AI-подбор ухода и ароматов с учётом чувствительности, привычек, бюджета и реальной жизни.</p>
-            <div className="hero-actions-v2">
-              <LinkButton href="/care" className="hero-primary-v2" data-analytics="hero_search">Собрать подбор <ArrowRight /></LinkButton>
-              <LinkButton href="/about" tone="secondary" className="hero-ghost-v2">Как это устроено</LinkButton>
-            </div>
-          </motion.div>
-
-          <div className="beauty-film-caption" aria-hidden="true"><span>MACRO BEAUTY STUDY / NO. 01</span><span>SCROLL TO DISCOVER</span></div>
-          <div className="beauty-film-proof" aria-label="Особенности сервиса"><span>03 направления</span><span>02 этапа проверки</span><span>01 понятный сценарий</span></div>
-        </motion.div>
+        </div>
       </section>
-
-      <motion.section className="hero-handoff section-shell" style={reduceMotion ? undefined : { y: handoffY, opacity: handoffOpacity }} aria-label="Переход к возможностям Красавицы">
-        <span className="hero-handoff-line" aria-hidden="true" />
-        <BrandMark className="hero-handoff-logo" />
-        <p>Один запрос проходит путь от контекста к проверенным карточкам — продолжайте вниз.</p>
-        <ArrowDownRight aria-hidden="true" />
-      </motion.section>
-
-      <section className="kinetic-marquee" aria-hidden="true"><div><span>Кожа</span><i>✦</i><span>Волосы</span><i>✦</i><span>Ароматы</span><i>✦</i><span>Ваш ритм</span><i>✦</i><span>Кожа</span><i>✦</i><span>Волосы</span><i>✦</i><span>Ароматы</span></div></section>
 
       <section className="direction-editorial section-shell" id="directions">
         <div className="editorial-heading">
@@ -158,17 +159,8 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section className="journal-preview section-shell">
-        <div><p className="section-code">КРАСАВИЦА · JOURNAL</p><h2>Читать медленнее.<br />Выбирать увереннее.</h2></div>
-        <Link href="/blog" className="journal-cover">
-          <Image src="/beauty-bg-03.svg" alt="" fill sizes="(min-width: 900px) 62vw, 100vw" />
-          <span>Выбор редакции</span><strong>Как отличить понятный уход от перегруженной рутины</strong><ArrowRight />
-        </Link>
-        <div className="journal-note"><p>Материалы о составах, SPF, привычках и ароматах — без бесконечной тревожной ленты.</p><LinkButton href="/blog" tone="secondary">Открыть журнал <ArrowRight /></LinkButton></div>
-      </section>
-
       <section className="community-v2 section-shell">
-        <div><p className="section-code">STAY IN THE LOOP</p><h2>Красавица<br />в вашем формате.</h2></div>
+        <div><p className="section-code">ГДЕ ВАМ УДОБНО</p><h2>Красавица — рядом.</h2></div>
         <div className="community-orbit-links">
           <CommunityLink href="https://t.me/krasavitsa_ai_bot" label="Telegram-бот"><Bot /></CommunityLink>
           <CommunityLink href="https://t.me/krasavitsa_ai" label="Telegram"><Send /></CommunityLink>

@@ -34,6 +34,7 @@ const headerLinks = navLinks.filter(([, href]) => href !== "/profile");
 export function SiteHeader() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const reduceMotion = useReducedMotion();
   const mounted = useSyncExternalStore(() => () => undefined, () => true, () => false);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -59,6 +60,24 @@ export function SiteHeader() {
   };
 
   useEffect(() => () => cancelHoverClose(), []);
+
+  useEffect(() => {
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const next = window.scrollY > 24;
+      setScrolled((current) => current === next ? current : next);
+    };
+    const onScroll = () => {
+      if (!frame) frame = window.requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, []);
 
   useEffect(() => {
     if (!mobileOpen) return;
@@ -107,7 +126,7 @@ export function SiteHeader() {
   }, [mobileOpen]);
 
   return (
-    <header className="site-header">
+    <header className={cn("site-header", pathname === "/" && "is-home", scrolled && "is-scrolled")}>
       <div className="site-chrome">
         <Link href="/" className="brand-mark" aria-label="Красавица, на главную">
           <BrandMark priority />
