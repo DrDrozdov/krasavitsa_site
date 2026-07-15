@@ -18,7 +18,8 @@ export async function POST(request: Request) {
     const event = (await request.json()) as AnalyticsEvent;
     const accepted = await recordAnalyticsEvent(event);
     return NextResponse.json({ ok: accepted });
-  } catch {
+  } catch (error) {
+    console.error("Analytics event write failed", error instanceof Error ? error.message : error);
     return NextResponse.json({ ok: false }, { status: 400 });
   }
 }

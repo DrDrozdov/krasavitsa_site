@@ -138,7 +138,7 @@ async function readState(): Promise<AnalyticsState> {
 
 async function writeState(state: AnalyticsState) {
   await mkdir(path.dirname(storePath), { recursive: true });
-  const temporaryPath = `${storePath}.next`;
+  const temporaryPath = `${storePath}.${process.pid}.${Date.now()}.next`;
   await writeFile(temporaryPath, JSON.stringify(state, null, 2), "utf8");
   await rename(temporaryPath, storePath);
 }
