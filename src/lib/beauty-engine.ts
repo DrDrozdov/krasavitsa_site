@@ -450,7 +450,7 @@ function isDirectProductUrl(value: string): URL | null {
   try {
     const url = new URL(value);
     if (url.protocol !== "https:" || !isAllowedHost(url.hostname)) return null;
-    const route = `${url.pathname} ${url.search}`.toLowerCase();
+    const route = `${url.pathname}${url.search}`.toLowerCase();
     if (/\/(search|showcaptcha|captcha|catalogsearch|catalog\/0\/search|category|collections\/all|reviews?|brands?|tags?|seller|marketplace-orders[^/]*|gold-apple-team|novinki|flacon|articles?|blog|promo|help|faq)(\/|\?|$)/.test(route)) return null;
     if (/^\/f(?:\/|\?|$)/.test(route)) return null;
     if (["q", "query", "text", "search"].some((key) => url.searchParams.has(key))) return null;
