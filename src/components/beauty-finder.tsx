@@ -5,6 +5,8 @@ import { Check, Copy, Droplets, ExternalLink, Heart, Mic, Scissors, Send, Sparkl
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { trackAnalyticsEvent } from "@/lib/analytics-client";
+import { MarketplaceMark } from "@/components/marketplace-mark";
+import styles from "./beauty-finder.module.css";
 
 type Mode = "skin" | "hair" | "perfume";
 type VoiceState = "idle" | "recording" | "transcribing";
@@ -170,6 +172,10 @@ export function BeautyFinder() {
       visual?.style.setProperty("--voice-shift", `${(18 + visibleLevel * 8).toFixed(1)}px`);
       visual?.style.setProperty("--voice-shift-negative", `${(-18 - visibleLevel * 8).toFixed(1)}px`);
       visual?.style.setProperty("--voice-opacity", Math.min(.97, .42 + visibleLevel * .55).toFixed(3));
+      visual?.style.setProperty("--voice-aura-width", `${(34 + visibleLevel * 34).toFixed(1)}px`);
+      visual?.style.setProperty("--voice-aura-height", `${(22 + visibleLevel * 24).toFixed(1)}px`);
+      visual?.style.setProperty("--voice-aura-scale", (.82 + visibleLevel * .34).toFixed(3));
+      visual?.style.setProperty("--voice-aura-opacity", Math.min(.44, .12 + visibleLevel * .3).toFixed(3));
       voiceFrameRef.current = window.requestAnimationFrame(renderLevel);
     };
     renderLevel();
@@ -321,12 +327,19 @@ export function BeautyFinder() {
         const nextProducts = data.products ?? [];
         setResults(nextProducts);
         if (nextProducts.length) {
-          void fetch("/api/profile/library", {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: "history", history: { query: next, mode, summary: data.summary, products: nextProducts } }),
-          });
-          trackAnalyticsEvent("history_save", `unified_${mode}`, { mode, productCount: nextProducts.length });
+          void (async () => {
+            const profileResponse = await fetch("/api/profile/me", { cache: "no-store" });
+            const profileData = await profileResponse.json().catch(() => ({ user: null })) as { user?: unknown };
+            if (!profileData.user) return;
+            const historyResponse = await fetch("/api/profile/library", {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ action: "history", history: { query: next, mode, summary: data.summary, products: nextProducts } }),
+            });
+            if (historyResponse.ok) {
+              trackAnalyticsEvent("history_save", `unified_${mode}`, { mode, productCount: nextProducts.length });
+            }
+          })().catch(() => undefined);
         }
         trackAnalyticsEvent("search_success", `unified_${mode}`, { mode, durationMs: Date.now() - startedAt, productCount: nextProducts.length, source: data.methodology ?? "unknown", result: "success" });
       }
@@ -383,11 +396,13 @@ export function BeautyFinder() {
               key={id}
               type="button"
               onClick={() => changeMode(id)}
+              aria-pressed={mode === id}
+              aria-controls="beauty-finder-query"
               animate={mode === id ? { y: -4, scale: 1.015 } : { y: 0, scale: 1 }}
               whileHover={{ y: -4, scale: 1.012 }}
               whileTap={{ scale: 0.98 }}
               transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
-              className={`direction-card min-h-[112px] rounded-[var(--radius-lg)] border p-3 text-left backdrop-blur-2xl md:min-h-0 md:rounded-[var(--radius-xl)] md:p-5 ${mode === id ? "direction-card-active" : "border-[var(--color-border)] bg-[var(--color-glass)]"}`}
+              className={`${styles.modeButton} direction-card min-h-[112px] rounded-[var(--radius-lg)] border p-3 text-left backdrop-blur-2xl md:min-h-0 md:rounded-[var(--radius-xl)] md:p-5 ${mode === id ? "direction-card-active" : "border-[var(--color-border)] bg-[var(--color-glass)]"}`}
             >
               <Icon className="size-5 md:size-6" />
               <span className="mt-5 block text-base font-black leading-tight md:mt-8 md:text-2xl">{label}</span>
@@ -396,8 +411,9 @@ export function BeautyFinder() {
           ))}
         </div>
 
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.div
+        <div id="beauty-finder-query">
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
             key={mode}
             initial={{ opacity: 0, y: 18, filter: "blur(10px)" }}
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
@@ -430,19 +446,19 @@ export function BeautyFinder() {
                   disabled={loading || voiceState === "transcribing"}
                   aria-label={voiceState === "recording" ? "Остановить запись" : voiceState === "transcribing" ? "Распознаю голос" : "Продиктовать запрос"}
                   aria-pressed={voiceState === "recording"}
-                  className={`finder-voice-button apple-glass-button ${voiceState === "recording" ? "is-recording" : ""}`}
+                  className={`${styles.tapTarget} finder-voice-button apple-glass-button ${voiceState === "recording" ? "is-recording" : ""}`}
                 >
                   {voiceState === "recording" ? <Square aria-hidden="true" /> : <Mic aria-hidden="true" />}
                   <span className="finder-action-label">{voiceState === "recording" ? "Остановить" : voiceState === "transcribing" ? "Слушаю…" : "Голосом"}</span>
-                  {voiceState === "recording" ? <span ref={voiceVisualRef} className="voice-liquid" aria-hidden="true"><i /><i /><i /></span> : null}
+                  {voiceState === "recording" ? <span ref={voiceVisualRef} className={styles.voiceLiquid} aria-hidden="true"><i className={styles.voiceDrop} /><i className={styles.voiceDrop} /><i className={styles.voiceDrop} /><i className={styles.voiceDrop} /><i className={styles.voiceDrop} /></span> : null}
                 </button>
-                <button type="button" onClick={() => void search()} disabled={loading || voiceState === "transcribing"} aria-label={loading ? "Подбор выполняется" : "Отправить запрос на подбор"} className="finder-submit-button apple-glass-button">
+                <button type="button" onClick={() => void search()} disabled={loading || voiceState === "transcribing"} aria-label={loading ? "Подбор выполняется" : "Отправить запрос на подбор"} className={`${styles.tapTarget} finder-submit-button apple-glass-button`}>
                   <span className="finder-submit-label">{loading ? "Собираю…" : "Подобрать"}</span>
                   <Send aria-hidden="true" />
                 </button>
               </div>
             </div>
-            {voiceError ? <p className="finder-voice-error" role="status">{voiceError}</p> : null}
+            {voiceError ? <p className="finder-voice-error" role="alert">{voiceError}</p> : null}
             <div className="mt-3 md:mt-4">
               <AnimatePresence initial={false} mode="wait">
                 <motion.div key={`${mode}-${examplePage}`} initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 26, filter: "blur(8px)" }} animate={{ opacity: 1, y: 0, filter: "blur(0px)" }} exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -26, filter: "blur(7px)" }} transition={{ duration: 0.52, ease: [0.16, 1, 0.3, 1] }} className="flex items-stretch gap-2 overflow-x-auto pb-1 md:grid md:grid-cols-3 md:overflow-visible">
@@ -454,9 +470,10 @@ export function BeautyFinder() {
                 </motion.div>
               </AnimatePresence>
             </div>
-            {error ? <p className="mt-5 rounded-[var(--radius-md)] bg-white/12 p-4 text-sm font-semibold text-white/80">{error}</p> : null}
-          </motion.div>
-        </AnimatePresence>
+            {error ? <p className="mt-5 rounded-[var(--radius-md)] bg-white/12 p-4 text-sm font-semibold text-white/80" role="alert">{error}</p> : null}
+            </motion.div>
+          </AnimatePresence>
+        </div>
 
         <AnimatePresence mode="wait" initial={false}>
           {loading ? (
@@ -498,7 +515,15 @@ export function BeautyFinder() {
                 </motion.p>
               </AnimatePresence>
               <p className="search-liquid-note">Проверяю составы, формат и соответствие запросу</p>
-              <div className="search-liquid-channel" aria-hidden="true"><i /></div>
+              <div className={styles.dropletProgress} role="progressbar" aria-label="Идёт подбор рекомендаций" aria-valuetext="Сверяю средства и составы">
+                <i className={styles.progressDrop} aria-hidden="true" />
+                <i className={styles.progressDrop} aria-hidden="true" />
+                <i className={styles.progressDrop} aria-hidden="true" />
+                <i className={styles.progressDrop} aria-hidden="true" />
+                <i className={styles.progressDrop} aria-hidden="true" />
+                <i className={styles.progressDrop} aria-hidden="true" />
+                <i className={styles.progressDrop} aria-hidden="true" />
+              </div>
             </motion.div>
           ) : results.length ? (
             <motion.div key={`${mode}-${summary}`} initial={{ opacity: 0, y: 22 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mt-5">
@@ -509,21 +534,21 @@ export function BeautyFinder() {
               <div className="grid gap-3 md:grid-cols-2">
                 {results.map((product, index) => (
                   <motion.article key={product.name} initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 28, scale: .985 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ duration: .58, delay: index * .07, ease: [0.16, 1, 0.3, 1] }} className="product-result-card overflow-hidden border border-[var(--color-border)] bg-[var(--color-surface)]">
-                    <div className="product-result-visual relative aspect-[16/9] overflow-hidden bg-[var(--color-soft)]">
+                    <div className={`${styles.productVisual} product-result-visual relative aspect-[16/9] overflow-hidden`}>
                       {/* The endpoint validates a product image and always returns a branded PNG fallback. */}
                       <Image src={product.image || modeVisual[mode]} alt={`Визуал для рекомендации: ${product.name}`} fill unoptimized priority={index < 2} sizes="(min-width: 768px) 50vw, 100vw" className="object-cover" onError={(event) => { if (!event.currentTarget.dataset.fallback) { event.currentTarget.dataset.fallback = "true"; event.currentTarget.src = modeVisual[mode]; } }} />
                     </div>
                     <div className="p-4 md:p-5">
                     <div className="flex items-start justify-between gap-4">
-                      <div className="min-w-0"><p className="text-xs font-black text-[var(--color-bordeaux)]">{product.category}</p><div className="mt-2 flex items-start gap-2"><h3 className="text-[clamp(1.35rem,3vw,2rem)] font-black leading-[1.05] tracking-[-.035em]">{product.name}</h3><button type="button" onClick={() => void copyProductName(product.name)} aria-label={`Скопировать название ${product.name}`} className="apple-glass-button mt-0.5 grid size-8 shrink-0 place-items-center rounded-full border border-[var(--color-border)] bg-[var(--color-soft)] text-[var(--color-bordeaux)]">{copiedName === product.name ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}</button></div></div>
+                      <div className="min-w-0"><p className="text-xs font-black text-[var(--color-bordeaux)]">{product.category}</p><div className="mt-2 flex items-start gap-2"><h3 className="text-[clamp(1.35rem,3vw,2rem)] font-black leading-[1.05] tracking-[-.035em]">{product.name}</h3><button type="button" onClick={() => void copyProductName(product.name)} aria-label={`Скопировать название ${product.name}`} className={`${styles.tapTarget} ${styles.softSurface} apple-glass-button mt-0.5 grid size-8 shrink-0 place-items-center rounded-full border border-[var(--color-border)] text-[var(--color-bordeaux)]`}>{copiedName === product.name ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}</button></div></div>
                     </div>
                     <div className="mt-4 flex items-center justify-between gap-3 border-y border-[var(--color-border)] py-3 text-xs font-bold text-[var(--color-text-muted)]"><span>Ориентир цены</span><span className="text-right text-[var(--color-text)]">{product.priceRange}</span></div>
                     <p className="mt-4 text-sm font-semibold leading-6 text-[var(--color-text-muted)]"><span className="font-black text-[var(--color-bordeaux)]">Почему здесь:</span> {product.reason}</p>
                     {product.usage ? <p className="mt-3 text-sm font-semibold leading-6"><span className="font-black text-[var(--color-bordeaux)]">Как использовать:</span> {product.usage}</p> : null}
                     {product.tradeoffs?.length ? <p className="mt-3 text-xs font-semibold leading-5 text-[var(--color-text-soft)]"><span className="font-black text-[var(--color-bordeaux)]">Учесть:</span> {product.tradeoffs.join(" · ")}</p> : null}
                     <div className="mt-5 flex flex-wrap gap-2">
-                      {product.marketplaces?.map((link) => <a key={link.href} href={link.href} target="_blank" rel="noopener noreferrer" className="apple-glass-button inline-flex items-center gap-1 rounded-full border border-[var(--color-border)] bg-white/48 px-3 py-2 text-xs font-black">🛍️ {link.label}<ExternalLink className="size-3" /></a>)}
-                      <button type="button" onClick={() => void toggleFavorite(product)} aria-label="Сохранить в избранное" className={`apple-glass-button grid size-9 place-items-center rounded-full border border-[var(--color-border)] bg-white/48 ${savedNames.includes(product.name) ? "text-[var(--color-bordeaux)]" : "text-[var(--color-text-muted)]"}`}><Heart className={`size-4 ${savedNames.includes(product.name) ? "fill-current" : ""}`} /></button>
+                      {product.marketplaces?.map((link) => <a key={link.href} href={link.href} target="_blank" rel="noopener noreferrer" className={`${styles.marketplaceLink} apple-glass-button inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] px-3 py-2 text-xs font-black`}><MarketplaceMark label={link.label} href={link.href} className={styles.marketplaceMark} /><span>{link.label}</span><ExternalLink className="size-3" aria-hidden="true" /></a>)}
+                      <button type="button" onClick={() => void toggleFavorite(product)} aria-label={savedNames.includes(product.name) ? "Удалить из избранного" : "Сохранить в избранное"} aria-pressed={savedNames.includes(product.name)} className={`${styles.tapTarget} apple-glass-button grid size-9 place-items-center rounded-full border border-[var(--color-border)] bg-white/48 ${savedNames.includes(product.name) ? "text-[var(--color-bordeaux)]" : "text-[var(--color-text-muted)]"}`}><Heart className={`size-4 ${savedNames.includes(product.name) ? "fill-current" : ""}`} /></button>
                     </div>
                     </div>
                   </motion.article>

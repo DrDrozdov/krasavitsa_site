@@ -4,6 +4,7 @@ import path from "node:path";
 import { NextResponse } from "next/server";
 import sharp from "sharp";
 import { isSearchMode, type SearchMode } from "@/lib/beauty-engine";
+import { packshotCacheControl } from "@/lib/recommendation-policy";
 
 export const runtime = "nodejs";
 
@@ -44,6 +45,24 @@ async function assertPublicUrl(url: URL) {
   if (!addresses.length || addresses.some(({ address }) => isPrivateAddress(address))) throw new Error("UNSAFE_HOST");
 }
 
+async function fetchPublicUrl(
+  input: URL,
+  init: RequestInit,
+  allowHost?: (hostname: string) => boolean,
+) {
+  let current = new URL(input);
+  for (let redirectCount = 0; redirectCount <= 4; redirectCount += 1) {
+    if (allowHost && !allowHost(current.hostname)) throw new Error("UNTRUSTED_REDIRECT_HOST");
+    await assertPublicUrl(current);
+    const response = await fetch(current, { ...init, redirect: "manual" });
+    if (response.status < 300 || response.status >= 400) return response;
+    const location = response.headers.get("location");
+    if (!location) return response;
+    current = new URL(location, current);
+  }
+  throw new Error("TOO_MANY_REDIRECTS");
+}
+
 async function readLimitedText(response: Response, max = 300_000) {
   if (!response.body) return "";
   const reader = response.body.getReader(); const decoder = new TextDecoder(); let output = "";
@@ -76,8 +95,11 @@ function structuredProductImages(value: unknown, context = ""): Array<{ url: str
 
 async function imageDiscoveryAgent(source: URL): Promise<Candidate[]> {
   if (!hostAllowed(source.hostname)) return [];
-  await assertPublicUrl(source);
-  const response = await fetch(source, { headers: { "User-Agent": "Mozilla/5.0 KrasavitsaImageDiscovery/1.0", Accept: "text/html" }, redirect: "follow", cache: "force-cache", signal: AbortSignal.timeout(5500) });
+  const response = await fetchPublicUrl(
+    source,
+    { headers: { "User-Agent": "Mozilla/5.0 KrasavitsaImageDiscovery/1.0", Accept: "text/html" }, cache: "no-store", signal: AbortSignal.timeout(5500) },
+    hostAllowed,
+  );
   if (!response.ok || !response.headers.get("content-type")?.includes("text/html")) return [];
   const html = await readLimitedText(response);
   const candidates: Candidate[] = [];
@@ -111,7 +133,7 @@ async function imageSearchAgent(name: string): Promise<Candidate[]> {
   endpoint.searchParams.set("form", "HDRSC2");
   const response = await fetch(endpoint, {
     headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/136 Safari/537.36", Accept: "text/html" },
-    cache: "force-cache",
+    cache: "no-store",
     signal: AbortSignal.timeout(5500),
   });
   if (!response.ok) return [];
@@ -150,8 +172,11 @@ async function imageVerificationAgent(name: string, candidates: Candidate[]) {
       const context = decodeURIComponent(`${candidate.url.pathname} ${candidate.context}`).toLowerCase();
       const tokenMatches = productTokens.filter((token) => context.includes(token)).length;
       if (productTokens.length > 1 && tokenMatches < Math.max(1, Math.ceil(productTokens.length * .34))) continue;
-      await assertPublicUrl(candidate.url);
-      const response = await fetch(candidate.url, { headers: { "User-Agent": "Mozilla/5.0 KrasavitsaImageVerifier/1.0", Accept: "image/avif,image/webp,image/png,image/jpeg,*/*" }, redirect: "follow", cache: "force-cache", signal: AbortSignal.timeout(6000) });
+      const response = await fetchPublicUrl(candidate.url, {
+        headers: { "User-Agent": "Mozilla/5.0 KrasavitsaImageVerifier/1.0", Accept: "image/avif,image/webp,image/png,image/jpeg,*/*" },
+        cache: "force-cache",
+        signal: AbortSignal.timeout(6000),
+      });
       const type = (response.headers.get("content-type") ?? "").split(";")[0];
       const length = Number(response.headers.get("content-length") ?? 0);
       if (!response.ok || !type.startsWith("image/") || type === "image/svg+xml" || length > 4_500_000) continue;
@@ -218,11 +243,14 @@ export async function GET(request: Request) {
   const name = (searchParams.get("name") ?? "Beauty product").trim().slice(0, 180);
   const mode = isSearchMode(searchParams.get("mode")) ? searchParams.get("mode") as SearchMode : "skin";
   let asset: Awaited<ReturnType<typeof fallbackImage>> | null = null;
-  const sourceValue = searchParams.get("source");
-  if (sourceValue) {
+  const sourceValues = [...new Set(searchParams.getAll("source"))].slice(0, 3);
+  if (sourceValues.length) {
     try {
-      const source = new URL(sourceValue);
-      asset = await imageVerificationAgent(name, await imageDiscoveryAgent(source));
+      const discovered = await Promise.allSettled(
+        sourceValues.map((sourceValue) => imageDiscoveryAgent(new URL(sourceValue))),
+      );
+      const candidates = discovered.flatMap((result) => result.status === "fulfilled" ? result.value : []);
+      asset = await imageVerificationAgent(name, candidates);
     } catch { /* The local fallback guarantees a visual. */ }
   }
   if (!asset) {
@@ -230,6 +258,11 @@ export async function GET(request: Request) {
   }
   asset ??= await fallbackImage(mode);
   return new NextResponse(new Uint8Array(await composition(asset)), {
-    headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=86400, s-maxage=604800, stale-while-revalidate=2592000", "X-Content-Type-Options": "nosniff", "X-Krasavitsa-Packshot": asset.verified ? "verified" : "fallback" },
+    headers: {
+      "Content-Type": "image/png",
+      "Cache-Control": packshotCacheControl(asset.verified),
+      "X-Content-Type-Options": "nosniff",
+      "X-Krasavitsa-Packshot": asset.verified ? "verified" : "fallback",
+    },
   });
 }

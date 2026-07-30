@@ -1,4 +1,9 @@
 import "server-only";
+import { curatedCommerceLinks } from "@/lib/curated-commerce";
+import {
+  hasGroundedCommerce,
+  orderGroundedCandidates,
+} from "@/lib/recommendation-policy";
 
 export type SearchMode = "skin" | "hair" | "perfume";
 
@@ -200,7 +205,7 @@ const curatedFallback: Record<SearchMode, BeautyProduct[]> = {
       tradeoffs: ["При выраженном выпадении нужен врач, а не косметический шампунь."],
       image: visuals.hair,
       imageKind: "category-visual",
-      marketplaces: [],
+      marketplaces: curatedCommerceLinks("hair", "Lador Dermatical Hair-Loss Shampoo"),
     },
     {
       name: "OLAPLEX Nº.5 Bond Maintenance® Conditioner",
@@ -224,7 +229,7 @@ const curatedFallback: Record<SearchMode, BeautyProduct[]> = {
       tradeoffs: ["Количество и дистанцию нанесения нужно подбирать под толщину волос."],
       image: visuals.hair,
       imageKind: "category-visual",
-      marketplaces: [],
+      marketplaces: curatedCommerceLinks("hair", "CHI 44 Iron Guard Thermal Protection Spray"),
     },
     {
       name: "Lador Wonder Balm",
@@ -236,10 +241,10 @@ const curatedFallback: Record<SearchMode, BeautyProduct[]> = {
       tradeoffs: ["Тонким волосам лучше начать с небольшого количества."],
       image: visuals.hair,
       imageKind: "category-visual",
-      marketplaces: [],
+      marketplaces: curatedCommerceLinks("hair", "Lador Wonder Balm"),
     },
     {
-      name: "OLLIN Professional Perfect Hair 15 in 1 Leave-In Cream",
+      name: "OLLIN Professional Perfect Hair 15 in 1 Cream Spray 100 ml",
       category: "Несмываемый уход",
       reason: "Широко доступный многофункциональный вариант для облегчения расчёсывания и защиты длины от трения.",
       matchScore: 66,
@@ -248,7 +253,7 @@ const curatedFallback: Record<SearchMode, BeautyProduct[]> = {
       tradeoffs: ["Избыток средства может утяжелить тонкие волосы."],
       image: visuals.hair,
       imageKind: "category-visual",
-      marketplaces: [],
+      marketplaces: curatedCommerceLinks("hair", "OLLIN Professional Perfect Hair 15 in 1 Cream Spray 100 ml"),
     },
   ],
   perfume: [
@@ -262,7 +267,7 @@ const curatedFallback: Record<SearchMode, BeautyProduct[]> = {
       tradeoffs: ["Стойкость и шлейф зависят от кожи и условий."],
       image: visuals.perfume,
       imageKind: "category-visual",
-      marketplaces: [],
+      marketplaces: curatedCommerceLinks("perfume", "Calvin Klein CK One Eau de Toilette"),
     },
     {
       name: "Elizabeth Arden Green Tea Eau de Toilette",
@@ -277,28 +282,28 @@ const curatedFallback: Record<SearchMode, BeautyProduct[]> = {
       marketplaces: [],
     },
     {
-      name: "Lanvin Éclat d'Arpège Eau de Parfum",
-      category: "Лёгкий цветочно-мускусный аромат",
-      reason: "Широко доступный мягкий цветочный профиль для дневного и подарочного сценария.",
+      name: "Lalique Encre Noire Eau de Toilette 100 ml Tester",
+      category: "Древесно-ветиверовый аромат",
+      reason: "Выразительный древесный профиль для запроса на сухой ветивер и спокойное вечернее звучание.",
       matchScore: 71,
-      priceRange: "3 000–7 000 ₽",
-      usage: "Протестировать на коже и отдельно оценить мускусную базу через 30–60 минут.",
-      tradeoffs: ["Цветочные и мускусные нюансы раскрываются индивидуально."],
+      priceRange: "4 000–6 000 ₽",
+      usage: "Протестировать на коже и оценить сухую древесную базу через 30–60 минут.",
+      tradeoffs: ["Тестер может поставляться без декоративной розничной упаковки; аромат и концентрация остаются теми же."],
       image: visuals.perfume,
       imageKind: "category-visual",
-      marketplaces: [],
+      marketplaces: curatedCommerceLinks("perfume", "Lalique Encre Noire Eau de Toilette 100 ml Tester"),
     },
     {
-      name: "Versace Bright Crystal Eau de Toilette",
-      category: "Свежий цветочно-фруктовый аромат",
-      reason: "Широко доступное светлое направление для дневного или подарочного сценария.",
+      name: "Montblanc Signature Eau de Parfum 90 ml",
+      category: "Мягкий цветочно-мускусный аромат",
+      reason: "Спокойный сливочно-мускусный профиль для дневного, офисного или подарочного сценария.",
       matchScore: 68,
-      priceRange: "4 000–10 000 ₽",
-      usage: "Протестировать на коже и оценить цветочную базу через 30–60 минут.",
-      tradeoffs: ["Громкость и стойкость зависят от кожи, температуры и объёма флакона."],
+      priceRange: "6 000–9 000 ₽",
+      usage: "Протестировать на коже и оценить мускусную базу через 30–60 минут.",
+      tradeoffs: ["Сливочные и мускусные нюансы раскрываются индивидуально."],
       image: visuals.perfume,
       imageKind: "category-visual",
-      marketplaces: [],
+      marketplaces: curatedCommerceLinks("perfume", "Montblanc Signature Eau de Parfum 90 ml"),
     },
     {
       name: "Antonio Banderas Her Secret Eau de Toilette",
@@ -760,61 +765,57 @@ async function verifyCandidate(candidate: Candidate): Promise<VerifiedCandidate 
   const cacheKey = candidate.name.toLocaleLowerCase("ru").replace(/\s+/g, " ").trim();
   const cached = evidenceCache.get(cacheKey);
   if (cached && cached.expiresAt > Date.now()) return cached.value;
-  const discovered = await discoverMarketplaceUrls(candidate.name);
-  const retailerUrls: DiscoveredLink[] = [
-    ...candidate.retailerUrls.map((item) => ({
-      ...item,
-      evidence: `${item.trustedIdentity ? candidate.name : ""} ${item.label} ${item.url}`.trim(),
-    })),
-    ...discovered,
-  ]
-    .filter((item, index, array) => array.findIndex((other) => other.url === item.url) === index)
-    .slice(0, 16);
-  const requests: Array<Promise<ProductLink | null>> = [];
-  for (const item of retailerUrls) {
-    requests.push(verifyLink(
-      candidate.name,
-      linkLabel(item.url, item.label),
-      item.url,
-      "marketplace",
-      item.indexedPrice,
-      item.evidence,
-    ));
+
+  const suppliedUrls: DiscoveredLink[] = candidate.retailerUrls.map((item) => ({
+    ...item,
+    evidence: `${item.trustedIdentity ? candidate.name : ""} ${item.label} ${item.url}`.trim(),
+  }));
+
+  const verifyEvidence = async (retailerUrls: DiscoveredLink[]) => {
+    const links = (await Promise.all(
+      retailerUrls
+        .filter((item, index, array) => array.findIndex((other) => other.url === item.url) === index)
+        .slice(0, 16)
+        .map((item) => verifyLink(
+          candidate.name,
+          linkLabel(item.url, item.label),
+          item.url,
+          "marketplace",
+          item.indexedPrice,
+          item.evidence,
+        )),
+    )).filter((item): item is ProductLink => Boolean(item));
+
+    const uniqueByStore = new Map<string, ProductLink>();
+    for (const link of links) {
+      const key = storeKey(link.href);
+      const existing = uniqueByStore.get(key);
+      if (!key) continue;
+      // Candidate-provided and hand-verified links are checked first. A later
+      // search hit may only replace one when it adds real price evidence; an
+      // unpriced redirect or weaker variant must never displace the exact card.
+      if (existing && (existing.price || !link.price)) continue;
+      uniqueByStore.set(key, link);
+    }
+    return [...uniqueByStore.values()].slice(0, 8);
+  };
+
+  // A curated exact card with an observed price is already grounded. Do not add
+  // a slow public-search dependency merely to collect decorative extra stores.
+  // When supplied evidence is insufficient, discovery still runs and is held to
+  // the same direct-card and identity checks.
+  let unique = suppliedUrls.length ? await verifyEvidence(suppliedUrls) : [];
+  if (!hasGroundedCommerce(unique, storeKey)) {
+    const discovered = await discoverMarketplaceUrls(candidate.name);
+    unique = await verifyEvidence([...suppliedUrls, ...discovered]);
   }
-  const links = (await Promise.all(requests)).filter((item): item is ProductLink => Boolean(item));
-  const uniqueByStore = new Map<string, ProductLink>();
-  for (const link of links) {
-    const key = storeKey(link.href);
-    const existing = uniqueByStore.get(key);
-    if (!key) continue;
-    // Candidate-provided and hand-verified links are checked first. A later
-    // search hit may only replace one when it adds real price evidence; an
-    // unpriced redirect or weaker variant must never displace the exact card.
-    if (existing && (existing.price || !link.price)) continue;
-    uniqueByStore.set(key, link);
-  }
-  const unique = [...uniqueByStore.values()].slice(0, 8);
-  const storeCount = new Set(unique.map((link) => storeKey(link.href)).filter(Boolean)).size;
-  const pricedStoreCount = new Set(unique.filter((link) => link.price).map((link) => storeKey(link.href)).filter(Boolean)).size;
-  // Cache evidence independently from the final quality tier. A marketplace can
-  // temporarily hide its price from server-side requests while its exact product
-  // card remains valid. In that case one real price is safer than an empty result
-  // or a fabricated second price.
-  const result = storeCount >= 3 && unique.length >= 3 && pricedStoreCount >= 1 ? { ...candidate, links: unique } : null;
+
+  const result = hasGroundedCommerce(unique, storeKey) ? { ...candidate, links: unique } : null;
   evidenceCache.set(cacheKey, {
     expiresAt: Date.now() + (result ? EVIDENCE_CACHE_TTL : NEGATIVE_EVIDENCE_CACHE_TTL),
     value: result,
   });
   return result;
-}
-
-function pricedStoreCount(candidate: VerifiedCandidate): number {
-  return new Set(
-    candidate.links
-      .filter((link) => typeof link.price === "number")
-      .map((link) => storeKey(link.href))
-      .filter(Boolean),
-  ).size;
 }
 
 function formatPriceRange(links: ProductLink[]): string | undefined {
@@ -826,9 +827,9 @@ function formatPriceRange(links: ProductLink[]): string | undefined {
   return min === max ? `около ${format(min)} ₽` : `${format(min)}–${format(max)} ₽`;
 }
 
-function productImage(mode: SearchMode, name: string, source: string | undefined, variant: number) {
+function productImage(mode: SearchMode, name: string, sources: readonly string[], variant: number) {
   const params = new URLSearchParams({ name, mode, variant: String(variant) });
-  if (source) params.set("source", source);
+  for (const source of sources.slice(0, 3)) params.append("source", source);
   return `/api/product-image?${params.toString()}`;
 }
 
@@ -868,25 +869,40 @@ function mergeCandidates(primary: Candidate[], fallback: Candidate[]): Candidate
 }
 
 async function verifyInWaves(primary: Candidate[], fallback: Candidate[]): Promise<VerifiedCandidate[]> {
-  const firstWave = mergeCandidates(primary, []).slice(0, 6);
-  const firstEvidence = (await Promise.all(firstWave.map(verifyCandidate)))
-    .filter((item): item is VerifiedCandidate => Boolean(item));
-  const firstStrict = firstEvidence.filter((item) => pricedStoreCount(item) >= 2);
-  if (firstStrict.length >= 4) return firstStrict;
-  const used = new Set(firstWave.map((item) => item.name.toLocaleLowerCase("ru")));
-  const secondWave = fallback.filter((item) => !used.has(item.name.toLocaleLowerCase("ru"))).slice(0, 5);
-  const secondEvidence = (await Promise.all(secondWave.map(verifyCandidate)))
-    .filter((item): item is VerifiedCandidate => Boolean(item));
-  const allEvidence = mergeCandidates(firstEvidence, secondEvidence) as VerifiedCandidate[];
-  const strict = allEvidence.filter((item) => pricedStoreCount(item) >= 2);
-  if (strict.length >= 3) return strict;
-  // Resilient tier: strict products stay first; exact cards with one observed
-  // price fill the remaining slots. `formatPriceRange` labels that value as
-  // "около", so the UI never presents one observation as a price interval.
-  return [
-    ...strict,
-    ...allEvidence.filter((item) => pricedStoreCount(item) === 1),
-  ].filter((item, index, array) => array.findIndex((other) => other.name === item.name) === index);
+  const candidateKey = (candidate: Candidate) =>
+    candidate.name.toLocaleLowerCase("ru").replace(/\s+/g, " ").trim();
+  const fallbackByName = new Map(fallback.map((candidate) => [candidateKey(candidate), candidate]));
+  const firstWave = mergeCandidates(primary, []).slice(0, 6).map((candidate) => {
+    const reserve = fallbackByName.get(candidateKey(candidate));
+    if (!reserve) return candidate;
+    return {
+      ...candidate,
+      retailerUrls: [...candidate.retailerUrls, ...reserve.retailerUrls]
+        .filter((link, index, array) => array.findIndex((other) => other.url === link.url) === index),
+    };
+  });
+  const used = new Set(firstWave.map(candidateKey));
+  const orderedFallback = [
+    ...fallback.filter((item) => item.retailerUrls.some((link) => typeof link.indexedPrice === "number")),
+    ...fallback,
+  ].filter(
+    (item, index, array) =>
+      !used.has(candidateKey(item)) &&
+      array.findIndex((other) => candidateKey(other) === candidateKey(item)) === index,
+  );
+  // Verify three grounded reserve cards in parallel with personalized discovery.
+  // This removes a serial 5–10 second fallback penalty without allowing an
+  // unverified URL into the response.
+  const fallbackWave = orderedFallback.slice(0, 3);
+  const [firstEvidence, fallbackEvidence] = await Promise.all([
+    Promise.all(firstWave.map(verifyCandidate)),
+    Promise.all(fallbackWave.map(verifyCandidate)),
+  ]);
+  const allEvidence = mergeCandidates(
+    firstEvidence.filter((item): item is VerifiedCandidate => Boolean(item)),
+    fallbackEvidence.filter((item): item is VerifiedCandidate => Boolean(item)),
+  ) as VerifiedCandidate[];
+  return orderGroundedCandidates(allEvidence, storeKey);
 }
 
 function ensureMinimumProducts(mode: SearchMode, query: string, products: BeautyProduct[], minimum = 3): BeautyProduct[] {
@@ -896,7 +912,7 @@ function ensureMinimumProducts(mode: SearchMode, query: string, products: Beauty
     const key = product.name.toLocaleLowerCase("ru").replace(/\s+/g, " ").trim();
     if (!key || seen.has(key)) continue;
     seen.add(key);
-    if (!product.priceRange || new Set(product.marketplaces.map((link) => storeKey(link.href)).filter(Boolean)).size < 3) continue;
+    if (!product.priceRange || !hasGroundedCommerce(product.marketplaces, storeKey)) continue;
     eligible.push(product);
   }
 
@@ -950,7 +966,7 @@ function toPublicProduct(mode: SearchMode, product: VerifiedCandidate, variant: 
     priceRange: formatPriceRange(product.links)!,
     usage: product.usage,
     tradeoffs: product.tradeoffs,
-    image: productImage(mode, product.name, product.links[0]?.href, variant),
+    image: productImage(mode, product.name, product.links.map((link) => link.href), variant),
     imageKind: "verified-composite",
     marketplaces: product.links,
   };
@@ -1059,7 +1075,7 @@ ${config.specialist}
     return {
       status: "no_verified_products",
       mode,
-      summary: `${triage.summary} Сейчас магазины не отдали достаточно подтверждений для трёх честных ценовых сравнений. Я сохранила запрос и не подменяю карточки поисковыми ссылками.`,
+      summary: `${triage.summary} Сейчас магазины не отдали достаточно подтверждённых карточек с наблюдаемыми ценами. Я сохранила запрос и не подменяю карточки поисковыми ссылками.`,
       insight: resultInsight(mode),
       products: ensureMinimumProducts(mode, query, []),
       methodology: "curated-fallback",
@@ -1085,7 +1101,7 @@ ${config.specialist}
     return {
       status: "no_verified_products",
       mode,
-      summary: `${summary} После финальной проверки осталось меньше трёх товаров с ценами минимум на трёх маркетплейсах. Уточните бюджет, объём или желаемые бренды — я повторю поиск.`,
+      summary: `${summary} После финальной проверки осталось меньше трёх товаров с подтверждёнными прямыми карточками и наблюдаемыми ценами. Уточните бюджет, объём или желаемые бренды — я повторю поиск.`,
       insight: resultInsight(mode),
       products: [],
       methodology: "grounded-v4",

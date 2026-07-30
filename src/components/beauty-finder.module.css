@@ -1,0 +1,213 @@
+.modeButton,
+.tapTarget {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.modeButton {
+  touch-action: manipulation;
+}
+
+.modeButton:focus-visible,
+.tapTarget:focus-visible,
+.marketplaceLink:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--color-raspberry) 82%, white);
+  outline-offset: 3px;
+}
+
+.softSurface {
+  background: color-mix(in srgb, var(--color-surface) 88%, var(--color-blush) 12%);
+}
+
+.productVisual {
+  background:
+    radial-gradient(circle at 26% 18%, color-mix(in srgb, var(--color-blush) 30%, transparent), transparent 44%),
+    color-mix(in srgb, var(--color-surface) 91%, var(--color-blush) 9%);
+}
+
+.marketplaceLink {
+  min-height: 44px;
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-surface) 78%, transparent);
+  touch-action: manipulation;
+}
+
+.marketplaceMark {
+  --marketplace-mark-surface: var(--color-surface);
+  display: grid;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  place-items: center;
+  color: var(--color-text);
+}
+
+.marketplaceMark svg {
+  display: block;
+  width: 24px;
+  height: 24px;
+}
+
+.voiceLiquid {
+  --voice-level: .08;
+  --voice-width: 22px;
+  --voice-height: 19px;
+  --voice-glow: 12px;
+  --voice-shift: 19px;
+  --voice-shift-negative: -19px;
+  --voice-opacity: .46;
+  position: absolute;
+  inset: 3px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  overflow: visible;
+  border-radius: inherit;
+  pointer-events: none;
+  filter: saturate(1.35);
+}
+
+.voiceLiquid::before {
+  content: "";
+  position: absolute;
+  width: var(--voice-aura-width, 34px);
+  height: var(--voice-aura-height, 22px);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-raspberry) 38%, transparent);
+  opacity: var(--voice-aura-opacity, .14);
+  filter: blur(14px);
+  transform: scale(var(--voice-aura-scale, .86));
+  transition: opacity 70ms linear, transform 70ms linear;
+}
+
+.voiceDrop {
+  position: absolute;
+  width: var(--voice-width);
+  height: var(--voice-height);
+  border: 1px solid rgba(255, 255, 255, .58);
+  border-radius: 66% 34% 58% 42% / 45% 62% 38% 55%;
+  background:
+    radial-gradient(circle at 28% 23%, rgba(255, 255, 255, .92) 0 4%, transparent 18%),
+    linear-gradient(145deg, rgba(255, 255, 255, .52), rgba(255, 139, 193, .2) 38%, rgba(129, 104, 255, .24) 70%, rgba(255, 255, 255, .08));
+  box-shadow:
+    inset 5px 7px 12px rgba(255, 255, 255, .33),
+    inset -6px -8px 15px rgba(92, 31, 79, .2),
+    0 0 var(--voice-glow) color-mix(in srgb, var(--color-raspberry) 48%, transparent);
+  opacity: var(--voice-opacity);
+  backdrop-filter: blur(9px) saturate(1.45);
+  transform: translate3d(var(--voice-shift-negative), 0, 0) rotate(-18deg);
+  transition: width 65ms linear, height 65ms linear, transform 65ms linear, opacity 65ms linear;
+}
+
+.voiceDrop:nth-child(2) {
+  border-radius: 39% 61% 46% 54% / 62% 40% 60% 38%;
+  transform: translate3d(0, -2px, 0) rotate(12deg) scale(.9, 1.08);
+}
+
+.voiceDrop:nth-child(3) {
+  border-radius: 55% 45% 64% 36% / 41% 57% 43% 59%;
+  transform: translate3d(var(--voice-shift), 2px, 0) rotate(21deg) scale(.78, .88);
+}
+
+.voiceDrop:nth-child(4) {
+  transform: translate3d(calc(var(--voice-shift-negative) + 6px), -16px, 0) rotate(38deg) scale(.38, .48);
+  opacity: .56;
+}
+
+.voiceDrop:nth-child(5) {
+  transform: translate3d(calc(var(--voice-shift) - 5px), 14px, 0) rotate(-30deg) scale(.3, .42);
+  opacity: .48;
+}
+
+.dropletProgress {
+  display: flex;
+  width: min(100%, 460px);
+  min-height: 44px;
+  margin: 12px auto 0;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(7px, 2vw, 13px);
+}
+
+.progressDrop {
+  width: clamp(13px, 2vw, 19px);
+  height: clamp(17px, 2.6vw, 25px);
+  border: 1px solid color-mix(in srgb, white 66%, var(--color-raspberry));
+  border-radius: 64% 36% 65% 35% / 72% 43% 57% 28%;
+  background:
+    radial-gradient(circle at 30% 23%, rgba(255, 255, 255, .95) 0 6%, transparent 22%),
+    linear-gradient(148deg, rgba(255, 255, 255, .74), color-mix(in srgb, var(--color-blush) 60%, transparent) 42%, color-mix(in srgb, var(--color-raspberry) 48%, #7e6dff 52%) 100%);
+  box-shadow:
+    inset 3px 4px 7px rgba(255, 255, 255, .54),
+    inset -4px -5px 8px rgba(75, 13, 46, .14),
+    0 7px 18px color-mix(in srgb, var(--color-raspberry) 20%, transparent);
+  transform-origin: 50% 75%;
+  animation: dropletPulse 1.75s cubic-bezier(.22, 1, .36, 1) infinite;
+}
+
+.progressDrop:nth-child(2) { animation-delay: -1.5s; }
+.progressDrop:nth-child(3) { animation-delay: -1.25s; }
+.progressDrop:nth-child(4) { animation-delay: -1s; }
+.progressDrop:nth-child(5) { animation-delay: -.75s; }
+.progressDrop:nth-child(6) { animation-delay: -.5s; }
+.progressDrop:nth-child(7) { animation-delay: -.25s; }
+
+@keyframes dropletPulse {
+  0%, 100% {
+    opacity: .26;
+    transform: translateY(4px) scale(.72) rotate(45deg);
+    filter: saturate(.8);
+  }
+  38% {
+    opacity: 1;
+    transform: translateY(-5px) scale(1.08) rotate(45deg);
+    filter: saturate(1.5);
+  }
+  62% {
+    opacity: .68;
+    transform: translateY(0) scale(.92) rotate(45deg);
+  }
+}
+
+:global(:root[data-theme="dark"]) .softSurface,
+:global(:root[data-theme="dark"]) .productVisual {
+  background:
+    radial-gradient(circle at 25% 18%, rgba(208, 68, 130, .16), transparent 44%),
+    color-mix(in srgb, var(--color-surface) 92%, #230b19 8%);
+}
+
+:global(:root[data-theme="dark"]) .marketplaceLink {
+  background: color-mix(in srgb, var(--color-surface) 64%, transparent);
+}
+
+@media (max-width: 767px) {
+  .voiceLiquid {
+    inset: 2px;
+  }
+
+  .voiceDrop {
+    max-width: 34px;
+    max-height: 36px;
+  }
+
+  .marketplaceLink {
+    padding-inline: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .voiceDrop {
+    transition: none;
+  }
+
+  .progressDrop {
+    animation: none;
+    opacity: .72;
+    transform: rotate(45deg) scale(.86);
+  }
+
+  .progressDrop:nth-child(4) {
+    opacity: 1;
+    transform: rotate(45deg);
+  }
+}

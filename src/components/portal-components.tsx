@@ -72,12 +72,12 @@ export function SiteHeader() {
     let frame = 0;
     const update = () => {
       frame = 0;
-      const progress = pathname === "/" ? Math.min(1, Math.max(0, window.scrollY / 150)) : 1;
+      const progress = pathname === "/" ? Math.min(1, Math.max(0, window.scrollY / 240)) : 1;
       headerRef.current?.style.setProperty("--chrome-progress", progress.toFixed(3));
-      headerRef.current?.style.setProperty("--chrome-alpha", (progress * .34).toFixed(3));
-      headerRef.current?.style.setProperty("--chrome-border-alpha", (progress * .12).toFixed(3));
-      headerRef.current?.style.setProperty("--chrome-shadow-alpha", (progress * .06).toFixed(3));
-      headerRef.current?.style.setProperty("--chrome-blur", `${(progress * 32).toFixed(1)}px`);
+      headerRef.current?.style.setProperty("--chrome-alpha", (progress * .23).toFixed(3));
+      headerRef.current?.style.setProperty("--chrome-border-alpha", (progress * .1).toFixed(3));
+      headerRef.current?.style.setProperty("--chrome-shadow-alpha", (progress * .08).toFixed(3));
+      headerRef.current?.style.setProperty("--chrome-blur", `${(progress * 26).toFixed(1)}px`);
       const next = progress > 0.08;
       setScrolled((current) => current === next ? current : next);
     };
@@ -143,14 +143,20 @@ export function SiteHeader() {
       ref={headerRef}
       style={{
         "--chrome-progress": pathname === "/" ? 0 : 1,
-        "--chrome-alpha": pathname === "/" ? 0 : .34,
-        "--chrome-border-alpha": pathname === "/" ? 0 : .12,
-        "--chrome-shadow-alpha": pathname === "/" ? 0 : .06,
-        "--chrome-blur": pathname === "/" ? "0px" : "32px",
+        "--chrome-alpha": pathname === "/" ? 0 : .23,
+        "--chrome-border-alpha": pathname === "/" ? 0 : .1,
+        "--chrome-shadow-alpha": pathname === "/" ? 0 : .08,
+        "--chrome-blur": pathname === "/" ? "0px" : "26px",
       } as React.CSSProperties}
       className={cn("site-header", pathname === "/" && "is-home", scrolled && "is-scrolled")}
     >
-      <div className="site-chrome">
+      <div
+        className="site-chrome"
+        style={{
+          backdropFilter: "blur(var(--chrome-blur, 0px)) saturate(1.36) contrast(1.02)",
+          WebkitBackdropFilter: "blur(var(--chrome-blur, 0px)) saturate(1.36) contrast(1.02)",
+        }}
+      >
         <Link href="/" className="brand-mark" aria-label="Красавица, на главную">
           <BrandMark priority />
           <span className="brand-word">Красавица</span>

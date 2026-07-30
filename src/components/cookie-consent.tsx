@@ -4,7 +4,8 @@ import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useState } from "react";
 
-type Consent = "all" | "essential" | "pending";
+type Consent = "all" | "essential" | "pending" | "unknown";
+type StoredConsent = Extract<Consent, "all" | "essential">;
 
 const cookieName = "krasavitsa_cookie_consent_v2";
 const legacyCookieName = "krasavitsa_cookie_consent";
@@ -14,14 +15,14 @@ function readConsent(): Consent {
   return value === "all" || value === "essential" ? value : "pending";
 }
 
-function saveConsent(value: Exclude<Consent, "pending">) {
+function saveConsent(value: StoredConsent) {
   document.cookie = `${cookieName}=${value}; Path=/; Max-Age=31536000; SameSite=Lax`;
   document.cookie = `${legacyCookieName}=${value}; Path=/; Max-Age=31536000; SameSite=Lax`;
   window.dispatchEvent(new CustomEvent("krasavitsa-cookie-consent", { detail: value }));
 }
 
 export function CookieConsent() {
-  const [consent, setConsent] = useState<Consent>("pending");
+  const [consent, setConsent] = useState<Consent>("unknown");
   const reduceMotion = useReducedMotion();
 
   useEffect(() => {
@@ -29,7 +30,7 @@ export function CookieConsent() {
     return () => window.cancelAnimationFrame(frame);
   }, []);
 
-  const choose = (value: Exclude<Consent, "pending">) => {
+  const choose = (value: StoredConsent) => {
     saveConsent(value);
     setConsent(value);
   };

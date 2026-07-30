@@ -140,9 +140,9 @@ export function ProfileDemo() {
                   <Info label="Изображение" value={user.avatarUrl ? "Аватар добавлен" : "Можно добавить JPG, PNG или WebP"} />
                 </div>
                 {library ? <ProfileLibrary library={library} onAnalyticsChange={setAnalyticsConsent} /> : null}
-                {message ? <p className="mt-5 text-sm font-semibold text-[var(--color-text-muted)]">{message}</p> : null}
+                {message ? <p className="mt-5 text-sm font-semibold text-[var(--color-text-muted)]" role="status">{message}</p> : null}
                 <div className="mt-auto flex flex-wrap gap-2 pt-8">
-                  <button type="button" onClick={() => void logout()} className="apple-glass-button flex h-12 w-fit items-center gap-2 rounded-full border border-[var(--color-border)] bg-white/40 px-5 text-sm font-black"><LogOut className="size-4" />Выйти</button>
+                  <button type="button" onClick={() => void logout()} className="apple-glass-button flex h-12 w-fit items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-5 text-sm font-black"><LogOut className="size-4" />Выйти</button>
                   <button type="button" onClick={() => void deleteAccount()} className="h-12 rounded-full px-5 text-sm font-black text-[var(--color-text-soft)] transition hover:bg-[var(--color-bordeaux)] hover:text-white">Удалить профиль</button>
                 </div>
               </motion.div>
@@ -158,12 +158,12 @@ export function ProfileDemo() {
                   <Field name="email" label="Почта" type="email" autoComplete="email" />
                   <Field name="password" label="Пароль" type="password" autoComplete={mode === "register" ? "new-password" : "current-password"} minLength={10} />
                   {mode === "register" ? (
-                    <div className="mt-2 grid gap-3 rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-white/24 p-4">
+                    <div className="mt-2 grid gap-3 rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface-muted)] p-4">
                       <Consent name="acceptedPrivacy">Я принимаю <Link href="/privacy">политику конфиденциальности</Link>.</Consent>
                       <Consent name="acceptedTerms">Я принимаю <Link href="/terms">пользовательское соглашение</Link>.</Consent>
                     </div>
                   ) : null}
-                  {message ? <p className="mt-2 text-sm font-semibold text-[var(--color-bordeaux)]">{message}</p> : null}
+                  {message ? <p className="mt-2 text-sm font-semibold text-[var(--color-bordeaux)]" role="status">{message}</p> : null}
                   <button type="submit" className="apple-glass-button brand-action mt-4 h-14 rounded-full px-7 text-base font-black text-white">{mode === "register" ? "Создать профиль" : "Войти"}</button>
                 </form>
               </motion.div>
@@ -178,15 +178,15 @@ export function ProfileDemo() {
 function ProfileLibrary({ library, onAnalyticsChange }: { library: Library; onAnalyticsChange: (next: boolean) => Promise<void> }) {
   return (
     <div className="mt-8 grid gap-3 lg:grid-cols-3">
-      <section className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-white/26 p-4 backdrop-blur-2xl">
+      <section className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface-muted)] p-4">
         <div className="flex items-center gap-2"><Heart className="size-4 text-[var(--color-bordeaux)]" /><p className="text-sm font-black">Избранное</p></div>
         <p className="mt-3 text-xs font-semibold text-[var(--color-text-muted)]">{library.favorites.length ? library.favorites.map((item) => item.name).slice(0, 2).join(" · ") : "Сохраняйте средства из готовых подборок."}</p>
       </section>
-      <section className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-white/26 p-4 backdrop-blur-2xl">
+      <section className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface-muted)] p-4">
         <div className="flex items-center gap-2"><History className="size-4 text-[var(--color-bordeaux)]" /><p className="text-sm font-black">История подборов</p></div>
         <p className="mt-3 text-xs font-semibold text-[var(--color-text-muted)]">{library.history.length ? `${library.history.length} сохранённых сценария` : "Первый готовый подбор появится здесь."}</p>
       </section>
-      <section className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-white/26 p-4 backdrop-blur-2xl">
+      <section className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface-muted)] p-4">
         <div className="flex items-center gap-2"><SlidersHorizontal className="size-4 text-[var(--color-bordeaux)]" /><p className="text-sm font-black">Согласия</p></div>
         <label className="mt-3 flex cursor-pointer items-center justify-between gap-3 text-xs font-semibold text-[var(--color-text-muted)]">
           Доп. настройки cookies
@@ -199,11 +199,11 @@ function ProfileLibrary({ library, onAnalyticsChange }: { library: Library; onAn
 }
 
 function ModeButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
-  return <button type="button" onClick={onClick} className={`rounded-full border px-5 py-3 text-sm font-black transition ${active ? "border-transparent bg-[var(--color-bordeaux)] text-white" : "border-[var(--color-border)] bg-white/32"}`}>{children}</button>;
+  return <button type="button" aria-pressed={active} onClick={onClick} className={`min-h-11 rounded-full border px-5 py-3 text-sm font-black transition ${active ? "border-transparent bg-[var(--color-bordeaux)] text-white" : "border-[var(--color-border)] bg-[var(--color-surface-muted)]"}`}>{children}</button>;
 }
 
 function Field({ label, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { label: string }) {
-  return <label className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-white/34 p-4 backdrop-blur-xl"><span className="text-xs font-black uppercase text-[var(--color-text-soft)]">{label}</span><input required {...props} className="mt-2 h-10 w-full bg-transparent text-lg font-bold outline-none" /></label>;
+  return <label className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface-muted)] p-4"><span className="text-xs font-black uppercase text-[var(--color-text-soft)]">{label}</span><input required {...props} className="mt-2 h-11 w-full bg-transparent text-lg font-bold outline-none" /></label>;
 }
 
 function Consent({ name, children }: { name: string; children: React.ReactNode }) {
@@ -211,5 +211,5 @@ function Consent({ name, children }: { name: string; children: React.ReactNode }
 }
 
 function Info({ label, value }: { label: string; value: string }) {
-  return <div className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-white/30 p-4"><p className="text-xs font-black uppercase text-[var(--color-text-soft)]">{label}</p><p className="mt-3 text-lg font-black">{value}</p></div>;
+  return <div className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface-muted)] p-4"><p className="text-xs font-black uppercase text-[var(--color-text-soft)]">{label}</p><p className="mt-3 text-lg font-black">{value}</p></div>;
 }
