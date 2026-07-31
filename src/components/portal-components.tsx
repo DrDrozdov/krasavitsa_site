@@ -73,24 +73,33 @@ export function SiteHeader() {
     let frame = 0;
     const update = () => {
       frame = 0;
-      const rawProgress = pathname === "/" ? Math.min(1, Math.max(0, window.scrollY / 360)) : 1;
+      const rawProgress = pathname === "/" ? Math.min(1, Math.max(0, window.scrollY / 430)) : 1;
       const progress = rawProgress * rawProgress * (3 - 2 * rawProgress);
       const viewport = Math.max(320, window.innerWidth);
-      const compactWidth = Math.min(1320, viewport - 32);
-      const openWidth = Math.min(1760, viewport - 32);
+      const compactWidth = Math.min(1280, viewport - 32);
+      const openWidth = Math.min(1840, viewport - 24);
       const chromeWidth = openWidth + (compactWidth - openWidth) * progress;
-      const navGap = 34 + (5 - 34) * progress;
+      const openNavWidth = Math.min(920, viewport * 0.54);
+      const compactNavWidth = Math.min(620, viewport * 0.46);
+      const navWidth = openNavWidth + (compactNavWidth - openNavWidth) * progress;
+      const navGap = 22 + (4 - 22) * progress;
       headerRef.current?.style.setProperty("--chrome-progress", progress.toFixed(3));
-      headerRef.current?.style.setProperty("--chrome-alpha", (progress * .27).toFixed(3));
-      headerRef.current?.style.setProperty("--chrome-border-alpha", (progress * .14).toFixed(3));
-      headerRef.current?.style.setProperty("--chrome-shadow-alpha", (progress * .09).toFixed(3));
-      headerRef.current?.style.setProperty("--chrome-blur", `${(progress * 30).toFixed(1)}px`);
-      headerRef.current?.style.setProperty("--chrome-sheen-alpha", (progress * .19).toFixed(3));
-      headerRef.current?.style.setProperty("--chrome-dark-sheen-alpha", (progress * .065).toFixed(3));
+      headerRef.current?.style.setProperty("--chrome-alpha", (progress * .18).toFixed(3));
+      headerRef.current?.style.setProperty("--chrome-border-alpha", (progress * .18).toFixed(3));
+      headerRef.current?.style.setProperty("--chrome-shadow-alpha", (progress * .08).toFixed(3));
+      headerRef.current?.style.setProperty("--chrome-blur", `${(progress * 34).toFixed(1)}px`);
+      headerRef.current?.style.setProperty("--chrome-sheen-alpha", (progress * .22).toFixed(3));
+      headerRef.current?.style.setProperty("--chrome-dark-sheen-alpha", (progress * .055).toFixed(3));
       headerRef.current?.style.setProperty("--chrome-width", `${chromeWidth.toFixed(1)}px`);
+      headerRef.current?.style.setProperty("--nav-width", `${navWidth.toFixed(1)}px`);
       headerRef.current?.style.setProperty("--nav-gap", `${navGap.toFixed(1)}px`);
-      headerRef.current?.style.setProperty("--chrome-content-y", `${(-8 * (1 - progress)).toFixed(2)}px`);
-      headerRef.current?.style.setProperty("--chrome-content-scale", (0.96 + progress * 0.04).toFixed(3));
+      headerRef.current?.style.setProperty("--chrome-content-y", `${(-3 * (1 - progress)).toFixed(2)}px`);
+      headerRef.current?.style.setProperty("--chrome-content-scale", (0.985 + progress * 0.015).toFixed(3));
+      headerRef.current?.style.setProperty("--brand-grayscale", (1 - progress).toFixed(3));
+      headerRef.current?.style.setProperty("--brand-saturation", (0.18 + progress * 0.82).toFixed(3));
+      headerRef.current?.style.setProperty("--brand-light-brightness", (0.72 + progress * 0.28).toFixed(3));
+      headerRef.current?.style.setProperty("--brand-dark-brightness", (1.9 - progress * 0.9).toFixed(3));
+      headerRef.current?.style.setProperty("--header-action-alpha", (0.48 + progress * 0.52).toFixed(3));
       const next = progress > 0.08;
       setScrolled((current) => current === next ? current : next);
     };
@@ -158,16 +167,22 @@ export function SiteHeader() {
       ref={headerRef}
       style={{
         "--chrome-progress": pathname === "/" ? 0 : 1,
-        "--chrome-alpha": pathname === "/" ? 0 : .23,
-        "--chrome-border-alpha": pathname === "/" ? 0 : .1,
+        "--chrome-alpha": pathname === "/" ? 0 : .18,
+        "--chrome-border-alpha": pathname === "/" ? 0 : .18,
         "--chrome-shadow-alpha": pathname === "/" ? 0 : .08,
-        "--chrome-blur": pathname === "/" ? "0px" : "26px",
-        "--chrome-sheen-alpha": pathname === "/" ? 0 : .19,
-        "--chrome-dark-sheen-alpha": pathname === "/" ? 0 : .065,
-        "--chrome-width": pathname === "/" ? "min(1760px, calc(100vw - 32px))" : "min(1320px, calc(100vw - 32px))",
-        "--nav-gap": pathname === "/" ? "34px" : "5px",
-        "--chrome-content-y": pathname === "/" ? "-8px" : "0px",
-        "--chrome-content-scale": pathname === "/" ? .96 : 1,
+        "--chrome-blur": pathname === "/" ? "0px" : "34px",
+        "--chrome-sheen-alpha": pathname === "/" ? 0 : .22,
+        "--chrome-dark-sheen-alpha": pathname === "/" ? 0 : .055,
+        "--chrome-width": pathname === "/" ? "min(1840px, calc(100vw - 24px))" : "min(1280px, calc(100vw - 32px))",
+        "--nav-width": pathname === "/" ? "min(920px, 54vw)" : "min(620px, 46vw)",
+        "--nav-gap": pathname === "/" ? "22px" : "4px",
+        "--chrome-content-y": pathname === "/" ? "-3px" : "0px",
+        "--chrome-content-scale": pathname === "/" ? .985 : 1,
+        "--brand-grayscale": pathname === "/" ? 1 : 0,
+        "--brand-saturation": pathname === "/" ? .18 : 1,
+        "--brand-light-brightness": pathname === "/" ? .72 : 1,
+        "--brand-dark-brightness": pathname === "/" ? 1.9 : 1,
+        "--header-action-alpha": pathname === "/" ? .48 : 1,
       } as React.CSSProperties}
       className={cn("site-header", pathname === "/" && "is-home", scrolled && "is-scrolled")}
     >

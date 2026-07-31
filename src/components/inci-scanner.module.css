@@ -117,6 +117,7 @@
   font-size: 0.86rem;
   font-weight: 650;
   line-height: 1.45;
+  transition: color 180ms ease, transform 260ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .trustList svg {
@@ -187,6 +188,7 @@
     0 34px 100px rgba(2, 0, 1, 0.4);
   -webkit-backdrop-filter: blur(32px) saturate(145%);
   backdrop-filter: blur(32px) saturate(145%);
+  transition: border-color 240ms ease, box-shadow 360ms cubic-bezier(0.16, 1, 0.3, 1), transform 360ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .scannerPanel {
@@ -1412,6 +1414,7 @@
   gap: 1rem;
   padding-block: 1.25rem;
   border-top: 1px solid var(--scanner-border);
+  transition: border-color 200ms ease, transform 280ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .methodRows article:last-child {
@@ -1460,6 +1463,32 @@
   50% {
     transform: scale(0.93);
     opacity: 0.7;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .trustList > div:hover {
+    color: var(--scanner-text);
+    transform: translateX(6px);
+  }
+
+  .scannerPanel:hover {
+    border-color: var(--scanner-border-strong);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.14),
+      0 40px 110px rgba(2, 0, 1, 0.46);
+    transform: translateY(-3px);
+  }
+
+  .dropZone:hover {
+    border-color: var(--scanner-border-strong);
+    background: rgba(239, 183, 199, 0.055);
+    transform: translateY(-2px);
+  }
+
+  .methodRows article:hover {
+    border-color: var(--scanner-border-strong);
+    transform: translateX(8px);
   }
 }
 

@@ -2,110 +2,151 @@
 
 import { useId } from "react";
 
+/**
+ * A code-native glass sculpture. Keeping the bloom as SVG paths lets the
+ * landing chapter scrub every petal independently without decoding a video
+ * or repainting a canvas on each scroll frame.
+ */
 export function HeroGlassLotus({ className }: { className?: string }) {
   const id = useId().replace(/:/g, "");
-  const petal = `${id}-hero-petal`;
-  const edge = `${id}-hero-edge`;
-  const core = `${id}-hero-core`;
-  const glow = `${id}-hero-glow`;
+  const glass = `${id}-lotus-glass`;
+  const glassDeep = `${id}-lotus-glass-deep`;
+  const glassWarm = `${id}-lotus-glass-warm`;
+  const edge = `${id}-lotus-edge`;
+  const core = `${id}-lotus-core`;
+  const shadow = `${id}-lotus-shadow`;
 
   return (
     <div className={["hero-glass-lotus", className].filter(Boolean).join(" ")} aria-hidden="true">
       <span className="hero-lotus-aura" />
-      <svg className="hero-lotus-svg" viewBox="0 0 640 640" role="presentation">
+      <svg className="hero-lotus-svg" viewBox="0 0 720 620" role="presentation">
         <defs>
-          <linearGradient id={petal} x1="0.08" y1="0.02" x2="0.92" y2="0.98">
-            <stop offset="0" stopColor="#fff" stopOpacity="0.88" />
-            <stop offset="0.2" stopColor="#ffd8e5" stopOpacity="0.42" />
-            <stop offset="0.46" stopColor="#9d244e" stopOpacity="0.2" />
-            <stop offset="0.7" stopColor="#fff8fb" stopOpacity="0.62" />
-            <stop offset="1" stopColor="#531024" stopOpacity="0.36" />
+          <linearGradient id={glass} x1="0.08" y1="0.03" x2="0.92" y2="0.96">
+            <stop offset="0" stopColor="var(--lotus-glass-highlight, #fff)" stopOpacity="0.94" />
+            <stop offset="0.18" stopColor="var(--lotus-glass-pearl, #ffe7ef)" stopOpacity="0.56" />
+            <stop offset="0.48" stopColor="var(--lotus-glass-rose, #d85d8b)" stopOpacity="0.2" />
+            <stop offset="0.72" stopColor="var(--lotus-glass-highlight, #fff)" stopOpacity="0.52" />
+            <stop offset="1" stopColor="var(--lotus-glass-wine, #681533)" stopOpacity="0.62" />
           </linearGradient>
-          <linearGradient id={edge} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#fff" stopOpacity="0.96" />
-            <stop offset="0.45" stopColor="#f7a7c3" stopOpacity="0.78" />
-            <stop offset="1" stopColor="#5b1029" stopOpacity="0.76" />
+          <linearGradient id={glassDeep} x1="0.18" y1="0" x2="0.8" y2="1">
+            <stop offset="0" stopColor="var(--lotus-glass-highlight, #fff)" stopOpacity="0.76" />
+            <stop offset="0.4" stopColor="var(--lotus-glass-rose, #d85d8b)" stopOpacity="0.38" />
+            <stop offset="1" stopColor="var(--lotus-glass-wine, #681533)" stopOpacity="0.8" />
           </linearGradient>
-          <radialGradient id={core} cx="42%" cy="28%" r="76%">
-            <stop offset="0" stopColor="#fff" stopOpacity="0.98" />
-            <stop offset="0.38" stopColor="#f7a2bf" stopOpacity="0.84" />
-            <stop offset="1" stopColor="#7a1738" stopOpacity="0.96" />
+          <radialGradient id={glassWarm} cx="42%" cy="22%" r="84%">
+            <stop offset="0" stopColor="var(--lotus-glass-highlight, #fff)" stopOpacity="0.88" />
+            <stop offset="0.42" stopColor="var(--lotus-glass-pearl, #ffe7ef)" stopOpacity="0.48" />
+            <stop offset="1" stopColor="var(--lotus-glass-rose, #d85d8b)" stopOpacity="0.58" />
           </radialGradient>
-          <filter id={glow} x="-80%" y="-80%" width="260%" height="260%">
-            <feGaussianBlur stdDeviation="22" />
+          <linearGradient id={edge} x1="0" y1="0" x2="0.86" y2="1">
+            <stop offset="0" stopColor="var(--lotus-glass-highlight, #fff)" stopOpacity="0.98" />
+            <stop offset="0.5" stopColor="var(--lotus-glass-pearl, #ffe7ef)" stopOpacity="0.62" />
+            <stop offset="1" stopColor="var(--lotus-glass-wine, #681533)" stopOpacity="0.72" />
+          </linearGradient>
+          <radialGradient id={core} cx="38%" cy="24%" r="78%">
+            <stop offset="0" stopColor="var(--lotus-glass-highlight, #fff)" stopOpacity="0.98" />
+            <stop offset="0.34" stopColor="var(--lotus-glass-pearl, #ffe7ef)" stopOpacity="0.9" />
+            <stop offset="1" stopColor="var(--lotus-glass-wine, #681533)" stopOpacity="0.98" />
+          </radialGradient>
+          <filter id={shadow} x="-70%" y="-160%" width="240%" height="420%">
+            <feGaussianBlur stdDeviation="21" />
           </filter>
         </defs>
 
-        <ellipse className="hero-lotus-shadow" cx="320" cy="474" rx="154" ry="44" filter={`url(#${glow})`} />
+        <ellipse className="hero-lotus-shadow" cx="360" cy="526" rx="178" ry="30" filter={`url(#${shadow})`} />
 
         <g className="hero-lotus-bloom">
           <path
+            className="hero-petal hero-petal-back-left"
+            d="M356 500C266 493 156 438 92 338C203 332 300 384 362 469C363 482 361 493 356 500Z"
+            fill={`url(#${glassDeep})`}
+            stroke={`url(#${edge})`}
+          />
+          <path
+            className="hero-petal hero-petal-back-right"
+            d="M364 500C454 493 564 438 628 338C517 332 420 384 358 469C357 482 359 493 364 500Z"
+            fill={`url(#${glassDeep})`}
+            stroke={`url(#${edge})`}
+          />
+          <path
+            className="hero-petal hero-petal-wing-left"
+            d="M354 492C273 461 185 371 164 260C269 288 338 369 362 463C362 477 359 486 354 492Z"
+            fill={`url(#${glass})`}
+            stroke={`url(#${edge})`}
+          />
+          <path
+            className="hero-petal hero-petal-wing-right"
+            d="M366 492C447 461 535 371 556 260C451 288 382 369 358 463C358 477 361 486 366 492Z"
+            fill={`url(#${glass})`}
+            stroke={`url(#${edge})`}
+          />
+          <path
             className="hero-petal hero-petal-outer-left"
-            d="M319 500C232 496 141 455 79 366C177 348 264 389 321 468C321 480 321 490 319 500Z"
-            fill={`url(#${petal})`}
+            d="M358 512C276 513 176 486 104 414C199 390 297 423 362 484C364 496 363 505 358 512Z"
+            fill={`url(#${glassWarm})`}
             stroke={`url(#${edge})`}
           />
           <path
             className="hero-petal hero-petal-outer-right"
-            d="M321 500C408 496 499 455 561 366C463 348 376 389 319 468C319 480 319 490 321 500Z"
-            fill={`url(#${petal})`}
+            d="M362 512C444 513 544 486 616 414C521 390 423 423 358 484C356 496 357 505 362 512Z"
+            fill={`url(#${glassWarm})`}
             stroke={`url(#${edge})`}
           />
           <path
             className="hero-petal hero-petal-mid-left"
-            d="M319 478C246 437 174 346 170 238C267 277 316 361 319 458V478Z"
-            fill={`url(#${petal})`}
+            d="M357 485C292 444 232 348 242 244C328 294 365 380 362 461C362 471 360 479 357 485Z"
+            fill={`url(#${glass})`}
             stroke={`url(#${edge})`}
           />
           <path
             className="hero-petal hero-petal-mid-right"
-            d="M321 478C394 437 466 346 470 238C373 277 324 361 321 458V478Z"
-            fill={`url(#${petal})`}
+            d="M363 485C428 444 488 348 478 244C392 294 355 380 358 461C358 471 360 479 363 485Z"
+            fill={`url(#${glass})`}
             stroke={`url(#${edge})`}
           />
           <path
             className="hero-petal hero-petal-inner-left"
-            d="M320 452C265 392 239 282 280 174C341 244 350 354 320 452Z"
-            fill={`url(#${petal})`}
+            d="M359 461C315 401 302 294 337 195C386 271 386 374 362 449L359 461Z"
+            fill={`url(#${glassDeep})`}
             stroke={`url(#${edge})`}
           />
           <path
             className="hero-petal hero-petal-inner-right"
-            d="M320 452C375 392 401 282 360 174C299 244 290 354 320 452Z"
-            fill={`url(#${petal})`}
+            d="M361 461C405 401 418 294 383 195C334 271 334 374 358 449L361 461Z"
+            fill={`url(#${glassDeep})`}
             stroke={`url(#${edge})`}
           />
           <path
             className="hero-petal hero-petal-crown"
-            d="M320 382C258 320 261 194 320 84C379 194 382 320 320 382Z"
-            fill={`url(#${petal})`}
+            d="M360 410C303 348 309 213 360 92C411 213 417 348 360 410Z"
+            fill={`url(#${glassWarm})`}
             stroke={`url(#${edge})`}
           />
           <path
             className="hero-petal hero-petal-cup-left"
-            d="M320 488C263 470 215 422 194 355C270 359 312 405 320 488Z"
-            fill={`url(#${petal})`}
+            d="M360 504C305 488 261 444 242 375C313 383 353 427 360 504Z"
+            fill={`url(#${glassWarm})`}
             stroke={`url(#${edge})`}
           />
           <path
             className="hero-petal hero-petal-cup-right"
-            d="M320 488C377 470 425 422 446 355C370 359 328 405 320 488Z"
-            fill={`url(#${petal})`}
+            d="M360 504C415 488 459 444 478 375C407 383 367 427 360 504Z"
+            fill={`url(#${glassWarm})`}
             stroke={`url(#${edge})`}
           />
           <path
             className="hero-lotus-core"
-            d="M320 498C286 468 285 422 320 384C355 422 354 468 320 498Z"
+            d="M360 519C330 491 328 445 360 405C392 445 390 491 360 519Z"
             fill={`url(#${core})`}
           />
         </g>
 
-        <g className="hero-lotus-glints" fill="none" stroke="#fff" strokeLinecap="round">
-          <path d="M122 380C185 373 244 404 293 463" />
-          <path d="M518 380C455 373 396 404 347 463" />
-          <path d="M293 208C273 281 285 352 314 413" />
-          <path d="M347 208C367 281 355 352 326 413" />
-          <path d="M320 120C302 184 301 264 320 332" />
+        <g className="hero-lotus-glints" fill="none" stroke="var(--lotus-glass-highlight, #fff)" strokeLinecap="round">
+          <path d="M131 412C216 398 295 431 342 480" />
+          <path d="M589 412C504 398 425 431 378 480" />
+          <path d="M192 292C269 323 322 383 351 450" />
+          <path d="M528 292C451 323 398 383 369 450" />
+          <path d="M360 124C342 203 342 307 360 385" />
         </g>
       </svg>
       <span className="hero-lotus-flare" />

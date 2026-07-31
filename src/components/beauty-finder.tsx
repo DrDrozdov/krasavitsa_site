@@ -22,6 +22,8 @@ type Product = {
   marketplaces?: Array<{ label: string; href: string; kind?: "marketplace"; price?: number; currency?: "RUB" }>;
 };
 
+const LOADER_DROP_COUNT = 6;
+
 const modeVisual: Record<Mode, string> = {
   skin: "/recommendations/skin-packshot-v2.webp",
   hair: "/recommendations/hair-packshot-v2.webp",
@@ -493,11 +495,40 @@ export function BeautyFinder() {
             >
               <div className={styles.dropletTheatre} aria-hidden="true">
                 <span className={styles.dropletRail} />
-                <span className={`${styles.searchDrop} ${styles.searchDropOne}`} />
-                <span className={`${styles.searchDrop} ${styles.searchDropTwo}`} />
-                <span className={`${styles.searchDrop} ${styles.searchDropThree}`} />
-                <span className={`${styles.searchDrop} ${styles.searchDropFour}`} />
-                <span className={`${styles.searchDrop} ${styles.searchDropFive}`} />
+                {Array.from({ length: LOADER_DROP_COUNT }, (_, index) => {
+                  const forwardStart = 0.03 + index * 0.055;
+                  const forwardEnd = forwardStart + 0.12;
+                  const reverseStart = 0.53 + (LOADER_DROP_COUNT - 1 - index) * 0.055;
+                  const reverseEnd = reverseStart + 0.12;
+                  return (
+                    <motion.span
+                      key={index}
+                      className={styles.searchDrop}
+                      initial={false}
+                      animate={reduceMotion
+                        ? { x: `calc(${11 + index * 15.5}cqw - 50%)`, opacity: 0.82, scale: 0.78 + index * 0.035, rotate: 0 }
+                        : {
+                            x: [
+                              "calc(6cqw - 50%)",
+                              "calc(6cqw - 50%)",
+                              "calc(94cqw - 50%)",
+                              "calc(94cqw - 50%)",
+                              "calc(6cqw - 50%)",
+                              "calc(6cqw - 50%)",
+                            ],
+                            opacity: [0, 0.72, 1, 1, 0.72, 0],
+                            scale: [0.68, 0.72, 1, 1, 0.72, 0.68],
+                            rotate: [-10, -10, 9, 9, -10, -10],
+                          }}
+                      transition={reduceMotion ? { duration: 0 } : {
+                        duration: 6.8,
+                        times: [0, forwardStart, forwardEnd, reverseStart, reverseEnd, 1],
+                        ease: ["linear", [0.52, 0.03, 0.9, 0.42], "linear", [0.52, 0.03, 0.9, 0.42], "linear"],
+                        repeat: Number.POSITIVE_INFINITY,
+                      }}
+                    />
+                  );
+                })}
               </div>
               <p className="mt-3 text-xs font-black uppercase tracking-[0.14em] text-[var(--color-text-soft)]">Подбор уже в процессе</p>
               <h2 className="mt-2 text-2xl font-black tracking-tight md:text-3xl">Сверяю детали вашего запроса</h2>
@@ -515,15 +546,7 @@ export function BeautyFinder() {
                 </motion.p>
               </AnimatePresence>
               <p className="search-liquid-note">Проверяю составы, формат и соответствие запросу</p>
-              <div className={styles.dropletProgress} role="progressbar" aria-label="Идёт подбор рекомендаций" aria-valuetext="Сверяю средства и составы">
-                <i className={styles.progressDrop} aria-hidden="true" />
-                <i className={styles.progressDrop} aria-hidden="true" />
-                <i className={styles.progressDrop} aria-hidden="true" />
-                <i className={styles.progressDrop} aria-hidden="true" />
-                <i className={styles.progressDrop} aria-hidden="true" />
-                <i className={styles.progressDrop} aria-hidden="true" />
-                <i className={styles.progressDrop} aria-hidden="true" />
-              </div>
+              <span className={styles.loaderStatus} role="progressbar" aria-label="Идёт подбор рекомендаций" aria-valuetext="Сверяю средства и составы" />
             </motion.div>
           ) : results.length ? (
             <motion.div key={`${mode}-${summary}`} initial={{ opacity: 0, y: 22 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mt-5">
@@ -559,10 +582,7 @@ export function BeautyFinder() {
               <div className="grid gap-3 md:grid-cols-2">
                 {results.map((product, index) => (
                   <motion.article key={product.name} initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 28, scale: .985 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ duration: .58, delay: index * .07, ease: [0.16, 1, 0.3, 1] }} className="product-result-card overflow-hidden border border-[var(--color-border)] bg-[var(--color-surface)]">
-                    <div className={`${styles.productVisual} product-result-visual relative aspect-[16/9] overflow-hidden`}>
-                      {/* The endpoint validates a product image and always returns a branded PNG fallback. */}
-                      <Image src={product.image || modeVisual[mode]} alt={`Визуал для рекомендации: ${product.name}`} fill unoptimized priority={index < 2} sizes="(min-width: 768px) 50vw, 100vw" className="object-cover" onError={(event) => { if (!event.currentTarget.dataset.fallback) { event.currentTarget.dataset.fallback = "true"; event.currentTarget.src = modeVisual[mode]; } }} />
-                    </div>
+                    <ProductPackshot product={product} mode={mode} priority={index < 2} />
                     <div className="p-4 md:p-5">
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0"><p className="text-xs font-black text-[var(--color-bordeaux)]">{product.category}</p><div className="mt-2 flex items-start gap-2"><h3 className="text-[clamp(1.35rem,3vw,2rem)] font-black leading-[1.05] tracking-[-.035em]">{product.name}</h3><button type="button" onClick={() => void copyProductName(product.name)} aria-label={`Скопировать название ${product.name}`} className={`${styles.tapTarget} ${styles.softSurface} apple-glass-button mt-0.5 grid size-8 shrink-0 place-items-center rounded-full border border-[var(--color-border)] text-[var(--color-bordeaux)]`}>{copiedName === product.name ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}</button></div></div>
@@ -588,5 +608,32 @@ export function BeautyFinder() {
         </AnimatePresence>
       </div>
     </section>
+  );
+}
+
+function ProductPackshot({ product, mode, priority }: { product: Product; mode: Mode; priority: boolean }) {
+  const [failed, setFailed] = useState(false);
+  const source = product.image || modeVisual[mode];
+
+  return (
+    <div className={`${styles.productVisual} product-result-visual relative aspect-[16/9] overflow-hidden`}>
+      {!failed ? (
+        <Image
+          src={source}
+          alt={`Фото средства ${product.name}`}
+          fill
+          unoptimized
+          priority={priority}
+          sizes="(min-width: 768px) 50vw, 100vw"
+          className={styles.productImage}
+          onError={() => setFailed(true)}
+        />
+      ) : (
+        <div className={styles.productFallback} role="img" aria-label={`Фото ${product.name} временно недоступно`}>
+          <span className={styles.fallbackBottle} aria-hidden="true"><i /></span>
+          <span><small>Фото источника недоступно</small><strong>{product.name}</strong></span>
+        </div>
+      )}
+    </div>
   );
 }

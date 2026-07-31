@@ -25,6 +25,82 @@
     color-mix(in srgb, var(--color-surface) 91%, var(--color-blush) 9%);
 }
 
+.productImage {
+  object-fit: contain;
+  object-position: center;
+}
+
+.productFallback {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: minmax(86px, .62fr) minmax(0, 1.38fr);
+  align-items: center;
+  gap: clamp(14px, 4vw, 34px);
+  padding: clamp(16px, 4vw, 34px);
+  background:
+    radial-gradient(circle at 25% 28%, rgba(255, 255, 255, .82), transparent 34%),
+    linear-gradient(135deg, color-mix(in srgb, var(--color-blush) 68%, white), color-mix(in srgb, var(--color-surface) 88%, var(--color-blush)));
+}
+
+.productFallback > span:last-child {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+  text-align: left;
+}
+
+.productFallback small {
+  color: var(--color-text-soft);
+  font-size: clamp(.58rem, 1.4vw, .7rem);
+  font-weight: 850;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.productFallback strong {
+  overflow-wrap: anywhere;
+  color: var(--color-text);
+  font-size: clamp(.92rem, 2.4vw, 1.28rem);
+  line-height: 1.15;
+}
+
+.fallbackBottle {
+  position: relative;
+  justify-self: center;
+  width: clamp(58px, 12vw, 92px);
+  height: clamp(105px, 20vw, 154px);
+  border: 1px solid rgba(255, 255, 255, .82);
+  border-radius: 26px 26px 31px 31px;
+  background:
+    radial-gradient(circle at 28% 16%, rgba(255, 255, 255, .96), transparent 20%),
+    linear-gradient(145deg, rgba(255, 255, 255, .78), rgba(240, 163, 194, .4) 52%, rgba(124, 31, 76, .22));
+  box-shadow:
+    inset 10px 12px 18px rgba(255, 255, 255, .5),
+    inset -10px -12px 20px rgba(88, 16, 54, .16),
+    0 20px 34px rgba(85, 20, 53, .16);
+}
+
+.fallbackBottle::before {
+  position: absolute;
+  top: -20%;
+  left: 24%;
+  width: 52%;
+  height: 24%;
+  border: 1px solid rgba(255, 255, 255, .72);
+  border-radius: 12px 12px 4px 4px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, .88), rgba(115, 40, 75, .25));
+  content: "";
+}
+
+.fallbackBottle i {
+  position: absolute;
+  inset: 48% 17% auto;
+  height: 1px;
+  background: color-mix(in srgb, var(--color-bordeaux) 42%, transparent);
+  box-shadow: 0 7px 0 color-mix(in srgb, var(--color-bordeaux) 20%, transparent);
+}
+
 .marketplaceLink {
   min-height: 44px;
   color: var(--color-text);
@@ -119,20 +195,10 @@
   opacity: .48;
 }
 
-.dropletProgress {
-  display: flex;
-  width: min(100%, 460px);
-  min-height: 44px;
-  margin: 12px auto 0;
-  align-items: center;
-  justify-content: center;
-  gap: clamp(7px, 2vw, 13px);
-}
-
 .dropletTheatre {
   position: relative;
   width: min(100%, 560px);
-  height: clamp(128px, 18vw, 184px);
+  height: clamp(112px, 16vw, 154px);
   margin-inline: auto;
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--color-border) 72%, transparent);
@@ -144,26 +210,7 @@
     inset 0 1px 0 rgba(255, 255, 255, .7),
     0 24px 64px color-mix(in srgb, var(--color-bordeaux) 13%, transparent);
   isolation: isolate;
-  perspective: 720px;
-}
-
-.dropletTheatre::before,
-.dropletTheatre::after {
-  position: absolute;
-  z-index: 0;
-  inset: 14% 8%;
-  border: 1px solid color-mix(in srgb, var(--color-raspberry) 16%, transparent);
-  border-radius: 50%;
-  content: "";
-  filter: blur(.1px);
-  transform: rotateX(68deg);
-}
-
-.dropletTheatre::after {
-  inset: 25% 17%;
-  border-style: dashed;
-  opacity: .58;
-  transform: rotateX(68deg) rotateZ(12deg);
+  container-type: inline-size;
 }
 
 .dropletRail {
@@ -171,60 +218,75 @@
   z-index: 0;
   top: 50%;
   left: 50%;
-  width: 82%;
+  width: 88%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-raspberry) 38%, transparent), transparent);
-  box-shadow: 0 0 30px color-mix(in srgb, var(--color-raspberry) 32%, transparent);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-raspberry) 24%, transparent) 18% 82%, transparent);
+  box-shadow: 0 0 24px color-mix(in srgb, var(--color-raspberry) 24%, transparent);
   transform: translate(-50%, -50%);
 }
 
 .searchDrop {
-  --drop-size: clamp(24px, 4vw, 42px);
+  --drop-size: clamp(27px, 4vw, 43px);
   position: absolute;
   z-index: 2;
   top: 50%;
-  left: 50%;
+  left: 0;
   width: var(--drop-size);
-  height: calc(var(--drop-size) * 1.18);
-  border: 1px solid rgba(255, 255, 255, .72);
-  border-radius: 68% 32% 66% 34% / 76% 42% 58% 24%;
+  height: var(--drop-size);
+  border: 1px solid rgba(255, 255, 255, .78);
+  border-radius: 52% 48% 51% 49% / 48% 52% 49% 51%;
   background:
-    radial-gradient(circle at 30% 22%, rgba(255, 255, 255, .98) 0 5%, transparent 21%),
-    radial-gradient(circle at 70% 76%, color-mix(in srgb, #8a6dff 34%, transparent), transparent 42%),
-    linear-gradient(142deg, rgba(255, 255, 255, .78), color-mix(in srgb, var(--color-blush) 52%, transparent) 44%, color-mix(in srgb, var(--color-raspberry) 56%, #856dff 44%));
+    radial-gradient(circle at 28% 21%, rgba(255, 255, 255, .98) 0 7%, rgba(255, 255, 255, .2) 17%, transparent 28%),
+    radial-gradient(circle at 68% 72%, color-mix(in srgb, var(--color-raspberry) 34%, transparent), transparent 46%),
+    linear-gradient(142deg, rgba(255, 255, 255, .72), color-mix(in srgb, var(--color-blush) 42%, transparent) 46%, color-mix(in srgb, var(--color-bordeaux) 34%, #756fff 18%));
   box-shadow:
-    inset 7px 8px 13px rgba(255, 255, 255, .52),
-    inset -7px -9px 14px rgba(91, 20, 60, .18),
-    0 14px 30px color-mix(in srgb, var(--color-raspberry) 26%, transparent);
+    inset 8px 9px 13px rgba(255, 255, 255, .58),
+    inset -8px -10px 15px rgba(78, 15, 50, .2),
+    0 12px 28px color-mix(in srgb, var(--color-raspberry) 28%, transparent),
+    0 0 12px rgba(255, 255, 255, .24);
   opacity: 0;
-  filter: saturate(1.38);
-  transform: translate3d(-260px, -50%, 0) rotate(-42deg) scale(.62);
-  will-change: transform, opacity;
-  animation: searchDropShuttle 2.35s cubic-bezier(.45, 0, .22, 1) infinite;
+  filter: saturate(1.3) contrast(1.03);
+  translate: 0 -50%;
+  will-change: opacity, transform;
 }
 
-.searchDropTwo {
-  --drop-size: clamp(17px, 3vw, 31px);
-  margin-top: -30px;
-  animation-delay: -.47s;
+.searchDrop::before {
+  position: absolute;
+  inset: 12% 47% 54% 13%;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .78);
+  content: "";
+  filter: blur(1px);
+  transform: rotate(-24deg);
 }
 
-.searchDropThree {
-  --drop-size: clamp(29px, 4.6vw, 48px);
-  margin-top: 24px;
-  animation-delay: -.94s;
+.searchDrop::after {
+  position: absolute;
+  right: 10%;
+  bottom: 9%;
+  width: 42%;
+  height: 24%;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-raspberry) 36%, transparent);
+  content: "";
+  filter: blur(3px);
 }
 
-.searchDropFour {
-  --drop-size: clamp(14px, 2.4vw, 25px);
-  margin-top: 42px;
-  animation-delay: -1.41s;
-}
+.searchDrop:nth-of-type(2) { --drop-size: clamp(21px, 3.1vw, 34px); }
+.searchDrop:nth-of-type(3) { --drop-size: clamp(30px, 4.5vw, 47px); }
+.searchDrop:nth-of-type(4) { --drop-size: clamp(23px, 3.5vw, 37px); }
+.searchDrop:nth-of-type(5) { --drop-size: clamp(32px, 4.8vw, 50px); }
+.searchDrop:nth-of-type(6) { --drop-size: clamp(25px, 3.8vw, 40px); }
+.searchDrop:nth-of-type(7) { --drop-size: clamp(29px, 4.3vw, 45px); }
 
-.searchDropFive {
-  --drop-size: clamp(20px, 3.4vw, 36px);
-  margin-top: -43px;
-  animation-delay: -1.88s;
+.loaderStatus {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .adviceBlock {
@@ -311,74 +373,6 @@
   line-height: 1.55;
 }
 
-.progressDrop {
-  width: clamp(13px, 2vw, 19px);
-  height: clamp(17px, 2.6vw, 25px);
-  border: 1px solid color-mix(in srgb, white 66%, var(--color-raspberry));
-  border-radius: 64% 36% 65% 35% / 72% 43% 57% 28%;
-  background:
-    radial-gradient(circle at 30% 23%, rgba(255, 255, 255, .95) 0 6%, transparent 22%),
-    linear-gradient(148deg, rgba(255, 255, 255, .74), color-mix(in srgb, var(--color-blush) 60%, transparent) 42%, color-mix(in srgb, var(--color-raspberry) 48%, #7e6dff 52%) 100%);
-  box-shadow:
-    inset 3px 4px 7px rgba(255, 255, 255, .54),
-    inset -4px -5px 8px rgba(75, 13, 46, .14),
-    0 7px 18px color-mix(in srgb, var(--color-raspberry) 20%, transparent);
-  transform-origin: 50% 75%;
-  animation: dropletPulse 1.75s cubic-bezier(.22, 1, .36, 1) infinite;
-}
-
-.progressDrop:nth-child(2) { animation-delay: -1.5s; }
-.progressDrop:nth-child(3) { animation-delay: -1.25s; }
-.progressDrop:nth-child(4) { animation-delay: -1s; }
-.progressDrop:nth-child(5) { animation-delay: -.75s; }
-.progressDrop:nth-child(6) { animation-delay: -.5s; }
-.progressDrop:nth-child(7) { animation-delay: -.25s; }
-
-@keyframes dropletPulse {
-  0%, 100% {
-    opacity: .26;
-    transform: translateY(4px) scale(.72) rotate(45deg);
-    filter: saturate(.8);
-  }
-  38% {
-    opacity: 1;
-    transform: translateY(-5px) scale(1.08) rotate(45deg);
-    filter: saturate(1.5);
-  }
-  62% {
-    opacity: .68;
-    transform: translateY(0) scale(.92) rotate(45deg);
-  }
-}
-
-@keyframes searchDropShuttle {
-  0% {
-    opacity: 0;
-    transform: translate3d(-250px, -50%, -40px) rotate(-42deg) scale(.58);
-  }
-  13% {
-    opacity: .95;
-  }
-  44% {
-    opacity: 1;
-    transform: translate3d(210px, -50%, 28px) rotate(34deg) scale(1.03);
-  }
-  50% {
-    opacity: .42;
-    transform: translate3d(245px, -50%, -20px) rotate(42deg) scale(.74);
-  }
-  62% {
-    opacity: .96;
-  }
-  94% {
-    opacity: .84;
-  }
-  100% {
-    opacity: 0;
-    transform: translate3d(-250px, -50%, -40px) rotate(-42deg) scale(.58);
-  }
-}
-
 :global(:root[data-theme="dark"]) .softSurface,
 :global(:root[data-theme="dark"]) .productVisual {
   background:
@@ -405,8 +399,12 @@
   }
 
   .dropletTheatre {
-    height: 132px;
+    height: 116px;
     border-radius: 28px;
+  }
+
+  .productFallback {
+    grid-template-columns: 76px minmax(0, 1fr);
   }
 
   .adviceBlock {
@@ -420,26 +418,7 @@
     transition: none;
   }
 
-  .progressDrop {
-    animation: none;
-    opacity: .72;
-    transform: rotate(45deg) scale(.86);
-  }
-
-  .progressDrop:nth-child(4) {
-    opacity: 1;
-    transform: rotate(45deg);
-  }
-
   .searchDrop {
-    animation: none;
-    opacity: .84;
-    transform: translate3d(-50%, -50%, 0) rotate(45deg) scale(.82);
+    will-change: auto;
   }
-
-  .searchDropOne { margin-left: -72px; }
-  .searchDropTwo { margin-left: -36px; }
-  .searchDropThree { margin-left: 0; }
-  .searchDropFour { margin-left: 38px; }
-  .searchDropFive { margin-left: 72px; }
 }

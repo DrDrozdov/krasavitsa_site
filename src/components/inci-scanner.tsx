@@ -52,7 +52,7 @@ const SUPPORTED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"])
 
 const TEXT_STAGES = [
   "Проверяем структуру списка",
-  "Сопоставляем названия с INCI-словарём",
+  "Сопоставляем названия со словарём ингредиентов",
   "Группируем активы и функции",
   "Сверяем с текущим уходом",
 ];
@@ -60,7 +60,7 @@ const TEXT_STAGES = [
 const PHOTO_STAGES = [
   "Проверяем файл и удаляем метаданные",
   "Читаем этикетку",
-  "Сопоставляем названия с INCI-словарём",
+  "Сопоставляем названия со словарём ингредиентов",
   "Сверяем с текущим уходом",
 ];
 
@@ -204,7 +204,7 @@ export function InciScanner() {
     } catch (requestError) {
       setError(
         requestError instanceof DOMException && requestError.name === "AbortError"
-          ? "Анализ занял слишком много времени. Попробуйте ещё раз или вставьте INCI текстом."
+          ? "Анализ занял слишком много времени. Попробуйте ещё раз или вставьте состав текстом."
           : requestError instanceof Error
             ? requestError.message
             : "Не удалось разобрать состав.",
@@ -274,10 +274,16 @@ export function InciScanner() {
     <div className={styles.page}>
       <div className={styles.ambient} aria-hidden="true"><span /><span /></div>
       <section className={styles.workspace} aria-labelledby="scanner-title">
-        <div className={styles.heroCopy}>
+        <motion.div
+          className={styles.heroCopy}
+          initial={reduceMotion ? false : { opacity: 0, y: 24, filter: "blur(8px)" }}
+          whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: reduceMotion ? 0 : 0.62, ease: [0.16, 1, 0.3, 1] }}
+        >
           <p className={styles.eyebrow}>Сканер состава</p>
           <h1 id="scanner-title">Состав без догадок</h1>
-          <p className={styles.lead}>Вставьте INCI или сфотографируйте этикетку. Мы разложим формулу по функциям и сверим её с вашим уходом.</p>
+          <p className={styles.lead}>Вставьте список ингредиентов или сфотографируйте этикетку. Мы разложим формулу по функциям и сверим её с вашим уходом.</p>
           <div className={styles.trustList} aria-label="Принципы анализа">
             <div><ShieldCheck aria-hidden="true" /><span>Без выдуманных процентов и оценок безопасности</span></div>
             <div><LockKeyhole aria-hidden="true" /><span>Фото обрабатывается в памяти и не сохраняется</span></div>
@@ -290,9 +296,16 @@ export function InciScanner() {
               <ArrowRight aria-hidden="true" />
             </Link>
           ) : null}
-        </div>
+        </motion.div>
 
-        <form className={styles.scannerPanel} onSubmit={submit}>
+        <motion.form
+          className={styles.scannerPanel}
+          onSubmit={submit}
+          initial={reduceMotion ? false : { opacity: 0, y: 32, scale: 0.985, filter: "blur(10px)" }}
+          whileInView={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+          viewport={{ once: true, amount: 0.16 }}
+          transition={{ duration: reduceMotion ? 0 : 0.68, delay: reduceMotion ? 0 : 0.08, ease: [0.16, 1, 0.3, 1] }}
+        >
           <div className={styles.panelHeader}>
             <div>
               <span>Новый разбор</span>
@@ -308,10 +321,10 @@ export function InciScanner() {
               aria-selected={mode === "text"}
               aria-controls="inci-text-panel"
               onClick={() => selectMode("text")}
-              className={mode === "text" ? styles.activeMode : ""}
+              className={`${mode === "text" ? styles.activeMode : ""} apple-glass-button`}
             >
               <FileText aria-hidden="true" />
-              Вставить INCI
+              Вставить состав
             </button>
             <button
               type="button"
@@ -319,7 +332,7 @@ export function InciScanner() {
               aria-selected={mode === "photo"}
               aria-controls="inci-photo-panel"
               onClick={() => selectMode("photo")}
-              className={mode === "photo" ? styles.activeMode : ""}
+              className={`${mode === "photo" ? styles.activeMode : ""} apple-glass-button`}
             >
               <Camera aria-hidden="true" />
               Фото этикетки
@@ -339,7 +352,7 @@ export function InciScanner() {
                 className={styles.inputPanel}
               >
                 <div className={styles.labelRow}>
-                  <label htmlFor={`${inputId}-inci`}>Список INCI</label>
+                  <label htmlFor={`${inputId}-inci`}>Список ингредиентов</label>
                   <button type="button" onClick={() => setInciText(EXAMPLE_INCI)}>Вставить пример</button>
                 </div>
                 <textarea
@@ -473,14 +486,14 @@ export function InciScanner() {
 
           <button
             type="submit"
-            className={styles.submit}
+            className={`${styles.submit} apple-glass-button`}
             disabled={busy || (mode === "photo" && photoUnavailable)}
           >
             {busy ? "Разбираем состав" : "Разобрать состав"}
             {busy ? <ScanLine aria-hidden="true" /> : <ArrowRight aria-hidden="true" />}
           </button>
           <p className={styles.disclaimerShort}>Результат носит информационный характер и не заменяет консультацию врача.</p>
-        </form>
+        </motion.form>
       </section>
 
       <AnimatePresence initial={false}>
@@ -501,17 +514,30 @@ export function InciScanner() {
         ) : null}
       </AnimatePresence>
 
-      <section className={styles.method} aria-labelledby="method-title">
-        <div>
+      <motion.section
+        className={styles.method}
+        aria-labelledby="method-title"
+        initial={reduceMotion ? false : { opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.18 }}
+        transition={{ duration: reduceMotion ? 0 : 0.58, ease: [0.16, 1, 0.3, 1] }}
+      >
+        <motion.div initial={reduceMotion ? false : { opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
           <p>Как читать результат</p>
           <h2 id="method-title">Контекст важнее одного ингредиента</h2>
-        </div>
+        </motion.div>
         <div className={styles.methodRows}>
-          <article><span>01</span><div><h3>Порядок, не проценты</h3><p>INCI показывает последовательность компонентов, но не раскрывает точную концентрацию и pH.</p></div></article>
-          <article><span>02</span><div><h3>Формула, не чёрный список</h3><p>Консерванты, силиконы и жирные спирты выполняют задачи. Их наличие само по себе не делает средство плохим.</p></div></article>
-          <article><span>03</span><div><h3>Переносимость индивидуальна</h3><p>Патч-тест, состояние барьера и схема нанесения часто важнее модного статуса актива.</p></div></article>
+          {[
+            ["Порядок, не проценты", "Список на этикетке показывает последовательность компонентов, но не раскрывает точную концентрацию и pH."],
+            ["Формула, не чёрный список", "Консерванты, силиконы и жирные спирты выполняют задачи. Их наличие само по себе не делает средство плохим."],
+            ["Переносимость индивидуальна", "Патч-тест, состояние барьера и схема нанесения часто важнее модного статуса актива."],
+          ].map(([title, copy], index) => (
+            <motion.article key={title} initial={reduceMotion ? false : { opacity: 0, x: 22 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, amount: 0.45 }} transition={{ duration: reduceMotion ? 0 : 0.48, delay: reduceMotion ? 0 : index * 0.07, ease: [0.16, 1, 0.3, 1] }}>
+              <span>{String(index + 1).padStart(2, "0")}</span><div><h3>{title}</h3><p>{copy}</p></div>
+            </motion.article>
+          ))}
         </div>
-      </section>
+      </motion.section>
     </div>
   );
 }

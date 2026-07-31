@@ -12,18 +12,19 @@ const sourceHosts = [
   "goldapple.ru", "letu.ru", "rivegauche.ru", "wildberries.ru", "market.yandex.ru", "ozon.ru", "tsum.ru",
 ];
 
-const fallback: Record<SearchMode, string> = {
-  skin: "skin-packshot-v2.webp",
-  hair: "hair-packshot-v2.webp",
-  perfume: "perfume-packshot-v2.webp",
-};
-
 type Candidate = {
   url: URL;
   context: string;
   sourceType: "structured-product" | "product-meta" | "product-image" | "social-meta" | "image-search";
   width?: number;
   height?: number;
+};
+
+type ProductAsset = {
+  bytes: Uint8Array;
+  type: string;
+  verified: boolean;
+  synthetic?: boolean;
 };
 
 function hostAllowed(hostname: string) {
@@ -72,7 +73,14 @@ async function readLimitedText(response: Response, max = 300_000) {
 }
 
 function decodeHtml(value: string) {
-  return value.replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&#x2F;/gi, "/");
+  return value
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&#x2F;/gi, "/")
+    .replace(/\\u002F/gi, "/")
+    .replace(/\\u0026/gi, "&")
+    .replace(/\\\//g, "/");
 }
 
 function extractAttribute(tag: string, name: string) {
@@ -150,6 +158,27 @@ async function imageDiscoveryAgent(source: URL): Promise<Candidate[]> {
       });
     } catch { /* Invalid image URL. */ }
   }
+
+  // Product pages increasingly keep their highest-resolution packshot in an
+  // application-state JSON blob instead of a visible <img>. Extract only
+  // image-shaped fields and retain nearby text as identity evidence for the
+  // verifier. This covers Next/Nuxt storefronts without executing their JS.
+  const embeddedImagePattern = /["'](?:image|imageUrl|image_url|original|originalUrl|large|largeUrl|zoom|zoomUrl|src)["']\s*:\s*["']([^"']+)["']/gi;
+  for (const match of html.matchAll(embeddedImagePattern)) {
+    const raw = decodeHtml(match[1]);
+    if (!raw || !/(?:^https?:|^\/\/|^\/)/i.test(raw)) continue;
+    if (!/\.(?:avif|webp|png|jpe?g)(?:[?#]|$)/i.test(raw) && !/(?:image|img|cdn|media|static)/i.test(raw)) continue;
+    if (/logo|icon|sprite|avatar|banner|promo|campaign|app-store|google-play|qr-code/i.test(raw)) continue;
+    try {
+      const start = Math.max(0, (match.index ?? 0) - 420);
+      const end = Math.min(html.length, (match.index ?? 0) + match[0].length + 420);
+      candidates.push({
+        url: new URL(raw, response.url),
+        context: `${response.url} ${decodeHtml(html.slice(start, end))}`,
+        sourceType: "product-image",
+      });
+    } catch { /* Invalid embedded image URL. */ }
+  }
   const sourcePriority: Record<Candidate["sourceType"], number> = {
     "structured-product": 5,
     "product-image": 4,
@@ -160,7 +189,7 @@ async function imageDiscoveryAgent(source: URL): Promise<Candidate[]> {
   return candidates
     .filter((item, index, all) => all.findIndex((candidate) => candidate.url.href === item.url.href) === index)
     .sort((left, right) => sourcePriority[right.sourceType] - sourcePriority[left.sourceType])
-    .slice(0, 12);
+    .slice(0, 24);
 }
 
 async function imageSearchAgent(name: string): Promise<Candidate[]> {
@@ -184,7 +213,7 @@ async function imageSearchAgent(name: string): Promise<Candidate[]> {
       candidates.push({ url: new URL(parsed.murl), context: `${parsed.t ?? ""} ${parsed.purl ?? ""} ${parsed.murl}`, sourceType: "image-search", width: parsed.w, height: parsed.h });
     } catch { /* Ignore malformed search metadata. */ }
   }
-  return candidates.filter((item, index, all) => all.findIndex((candidate) => candidate.url.href === item.url.href) === index).slice(0, 12);
+  return candidates.filter((item, index, all) => all.findIndex((candidate) => candidate.url.href === item.url.href) === index).slice(0, 24);
 }
 
 function tokens(value: string) {
@@ -202,16 +231,16 @@ async function imageVerificationAgent(name: string, candidates: Candidate[]) {
       - (/advert|banner|campaign|editorial|review|lookbook|model|instagram|pinterest|youtube|hero|gift.?set/i.test(candidate.context) ? 14 : 0),
   })).sort((a, b) => b.score - a.score);
 
-  for (const candidate of ranked.slice(0, 9)) {
+  const verify = async (candidate: (typeof ranked)[number]): Promise<ProductAsset | null> => {
     try {
       const declaredRatio = candidate.width && candidate.height ? candidate.width / candidate.height : 1;
-      if (declaredRatio > 1.65 || declaredRatio < .5 || (candidate.width && candidate.width < 280) || (candidate.height && candidate.height < 280)) continue;
+      if (declaredRatio > 1.65 || declaredRatio < .5 || (candidate.width && candidate.width < 280) || (candidate.height && candidate.height < 280)) return null;
       const context = decodeURIComponent(`${candidate.url.pathname} ${candidate.context}`).toLowerCase();
       const tokenMatches = productTokens.filter((token) => context.includes(token)).length;
       const minimumMatches = candidate.sourceType === "product-image" || candidate.sourceType === "structured-product"
         ? 1
         : Math.max(1, Math.ceil(productTokens.length * .34));
-      if (productTokens.length > 1 && tokenMatches < minimumMatches) continue;
+      if (productTokens.length > 1 && tokenMatches < minimumMatches) return null;
       const response = await fetchPublicUrl(candidate.url, {
         headers: { "User-Agent": "Mozilla/5.0 KrasavitsaImageVerifier/1.0", Accept: "image/avif,image/webp,image/png,image/jpeg,*/*" },
         cache: "force-cache",
@@ -219,13 +248,13 @@ async function imageVerificationAgent(name: string, candidates: Candidate[]) {
       });
       const type = (response.headers.get("content-type") ?? "").split(";")[0];
       const length = Number(response.headers.get("content-length") ?? 0);
-      if (!response.ok || !type.startsWith("image/") || type === "image/svg+xml" || length > 4_500_000) continue;
+      if (!response.ok || !type.startsWith("image/") || type === "image/svg+xml" || length > 4_500_000) return null;
       const bytes = new Uint8Array(await response.arrayBuffer());
-      if (bytes.byteLength < 2_000 || bytes.byteLength > 4_500_000) continue;
+      if (bytes.byteLength < 2_000 || bytes.byteLength > 4_500_000) return null;
       const metadata = await sharp(bytes, { limitInputPixels: 40_000_000 }).metadata();
-      if (!metadata.width || !metadata.height || metadata.width < 280 || metadata.height < 280) continue;
+      if (!metadata.width || !metadata.height || metadata.width < 280 || metadata.height < 280) return null;
       const ratio = metadata.width / metadata.height;
-      if (ratio > 1.65 || ratio < .5) continue;
+      if (ratio > 1.65 || ratio < .5) return null;
       const { data, info } = await sharp(bytes, { limitInputPixels: 40_000_000 })
         .rotate()
         .ensureAlpha()
@@ -244,18 +273,72 @@ async function imageVerificationAgent(name: string, candidates: Candidate[]) {
           borderPixels += 1;
         }
       }
-      if (!borderPixels || cleanBorder / borderPixels < .58) continue;
+      const exactProductSource = candidate.sourceType === "structured-product"
+        || candidate.sourceType === "product-image"
+        || candidate.sourceType === "product-meta";
+      const requiredCleanBorder = exactProductSource ? .34 : .56;
+      if (!borderPixels || cleanBorder / borderPixels < requiredCleanBorder) return null;
       return { bytes, type, verified: true };
-    } catch { /* Try the next candidate. */ }
+    } catch { return null; }
+  };
+
+  // Verify several high-confidence candidates at once. Retailers commonly
+  // return a blocked CDN URL beside a valid alternate size; serial retries made
+  // the browser give up before the good candidate was reached.
+  const shortlist = ranked.slice(0, 18);
+  for (let offset = 0; offset < shortlist.length; offset += 4) {
+    const batch = await Promise.all(shortlist.slice(offset, offset + 4).map(verify));
+    const match = batch.find((item): item is ProductAsset => Boolean(item));
+    if (match) return match;
   }
   return null;
 }
 
-async function fallbackImage(mode: SearchMode) {
-  return { bytes: new Uint8Array(await readFile(path.join(process.cwd(), "public", "recommendations", fallback[mode]))), type: "image/webp", verified: false };
+function escapeSvg(value: string) {
+  return value.replace(/[&<>"']/g, (character) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&apos;",
+  })[character] ?? character);
 }
 
-async function composition(asset: { bytes: Uint8Array; type: string; verified: boolean }) {
+function wrapProductName(name: string) {
+  const words = name.split(/\s+/).filter(Boolean);
+  const lines: string[] = [];
+  for (const word of words) {
+    const current = lines.at(-1) ?? "";
+    if (!current || `${current} ${word}`.length > 25) lines.push(word);
+    else lines[lines.length - 1] = `${current} ${word}`;
+    if (lines.length === 3) break;
+  }
+  return lines.map(escapeSvg);
+}
+
+async function fallbackImage(mode: SearchMode, name: string): Promise<ProductAsset> {
+  const lines = wrapProductName(name);
+  const silhouette = mode === "perfume"
+    ? `<rect x="222" y="118" width="316" height="330" rx="76" fill="url(#body)" stroke="rgba(255,255,255,.8)" stroke-width="3"/><rect x="302" y="52" width="156" height="86" rx="22" fill="url(#cap)"/><rect x="348" y="22" width="64" height="48" rx="13" fill="#eadde2"/>`
+    : mode === "hair"
+      ? `<path d="M276 70h208l28 72v315c0 47-38 85-85 85H333c-47 0-85-38-85-85V142z" fill="url(#body)" stroke="rgba(255,255,255,.8)" stroke-width="3"/><rect x="290" y="34" width="172" height="62" rx="20" fill="url(#cap)"/>`
+      : `<rect x="262" y="116" width="236" height="330" rx="58" fill="url(#body)" stroke="rgba(255,255,255,.8)" stroke-width="3"/><rect x="304" y="54" width="152" height="84" rx="22" fill="url(#cap)"/><rect x="354" y="20" width="52" height="52" rx="12" fill="#eadde2"/>`;
+  const labels = lines.map((line, index) => `<tspan x="380" dy="${index ? 31 : 0}">${line}</tspan>`).join("");
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="760" height="580" viewBox="0 0 760 580">
+    <defs>
+      <linearGradient id="body" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff" stop-opacity=".94"/><stop offset=".46" stop-color="#f1b3ca" stop-opacity=".64"/><stop offset="1" stop-color="#7d214b" stop-opacity=".3"/></linearGradient>
+      <linearGradient id="cap" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff"/><stop offset="1" stop-color="#7a5264"/></linearGradient>
+      <filter id="shadow" x="-30%" y="-30%" width="160%" height="180%"><feDropShadow dx="0" dy="24" stdDeviation="22" flood-color="#5c1736" flood-opacity=".2"/></filter>
+    </defs>
+    <g filter="url(#shadow)">${silhouette}</g>
+    <rect x="306" y="238" width="148" height="1" fill="#6c2443" opacity=".28"/>
+    <text x="380" y="474" text-anchor="middle" fill="#5e1d3c" font-family="Arial, sans-serif" font-size="23" font-weight="700">${labels}</text>
+    <text x="380" y="556" text-anchor="middle" fill="#8b6475" font-family="Arial, sans-serif" font-size="13" font-weight="700" letter-spacing="1.7">ИЛЛЮСТРАЦИЯ · ФОТО ИСТОЧНИКА НЕДОСТУПНО</text>
+  </svg>`;
+  return { bytes: new Uint8Array(await sharp(Buffer.from(svg)).png().toBuffer()), type: "image/png", verified: false, synthetic: true };
+}
+
+async function composition(asset: ProductAsset) {
   const publicRoot = path.join(process.cwd(), "public");
   const [stage, logo] = await Promise.all([
     readFile(path.join(publicRoot, "recommendations", "krasavitsa-product-stage-v1.png")),
@@ -282,7 +365,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const name = (searchParams.get("name") ?? "Beauty product").trim().slice(0, 180);
   const mode = isSearchMode(searchParams.get("mode")) ? searchParams.get("mode") as SearchMode : "skin";
-  let asset: Awaited<ReturnType<typeof fallbackImage>> | null = null;
+  let asset: ProductAsset | null = null;
   const sourceValues = [...new Set(searchParams.getAll("source"))].slice(0, 3);
   if (sourceValues.length) {
     try {
@@ -296,13 +379,13 @@ export async function GET(request: Request) {
   if (!asset) {
     try { asset = await imageVerificationAgent(name, await imageSearchAgent(name)); } catch { /* Search is a best-effort discovery stage. */ }
   }
-  asset ??= await fallbackImage(mode);
+  asset ??= await fallbackImage(mode, name);
   return new NextResponse(new Uint8Array(await composition(asset)), {
     headers: {
       "Content-Type": "image/png",
       "Cache-Control": packshotCacheControl(asset.verified),
       "X-Content-Type-Options": "nosniff",
-      "X-Krasavitsa-Packshot": asset.verified ? "verified" : "fallback",
+      "X-Krasavitsa-Packshot": asset.verified ? "verified" : asset.synthetic ? "illustrated-fallback" : "fallback",
     },
   });
 }

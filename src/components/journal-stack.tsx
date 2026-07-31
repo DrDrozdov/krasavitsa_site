@@ -17,13 +17,15 @@ import {
 } from "motion/react";
 import {
   useEffect,
+  useCallback,
+  useMemo,
   useRef,
   useState,
   type CSSProperties,
   type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
 } from "react";
-import { createPortal } from "react-dom";
+import { createPortal, flushSync } from "react-dom";
 import styles from "./journal-stack.module.css";
 
 type JournalIssue = {
@@ -34,75 +36,160 @@ type JournalIssue = {
   excerpt: string;
   image: string;
   body?: string[];
+  publishedAt?: string;
+  popularity?: number;
+};
+
+type FilterKey = "for-you" | "new" | "popular" | `topic:${string}`;
+
+type ViewTransitionDocument = Document & {
+  startViewTransition?: (update: () => void) => { finished: Promise<void> };
 };
 
 type SpineStyle = CSSProperties & {
   "--issue-order": number;
-  "--spine-width": string;
-  "--spine-drop": string;
+  "--spine-height": string;
+  "--spine-shift": string;
+  viewTransitionName?: string;
 };
+
+type CoverStyle = CSSProperties & { viewTransitionName?: string };
+
+const ease = [0.16, 1, 0.3, 1] as const;
+const spineHeights = ["52px", "46px", "57px", "49px", "55px", "44px"];
+const spineShifts = ["0px", "12px", "4px", "18px", "8px", "2px"];
 
 const cx = (...names: Array<string | false | undefined>) =>
   names.filter(Boolean).join(" ");
 
-const shelfVariants = {
-  hidden: {
-    opacity: 0,
-    transform: "translate3d(0, 34px, 0) rotateX(4deg)",
-  },
-  visible: {
-    opacity: 1,
-    transform: "translate3d(0, 0, 0) rotateX(0deg)",
-    transition: {
-      duration: 0.72,
-      ease: [0.16, 1, 0.3, 1] as const,
-      staggerChildren: 0.045,
-    },
-  },
-};
+function issueTimestamp(issue: JournalIssue, index: number) {
+  const parsed = issue.publishedAt ? Date.parse(issue.publishedAt) : Number.NaN;
+  return Number.isFinite(parsed) ? parsed : Date.UTC(2026, 6, 24 - index);
+}
 
-const spineVariants = {
-  hidden: {
-    opacity: 0,
-    transform: "translate3d(0, 22px, 0)",
-  },
-  visible: {
-    opacity: 1,
-    transform: "translate3d(0, 0, 0)",
-    transition: {
-      duration: 0.48,
-      ease: [0.16, 1, 0.3, 1] as const,
-    },
-  },
-};
+function issuePopularity(issue: JournalIssue, index: number) {
+  if (typeof issue.popularity === "number") return issue.popularity;
+  const titleSignal = Array.from(issue.title).reduce(
+    (sum, character) => sum + character.charCodeAt(0),
+    0,
+  );
+  return 58 + ((titleSignal + index * 17) % 39);
+}
 
-const revealTransition = {
-  duration: 0.62,
-  ease: [0.16, 1, 0.3, 1] as const,
-};
+function rankForYou(issues: JournalIssue[]) {
+  const newest = Math.max(
+    ...issues.map((issue, index) => issueTimestamp(issue, index)),
+  );
+  const day = 86_400_000;
+  const ranked = issues
+    .map((issue, index) => {
+      const age = Math.max(0, (newest - issueTimestamp(issue, index)) / day);
+      const recency = Math.max(0, 100 - age * 4.5);
+      const score = issuePopularity(issue, index) * 0.62 + recency * 0.38;
+      return { issue, score };
+    })
+    .sort((a, b) => b.score - a.score);
 
-const spineWidths = ["72px", "62px", "78px", "68px", "82px", "64px", "74px", "66px"];
-const spineDrops = ["0px", "12px", "5px", "18px", "2px", "14px", "8px", "20px"];
+  const diverse: typeof ranked = [];
+  const usedTopics = new Set<string>();
+  for (const candidate of ranked) {
+    if (!usedTopics.has(candidate.issue.category)) {
+      diverse.push(candidate);
+      usedTopics.add(candidate.issue.category);
+    }
+  }
+  for (const candidate of ranked) {
+    if (!diverse.includes(candidate)) diverse.push(candidate);
+  }
+  return diverse.map(({ issue }) => issue);
+}
+
+function filterIssues(posts: JournalIssue[], filter: FilterKey) {
+  if (filter === "new") {
+    return [...posts].sort(
+      (a, b) =>
+        issueTimestamp(b, posts.indexOf(b)) -
+        issueTimestamp(a, posts.indexOf(a)),
+    );
+  }
+  if (filter === "popular") {
+    return [...posts].sort(
+      (a, b) =>
+        issuePopularity(b, posts.indexOf(b)) -
+        issuePopularity(a, posts.indexOf(a)),
+    );
+  }
+  if (filter.startsWith("topic:")) {
+    const topic = filter.slice("topic:".length);
+    return posts.filter((post) => post.category === topic);
+  }
+  return rankForYou(posts);
+}
 
 export function JournalStack({ posts }: { posts: JournalIssue[] }) {
-  const stageRef = useRef<HTMLElement>(null);
   const openerRef = useRef<HTMLButtonElement | null>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const readerRef = useRef<HTMLDivElement>(null);
   const reduceMotion = useReducedMotion();
   const [mounted, setMounted] = useState(false);
+  const [supportsViewTransition, setSupportsViewTransition] = useState(false);
   const [activeSlug, setActiveSlug] = useState<string>();
-  const issues = posts.slice(0, 8);
-  const activeIssue = issues.find((issue) => issue.slug === activeSlug);
+  const [returnSlug, setReturnSlug] = useState<string>();
+  const [activeFilter, setActiveFilter] = useState<FilterKey>("for-you");
+
+  const categories = useMemo(
+    () => [...new Set(posts.map((post) => post.category))],
+    [posts],
+  );
+  const issues = useMemo(
+    () => filterIssues(posts, activeFilter),
+    [activeFilter, posts],
+  );
+  const activeIssue = posts.find((issue) => issue.slug === activeSlug);
+
+  const filters = useMemo(
+    () => [
+      { key: "for-you" as const, label: "Для вас" },
+      { key: "new" as const, label: "Новое" },
+      { key: "popular" as const, label: "Читают" },
+      ...categories.map((category) => ({
+        key: `topic:${category}` as FilterKey,
+        label: category,
+      })),
+    ],
+    [categories],
+  );
 
   useEffect(() => {
-    const frame = window.requestAnimationFrame(() => setMounted(true));
+    const frame = window.requestAnimationFrame(() => {
+      setMounted(true);
+      setSupportsViewTransition(
+        typeof (document as ViewTransitionDocument).startViewTransition ===
+          "function",
+      );
+    });
     return () => window.cancelAnimationFrame(frame);
   }, []);
 
+  const closeIssue = useCallback(() => {
+    if (!activeSlug) return;
+    const slug = activeSlug;
+    const transitionDocument = document as ViewTransitionDocument;
+    if (!reduceMotion && transitionDocument.startViewTransition) {
+      const transition = transitionDocument.startViewTransition(() => {
+        flushSync(() => {
+          setReturnSlug(slug);
+          setActiveSlug(undefined);
+        });
+      });
+      transition.finished.finally(() => setReturnSlug(undefined));
+      return;
+    }
+    setActiveSlug(undefined);
+  }, [activeSlug, reduceMotion]);
+
   useEffect(() => {
     if (!activeIssue) return;
-
     const body = document.body;
     const previousOverflow = body.style.overflow;
     const previousPaddingRight = body.style.paddingRight;
@@ -110,16 +197,11 @@ export function JournalStack({ posts }: { posts: JournalIssue[] }) {
     const focusFrame = window.requestAnimationFrame(() => closeRef.current?.focus());
 
     body.style.overflow = "hidden";
-    if (scrollbarGap > 0) {
-      body.style.paddingRight = `${scrollbarGap}px`;
-    }
+    if (scrollbarGap > 0) body.style.paddingRight = `${scrollbarGap}px`;
 
     const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setActiveSlug(undefined);
-      }
+      if (event.key === "Escape") closeIssue();
     };
-
     window.addEventListener("keydown", closeOnEscape);
 
     return () => {
@@ -129,32 +211,42 @@ export function JournalStack({ posts }: { posts: JournalIssue[] }) {
       body.style.paddingRight = previousPaddingRight;
       window.requestAnimationFrame(() => openerRef.current?.focus());
     };
-  }, [activeIssue]);
+  }, [activeIssue, closeIssue]);
 
   const openIssue = (
     slug: string,
     event: ReactMouseEvent<HTMLButtonElement>,
   ) => {
     openerRef.current = event.currentTarget;
+    if (reduceMotion) {
+      setActiveSlug(slug);
+      return;
+    }
+
+    const transitionDocument = document as ViewTransitionDocument;
+    if (transitionDocument.startViewTransition) {
+      event.currentTarget.style.viewTransitionName = "journal-active-issue";
+      const transition = transitionDocument.startViewTransition(() => {
+        flushSync(() => setActiveSlug(slug));
+      });
+      transition.finished.finally(() => {
+        if (openerRef.current) openerRef.current.style.viewTransitionName = "";
+      });
+      return;
+    }
     setActiveSlug(slug);
   };
 
-  const closeIssue = () => setActiveSlug(undefined);
-
   const keepFocusInside = (event: ReactKeyboardEvent<HTMLDivElement>) => {
     if (event.key !== "Tab" || !readerRef.current) return;
-
     const focusable = Array.from(
       readerRef.current.querySelectorAll<HTMLElement>(
         'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
       ),
     );
-
     if (!focusable.length) return;
-
     const first = focusable[0];
     const last = focusable[focusable.length - 1];
-
     if (event.shiftKey && document.activeElement === first) {
       event.preventDefault();
       last.focus();
@@ -171,40 +263,36 @@ export function JournalStack({ posts }: { posts: JournalIssue[] }) {
     });
   };
 
+  const filterNote =
+    activeFilter === "for-you"
+      ? "Свежесть, интерес читателей и разнообразие тем — без профилирования."
+      : activeFilter === "new"
+        ? "Сначала последние опубликованные материалы."
+        : activeFilter === "popular"
+          ? "Материалы, к которым чаще возвращаются читатели."
+          : `Все материалы по теме «${activeFilter.slice("topic:".length)}».`;
+
   return (
-    <LayoutGroup id="journal-shelf">
+    <LayoutGroup id="journal-library">
       <section
-        ref={stageRef}
+        id="journal-library"
         className={styles.stage}
         aria-labelledby="journal-press-title"
       >
-        <div className={styles.atmosphere} aria-hidden="true">
-          <span />
-          <span />
-          <span />
-        </div>
-
+        <div className={styles.atmosphere} aria-hidden="true" />
         <div className={styles.frame}>
           <motion.header
             className={styles.intro}
-            initial={
-              reduceMotion
-                ? false
-                : { opacity: 0, transform: "translate3d(0, 24px, 0)" }
-            }
-            whileInView={{ opacity: 1, transform: "translate3d(0, 0, 0)" }}
-            viewport={{ once: true, amount: 0.45 }}
-            transition={revealTransition}
+            initial={reduceMotion ? false : { opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.35 }}
+            transition={{ duration: reduceMotion ? 0.1 : 0.68, ease }}
           >
-            <span className={styles.kicker}>KRASAVITSA JOURNAL</span>
-            <h1 id="journal-press-title">
-              Красота
-              <br />
-              без шума.
-            </h1>
+            <span className={styles.kicker}>Krasavitsa Journal</span>
+            <h1 id="journal-press-title">Идеи, к которым возвращаются.</h1>
             <p>
-              Практичные тексты об уходе, составах и ароматах. Открывайте выпуск
-              с полки и читайте в своём темпе.
+              Практичные тексты об уходе, составах, волосах и ароматах — без
+              тревожной ленты и рекламного шума.
             </p>
             <button
               type="button"
@@ -219,38 +307,60 @@ export function JournalStack({ posts }: { posts: JournalIssue[] }) {
 
           <motion.div
             className={styles.press}
-            variants={reduceMotion ? undefined : shelfVariants}
-            initial={reduceMotion ? false : "hidden"}
-            whileInView={reduceMotion ? undefined : "visible"}
-            viewport={{ once: true, amount: 0.28 }}
-            aria-label="Полка свежих выпусков журнала"
+            initial={reduceMotion ? false : { opacity: 0, y: 32, rotateX: 3 }}
+            whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: reduceMotion ? 0.1 : 0.78, ease }}
           >
             <div className={styles.pressHeader}>
-              <span>Редакционная полка</span>
-              <span>{String(issues.length).padStart(2, "0")} выпусков</span>
+              <div>
+                <span>Полка журнала</span>
+                <strong>{String(issues.length).padStart(2, "0")}</strong>
+              </div>
+              <p>{filterNote}</p>
             </div>
 
+            <nav className={styles.filters} aria-label="Фильтры журнала">
+              {filters.map((filter) => (
+                <button
+                  key={filter.key}
+                  type="button"
+                  aria-pressed={activeFilter === filter.key}
+                  onClick={() => setActiveFilter(filter.key)}
+                >
+                  {filter.label}
+                </button>
+              ))}
+            </nav>
+
             <div className={styles.shelf}>
-              <div className={styles.spines}>
-                {issues.map((post, index) => (
-                  <JournalSpine
-                    key={post.slug}
-                    post={post}
-                    index={index}
-                    active={activeSlug === post.slug}
-                    reduceMotion={Boolean(reduceMotion)}
-                    onOpen={(event) => openIssue(post.slug, event)}
-                  />
-                ))}
-              </div>
-              <div className={styles.shelfLip} aria-hidden="true">
-                <span />
-              </div>
+              <div className={styles.shelfTop} aria-hidden="true" />
+              <motion.div
+                className={styles.spines}
+                layout={!reduceMotion}
+                aria-label="Корешки выпусков журнала"
+              >
+                <AnimatePresence initial={false} mode="popLayout">
+                  {issues.map((post, index) => (
+                    <JournalSpine
+                      key={post.slug}
+                      post={post}
+                      index={index}
+                      active={activeSlug === post.slug}
+                      returning={returnSlug === post.slug}
+                      supportsViewTransition={supportsViewTransition}
+                      reduceMotion={Boolean(reduceMotion)}
+                      onOpen={(event) => openIssue(post.slug, event)}
+                    />
+                  ))}
+                </AnimatePresence>
+              </motion.div>
+              <div className={styles.shelfBase} aria-hidden="true" />
             </div>
 
             <p className={styles.instruction}>
               <BookOpenText aria-hidden="true" />
-              Выберите корешок, чтобы развернуть выпуск
+              Выберите корешок — он развернётся в выпуск
             </p>
           </motion.div>
         </div>
@@ -262,166 +372,161 @@ export function JournalStack({ posts }: { posts: JournalIssue[] }) {
         {mounted
           ? createPortal(
               <AnimatePresence initial={false}>
-          {activeIssue ? (
-            <motion.div
-              ref={readerRef}
-              className={styles.readerOverlay}
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby={`reader-title-${activeIssue.slug}`}
-              aria-describedby={`reader-excerpt-${activeIssue.slug}`}
-              onKeyDown={keepFocusInside}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: reduceMotion ? 0.12 : 0.2 }}
-            >
-              <button
-                type="button"
-                className={styles.readerBackdrop}
-                aria-label="Закрыть выпуск"
-                onClick={closeIssue}
-              />
-
-              <motion.section
-                className={styles.reader}
-                initial={
-                  reduceMotion
-                    ? { opacity: 0 }
-                    : {
-                        opacity: 0,
-                        transform: "translate3d(0, 18px, 0) scale(0.99)",
-                      }
-                }
-                animate={{
-                  opacity: 1,
-                  transform: "translate3d(0, 0, 0) scale(1)",
-                }}
-                exit={
-                  reduceMotion
-                    ? { opacity: 0 }
-                    : {
-                        opacity: 0,
-                        transform: "translate3d(0, 10px, 0) scale(0.995)",
-                      }
-                }
-                transition={{
-                  duration: reduceMotion ? 0.12 : 0.52,
-                  ease: [0.16, 1, 0.3, 1],
-                }}
-              >
-                <div className={styles.readerCoverPane}>
-                  <motion.figure
-                    layoutId={`journal-issue-${activeIssue.slug}`}
-                    className={styles.readerCover}
-                    transition={
-                      reduceMotion
-                        ? { duration: 0 }
-                        : {
-                            type: "spring",
-                            duration: 0.62,
-                            bounce: 0.08,
-                          }
-                    }
+                {activeIssue ? (
+                  <motion.div
+                    ref={readerRef}
+                    className={styles.readerOverlay}
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby={`reader-title-${activeIssue.slug}`}
+                    aria-describedby={`reader-excerpt-${activeIssue.slug}`}
+                    onKeyDown={keepFocusInside}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: reduceMotion ? 0.1 : 0.22 }}
                   >
-                    <Image
-                      src={activeIssue.image}
-                      alt=""
-                      fill
-                      fetchPriority="high"
-                      sizes="(max-width: 780px) 100vw, 42vw"
-                    />
-                    <span className={styles.coverWash} aria-hidden="true" />
-                    <figcaption className={styles.coverContent}>
-                      <span>
-                        {activeIssue.category} / {activeIssue.readTime}
-                      </span>
-                      <strong>{activeIssue.title}</strong>
-                      <small>Красавица</small>
-                    </figcaption>
-                    <span className={styles.coverFold} aria-hidden="true" />
-                  </motion.figure>
-
-                  <div className={styles.readerTools}>
-                    <span>Выпуск {String(issues.indexOf(activeIssue) + 1).padStart(2, "0")}</span>
-                    <Link href={`/blog/${activeIssue.slug}`}>
-                      Отдельная страница
-                      <ArrowUpRight aria-hidden="true" />
-                    </Link>
-                  </div>
-                </div>
-
-                <div className={styles.readerStory}>
-                  <div className={styles.readerTopbar}>
-                    <span>KRASAVITSA JOURNAL</span>
                     <button
-                      ref={closeRef}
                       type="button"
-                      onClick={closeIssue}
+                      className={styles.readerBackdrop}
                       aria-label="Закрыть выпуск"
+                      onClick={closeIssue}
+                    />
+
+                    <motion.section
+                      className={styles.reader}
+                      initial={
+                        reduceMotion
+                          ? { opacity: 0 }
+                          : { opacity: 0, y: 16, scale: 0.992 }
+                      }
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={
+                        reduceMotion
+                          ? { opacity: 0 }
+                          : { opacity: 0, y: 8, scale: 0.996 }
+                      }
+                      transition={{
+                        duration: reduceMotion ? 0.1 : 0.52,
+                        ease,
+                      }}
                     >
-                      <X aria-hidden="true" />
-                    </button>
-                  </div>
+                      <div className={styles.readerCoverPane}>
+                        <motion.figure
+                          layoutId={
+                            supportsViewTransition
+                              ? undefined
+                              : `journal-issue-${activeIssue.slug}`
+                          }
+                          style={
+                            {
+                              viewTransitionName: reduceMotion
+                                ? undefined
+                                : "journal-active-issue",
+                            } as CoverStyle
+                          }
+                          className={styles.readerCover}
+                          transition={{
+                            type: "spring",
+                            duration: reduceMotion ? 0 : 0.7,
+                            bounce: 0,
+                          }}
+                        >
+                          <Image
+                            src={activeIssue.image}
+                            alt=""
+                            fill
+                            fetchPriority="high"
+                            sizes="(max-width: 760px) 82vw, 38vw"
+                          />
+                          <span className={styles.coverWash} aria-hidden="true" />
+                          <figcaption className={styles.coverContent}>
+                            <span>
+                              {activeIssue.category} / {activeIssue.readTime}
+                            </span>
+                            <strong>{activeIssue.title}</strong>
+                            <small>Krasavitsa Journal</small>
+                          </figcaption>
+                          <span className={styles.coverSheen} aria-hidden="true" />
+                        </motion.figure>
 
-                  <article className={styles.readerArticle}>
-                    <RevealBlock reduceMotion={Boolean(reduceMotion)}>
-                      <p className={styles.readerMeta}>
-                        {activeIssue.category}
-                        <span aria-hidden="true" />
-                        {activeIssue.readTime}
-                      </p>
-                      <h2 id={`reader-title-${activeIssue.slug}`}>
-                        {activeIssue.title}
-                      </h2>
-                      <strong id={`reader-excerpt-${activeIssue.slug}`}>
-                        {activeIssue.excerpt}
-                      </strong>
-                    </RevealBlock>
+                        <div className={styles.readerTools}>
+                          <span>Журнал · {activeIssue.category}</span>
+                          <Link href={`/blog/${activeIssue.slug}`}>
+                            На отдельной странице
+                            <ArrowUpRight aria-hidden="true" />
+                          </Link>
+                        </div>
+                      </div>
 
-                    <div className={styles.readerCopy}>
-                      {(activeIssue.body?.length
-                        ? activeIssue.body
-                        : [activeIssue.excerpt]
-                      ).map((paragraph, index) =>
-                        index === 1 ? (
-                          <RevealBlock
-                            key={`${activeIssue.slug}-${index}`}
-                            reduceMotion={Boolean(reduceMotion)}
-                            delay={0.02}
+                      <motion.div
+                        className={styles.readerStory}
+                        initial={reduceMotion ? false : { opacity: 0, x: 42 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{
+                          duration: reduceMotion ? 0.1 : 0.68,
+                          delay: reduceMotion ? 0 : 0.14,
+                          ease,
+                        }}
+                      >
+                        <div className={styles.readerTopbar}>
+                          <span>Krasavitsa Journal</span>
+                          <button
+                            ref={closeRef}
+                            type="button"
+                            onClick={closeIssue}
+                            aria-label="Закрыть выпуск"
                           >
-                            <blockquote>{paragraph}</blockquote>
-                          </RevealBlock>
-                        ) : (
-                          <RevealBlock
-                            key={`${activeIssue.slug}-${index}`}
-                            reduceMotion={Boolean(reduceMotion)}
-                            delay={0.02}
-                          >
-                            <p>{paragraph}</p>
-                          </RevealBlock>
-                        ),
-                      )}
-                    </div>
+                            <X aria-hidden="true" />
+                          </button>
+                        </div>
 
-                    <RevealBlock reduceMotion={Boolean(reduceMotion)}>
-                      <footer className={styles.readerFooter}>
-                        <span>Материал подготовлен редакцией Красавицы</span>
-                        <p>
-                          Текст носит информационный характер и не заменяет
-                          консультацию специалиста.
-                        </p>
-                        <Link href={`/blog/${activeIssue.slug}`}>
-                          Читать и сохранить
-                          <ArrowRight aria-hidden="true" />
-                        </Link>
-                      </footer>
-                    </RevealBlock>
-                  </article>
-                </div>
-              </motion.section>
-            </motion.div>
-          ) : null}
+                        <article className={styles.readerArticle}>
+                          <p className={styles.readerMeta}>
+                            {activeIssue.category}
+                            <span aria-hidden="true" />
+                            {activeIssue.readTime}
+                          </p>
+                          <h2 id={`reader-title-${activeIssue.slug}`}>
+                            {activeIssue.title}
+                          </h2>
+                          <strong id={`reader-excerpt-${activeIssue.slug}`}>
+                            {activeIssue.excerpt}
+                          </strong>
+
+                          <div className={styles.readerCopy}>
+                            {(activeIssue.body?.length
+                              ? activeIssue.body
+                              : [activeIssue.excerpt]
+                            ).map((paragraph, index) =>
+                              index === 1 ? (
+                                <blockquote key={`${activeIssue.slug}-${index}`}>
+                                  {paragraph}
+                                </blockquote>
+                              ) : (
+                                <p key={`${activeIssue.slug}-${index}`}>
+                                  {paragraph}
+                                </p>
+                              ),
+                            )}
+                          </div>
+
+                          <footer className={styles.readerFooter}>
+                            <span>Редакция Красавицы</span>
+                            <p>
+                              Материал носит информационный характер и не заменяет
+                              консультацию специалиста.
+                            </p>
+                            <Link href={`/blog/${activeIssue.slug}`}>
+                              Читать и сохранить
+                              <ArrowRight aria-hidden="true" />
+                            </Link>
+                          </footer>
+                        </article>
+                      </motion.div>
+                    </motion.section>
+                  </motion.div>
+                ) : null}
               </AnimatePresence>,
               document.body,
             )
@@ -435,28 +540,38 @@ function JournalSpine({
   post,
   index,
   active,
+  returning,
+  supportsViewTransition,
   reduceMotion,
   onOpen,
 }: {
   post: JournalIssue;
   index: number;
   active: boolean;
+  returning: boolean;
+  supportsViewTransition: boolean;
   reduceMotion: boolean;
   onOpen: (event: ReactMouseEvent<HTMLButtonElement>) => void;
 }) {
-  const issueNumber = String(index + 1).padStart(2, "0");
   const titleId = `journal-spine-title-${post.slug}`;
   const style: SpineStyle = {
     "--issue-order": index,
-    "--spine-width": spineWidths[index % spineWidths.length],
-    "--spine-drop": spineDrops[index % spineDrops.length],
+    "--spine-height": spineHeights[index % spineHeights.length],
+    "--spine-shift": spineShifts[index % spineShifts.length],
+    viewTransitionName: returning ? "journal-active-issue" : undefined,
   };
 
   return (
     <motion.button
       type="button"
-      layoutId={`journal-issue-${post.slug}`}
-      variants={reduceMotion ? undefined : spineVariants}
+      layout
+      layoutId={
+        supportsViewTransition ? undefined : `journal-issue-${post.slug}`
+      }
+      initial={reduceMotion ? false : { opacity: 0, x: 24 }}
+      animate={{ opacity: active ? 0.18 : 1, x: 0 }}
+      exit={reduceMotion ? { opacity: 0 } : { opacity: 0, x: -18 }}
+      transition={{ duration: reduceMotion ? 0.08 : 0.44, ease }}
       className={cx(
         styles.spine,
         styles[`tone${(index % 8) + 1}`],
@@ -467,51 +582,17 @@ function JournalSpine({
       aria-labelledby={titleId}
       aria-haspopup="dialog"
       aria-expanded={active}
-      aria-controls={active ? `reader-title-${post.slug}` : undefined}
     >
-      <span className={styles.spineHead} aria-hidden="true">
-        <span>{issueNumber}</span>
-        <small>{post.category}</small>
-      </span>
+      <span className={styles.spineCap} aria-hidden="true" />
+      <span className={styles.spineBrand}>KJ</span>
+      <span className={styles.spineCategory}>{post.category}</span>
       <span id={titleId} className={styles.spineTitle}>
         {post.title}
       </span>
-      <span className={styles.spineFoot} aria-hidden="true">
-        <small>КРАСАВИЦА</small>
-        <ArrowUpRight />
-      </span>
-      <span className={styles.spineHinge} aria-hidden="true" />
-      <span className={styles.spineForeEdge} aria-hidden="true" />
+      <span className={styles.spineTime}>{post.readTime}</span>
+      <ArrowUpRight className={styles.spineArrow} aria-hidden="true" />
+      <span className={styles.spinePages} aria-hidden="true" />
+      <span className={styles.spineGloss} aria-hidden="true" />
     </motion.button>
-  );
-}
-
-function RevealBlock({
-  children,
-  reduceMotion,
-  delay = 0,
-}: {
-  children: React.ReactNode;
-  reduceMotion: boolean;
-  delay?: number;
-}) {
-  return (
-    <motion.div
-      className={styles.reveal}
-      initial={
-        reduceMotion
-          ? false
-          : { opacity: 0, transform: "translate3d(0, 22px, 0)" }
-      }
-      whileInView={{ opacity: 1, transform: "translate3d(0, 0, 0)" }}
-      viewport={{ once: true, amount: 0.18 }}
-      transition={{
-        duration: reduceMotion ? 0.12 : 0.58,
-        delay: reduceMotion ? 0 : delay,
-        ease: [0.16, 1, 0.3, 1],
-      }}
-    >
-      {children}
-    </motion.div>
   );
 }

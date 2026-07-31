@@ -27,14 +27,14 @@ function json(data: unknown, init?: ResponseInit) {
 
 function errorMessage(error: unknown) {
   const code = error instanceof Error ? error.message : "";
-  if (code === "INCI_TOO_SHORT") return { status: 422, error: "Добавьте хотя бы два компонента INCI, разделённых запятыми." };
+  if (code === "INCI_TOO_SHORT") return { status: 422, error: "Добавьте хотя бы два ингредиента, разделённых запятыми." };
   if (code === "IMAGE_TYPE" || code === "IMAGE_SIGNATURE") return { status: 415, error: "Поддерживаются только настоящие JPG, PNG и WebP изображения." };
   if (code === "IMAGE_SIZE") return { status: 413, error: "Фото должно быть не больше 5 МБ и достаточно чётким для чтения." };
   if (code === "IMAGE_DIMENSIONS") return { status: 422, error: "Фото слишком маленькое. Нужна сторона не менее 320 пикселей." };
   if (code === "IMAGE_DECODE") return { status: 422, error: "Не удалось прочитать изображение. Попробуйте другое фото этикетки." };
-  if (code === "OCR_NOT_CONFIGURED") return { status: 503, error: "Распознавание фото пока не подключено. Вставьте текст INCI вручную." };
+  if (code === "OCR_NOT_CONFIGURED") return { status: 503, error: "Распознавание фото пока не подключено. Вставьте состав текстом." };
   if (code === "OCR_UNREADABLE" || code === "OCR_EMPTY") return { status: 422, error: "Не удалось уверенно прочитать список. Снимите этикетку ровно, при хорошем свете, или вставьте текст." };
-  if (code === "OCR_UPSTREAM") return { status: 502, error: "Сервис распознавания не ответил. Фото не сохранено. Можно вставить INCI вручную." };
+  if (code === "OCR_UPSTREAM") return { status: 502, error: "Сервис распознавания не ответил. Фото не сохранено. Можно вставить состав текстом." };
   return { status: 400, error: "Не удалось обработать состав. Проверьте данные и попробуйте снова." };
 }
 
@@ -61,7 +61,7 @@ export async function POST(request: Request) {
       const body = await readLimitedJson<{ inciText?: unknown; routineText?: unknown }>(request, JSON_BODY_LIMIT);
       const inciText = typeof body.inciText === "string" ? body.inciText.trim() : "";
       const routineText = typeof body.routineText === "string" ? body.routineText : "";
-      if (inciText.length > INCI_TEXT_LIMIT) return json({ error: `Сократите INCI до ${INCI_TEXT_LIMIT} символов.` }, { status: 413 });
+      if (inciText.length > INCI_TEXT_LIMIT) return json({ error: `Сократите список ингредиентов до ${INCI_TEXT_LIMIT} символов.` }, { status: 413 });
       if (routineText.length > INCI_ROUTINE_LIMIT) return json({ error: `Сократите описание ухода до ${INCI_ROUTINE_LIMIT} символов.` }, { status: 413 });
       analysis = analyzeInciText(inciText, routineText, "text");
     } else if (contentType.startsWith("multipart/form-data")) {

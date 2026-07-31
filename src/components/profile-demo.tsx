@@ -184,7 +184,7 @@ function ProfileLibrary({ library, onAnalyticsChange }: { library: Library; onAn
         <p className="mt-3 text-xs font-semibold text-[var(--color-text-muted)]">
           {library.inciAnalyses?.length
             ? `${library.inciAnalyses.length} сохранено · ${library.inciAnalyses[0].label}`
-            : "Проверьте INCI и сохраните результат в Beauty ID."}
+            : "Проверьте состав и сохраните результат в Beauty ID."}
         </p>
       </Link>
       <section className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface-muted)] p-4">

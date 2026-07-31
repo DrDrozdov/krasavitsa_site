@@ -87,49 +87,43 @@ export function LandingPage() {
     offset: ["start start", "end end"],
   });
   const heroProgress = useSpring(rawProgress, {
-    stiffness: 76,
-    damping: 28,
-    mass: 0.44,
-    restDelta: 0.001,
+    stiffness: 58,
+    damping: 27,
+    mass: 0.62,
+    restDelta: 0.0005,
+    restSpeed: 0.0005,
   });
 
-  const volumeScale = useTransform(heroProgress, [0, 0.36, 0.7, 1], [0.72, 0.94, 1.34, 2.3]);
-  const volumeRadius = useTransform(
-    heroProgress,
-    [0, 0.5, 0.82, 1],
-    ["48%", "42%", "24%", "0%"],
-  );
-  const volumeLight = useTransform(heroProgress, [0, 0.34, 0.7, 1], [0.18, 0.46, 0.82, 0.98]);
-  const volumeDepth = useTransform(heroProgress, [0, 0.46, 0.82], [0.92, 1.08, 1.34]);
+  // Only compositor properties are scrubbed. The organic silhouette is static;
+  // light, scale and petal travel carry the state change without shape reflow.
+  const volumeScale = useTransform(heroProgress, [0, 0.28, 0.58, 0.8, 1], [0.78, 0.91, 1.12, 1.56, 2.08]);
+  const volumeLight = useTransform(heroProgress, [0, 0.28, 0.58, 0.82], [0.08, 0.26, 0.7, 1]);
+  const volumeDepth = useTransform(heroProgress, [0, 0.44, 0.8], [0.92, 1.03, 1.22]);
 
-  const lotusScale = useTransform(heroProgress, [0, 0.18, 0.48, 0.7, 0.9], [0.58, 0.76, 1.02, 1.18, 1.5]);
-  const lotusY = useTransform(heroProgress, [0, 0.34, 0.7], ["7vh", "1vh", "-3vh"]);
-  const lotusTilt = useTransform(heroProgress, [0, 0.34, 0.64], [67, 51, 24]);
-  const lotusRotate = useTransform(heroProgress, [0, 0.42, 0.72], [-7, -2, 5]);
-  const lotusOpacity = useTransform(heroProgress, [0, 0.1, 0.78, 0.94], [0.35, 1, 1, 0]);
-  const lotusBloom = useTransform(heroProgress, [0, 0.16, 0.46, 0.6], [0.04, 0.18, 0.82, 1]);
-  const coreOpacity = useTransform(heroProgress, [0.5, 0.72, 0.9], [1, 0.72, 0]);
-  const leftFar = useTransform(heroProgress, [0.52, 0.86], ["0vw", "-66vw"]);
-  const left = useTransform(heroProgress, [0.52, 0.86], ["0vw", "-45vw"]);
-  const right = useTransform(heroProgress, [0.52, 0.86], ["0vw", "45vw"]);
-  const rightFar = useTransform(heroProgress, [0.52, 0.86], ["0vw", "66vw"]);
-  const upFar = useTransform(heroProgress, [0.52, 0.86], ["0vh", "-62vh"]);
-  const up = useTransform(heroProgress, [0.52, 0.86], ["0vh", "-38vh"]);
-  const down = useTransform(heroProgress, [0.52, 0.86], ["0vh", "42vh"]);
+  const lotusScale = useTransform(heroProgress, [0, 0.12, 0.34, 0.56, 0.76, 0.9], [0.25, 0.34, 0.68, 1.02, 1.24, 1.48]);
+  const lotusY = useTransform(heroProgress, [0, 0.28, 0.56, 0.78], ["18vh", "12vh", "1vh", "-7vh"]);
+  const lotusTilt = useTransform(heroProgress, [0, 0.32, 0.58, 0.76], [58, 48, 27, 17]);
+  const lotusRotate = useTransform(heroProgress, [0, 0.42, 0.72], [-4, -1, 4]);
+  const lotusOpacity = useTransform(heroProgress, [0, 0.08, 0.78, 0.94], [0.26, 0.62, 1, 0]);
+  const lotusBloom = useTransform(heroProgress, [0, 0.15, 0.36, 0.58], [0.02, 0.09, 0.58, 1]);
+  const coreOpacity = useTransform(heroProgress, [0.56, 0.75, 0.92], [1, 0.68, 0]);
+  const leftFar = useTransform(heroProgress, [0.55, 0.88], ["0vw", "-72vw"]);
+  const left = useTransform(heroProgress, [0.55, 0.88], ["0vw", "-48vw"]);
+  const right = useTransform(heroProgress, [0.55, 0.88], ["0vw", "48vw"]);
+  const rightFar = useTransform(heroProgress, [0.55, 0.88], ["0vw", "72vw"]);
+  const upFar = useTransform(heroProgress, [0.55, 0.88], ["0vh", "-68vh"]);
+  const up = useTransform(heroProgress, [0.55, 0.88], ["0vh", "-42vh"]);
+  const down = useTransform(heroProgress, [0.55, 0.88], ["0vh", "48vh"]);
 
-  const introOpacity = useTransform(heroProgress, [0, 0.24, 0.46], [1, 1, 0]);
-  const introY = useTransform(heroProgress, [0, 0.46], [0, -62]);
-  const introScale = useTransform(heroProgress, [0, 0.46], [1, 0.92]);
-  const actionsOpacity = useTransform(heroProgress, [0, 0.26, 0.48], [1, 0.92, 0]);
+  const introOpacity = useTransform(heroProgress, [0, 0.27, 0.48], [1, 1, 0]);
+  const introY = useTransform(heroProgress, [0, 0.48], [0, -48]);
+  const introScale = useTransform(heroProgress, [0, 0.48], [1, 0.94]);
+  const actionsOpacity = useTransform(heroProgress, [0, 0.28, 0.48], [1, 0.9, 0]);
 
-  const bridgeClip = useTransform(
-    heroProgress,
-    [0.56, 0.8, 1],
-    ["circle(0% at 50% 50%)", "circle(72% at 50% 50%)", "circle(150% at 50% 50%)"],
-  );
-  const bridgeOpacity = useTransform(heroProgress, [0.55, 0.64, 0.82], [0, 0.42, 1]);
-  const bridgeScale = useTransform(heroProgress, [0.56, 0.82, 1], [0.76, 0.98, 1]);
-  const bridgeCopyY = useTransform(heroProgress, [0.64, 0.9, 1], [70, 4, 0]);
+  const bridgeOpacity = useTransform(heroProgress, [0.6, 0.68, 0.84], [0, 0.48, 1]);
+  const bridgeScale = useTransform(heroProgress, [0.58, 0.76, 0.94], [0.035, 0.48, 1]);
+  const bridgeCopyY = useTransform(heroProgress, [0.7, 0.9, 1], [52, 5, 0]);
+  const bridgeCopyOpacity = useTransform(heroProgress, [0.68, 0.82, 0.94], [0, 0.24, 1]);
 
   return (
     <main className={styles.page}>
@@ -161,12 +155,12 @@ export function LandingPage() {
                     x: volumeX,
                     y: volumeY,
                     scale: volumeScale,
-                    borderRadius: volumeRadius,
                   }}
               aria-hidden="true"
             >
               <motion.span className={styles.volumeDepth} style={reduceMotion ? undefined : { scale: volumeDepth }} />
               <motion.span className={styles.volumeLight} style={reduceMotion ? undefined : { opacity: volumeLight }} />
+              <span className={styles.volumeTexture} />
               <span className={styles.volumeRim} />
             </motion.div>
 
@@ -222,11 +216,11 @@ export function LandingPage() {
             className={styles.heroBridge}
             style={reduceMotion
               ? undefined
-              : { clipPath: bridgeClip, opacity: bridgeOpacity, scale: bridgeScale }}
+              : { opacity: bridgeOpacity, scale: bridgeScale }}
           >
             <motion.div
               className={styles.heroBridgeCopy}
-              style={reduceMotion ? undefined : { y: bridgeCopyY }}
+              style={reduceMotion ? undefined : { y: bridgeCopyY, opacity: bridgeCopyOpacity }}
             >
               <span>Запрос становится системой</span>
               <h2>Красота начинается с вопроса.</h2>
