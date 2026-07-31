@@ -22,9 +22,8 @@ import {
   useSpring,
   useTransform,
 } from "motion/react";
-import { useRef } from "react";
-import { DigitalLotus } from "@/components/digital-lotus";
-import { HeroRibbonField } from "@/components/hero-ribbon-field";
+import { useRef, type ReactNode } from "react";
+import { HeroGlassLotus } from "@/components/hero-glass-lotus";
 import { InstagramIcon, SiteFooter, SiteHeader, VkIcon } from "@/components/portal-components";
 import { LinkButton } from "@/components/ui/button";
 import styles from "./landing-page.module.css";
@@ -76,46 +75,61 @@ export function LandingPage() {
   const heroRef = useRef<HTMLElement>(null);
   const pointerX = useMotionValue(0);
   const pointerY = useMotionValue(0);
-  const smoothX = useSpring(pointerX, { stiffness: 82, damping: 24, mass: 0.72 });
-  const smoothY = useSpring(pointerY, { stiffness: 82, damping: 24, mass: 0.72 });
-  const mediaX = useTransform(smoothX, (value) => value * -0.7);
-  const mediaY = useTransform(smoothY, (value) => value * -0.54);
+  const smoothX = useSpring(pointerX, { stiffness: 92, damping: 26, mass: 0.68 });
+  const smoothY = useSpring(pointerY, { stiffness: 92, damping: 26, mass: 0.68 });
+  const volumeX = useTransform(smoothX, (value) => value * -0.6);
+  const volumeY = useTransform(smoothY, (value) => value * -0.42);
   const typeX = useTransform(smoothX, (value) => value * 0.2);
+  const lotusRotateY = useTransform(smoothX, (value) => value * 0.18);
 
   const { scrollYProgress: rawProgress } = useScroll({
     target: heroRef,
     offset: ["start start", "end end"],
   });
-  const heroProgress = useSpring(rawProgress, { stiffness: 94, damping: 28, mass: 0.34 });
+  const heroProgress = useSpring(rawProgress, {
+    stiffness: 76,
+    damping: 28,
+    mass: 0.44,
+    restDelta: 0.001,
+  });
 
-  const sceneScale = useTransform(heroProgress, [0, 0.42, 0.82, 1], [1, 1, 1.025, 0.965]);
-  const sceneRadius = useTransform(heroProgress, [0, 0.66, 1], [0, 0, 36]);
-  const backdropScale = useTransform(heroProgress, [0, 0.46, 0.84], [1.02, 1.11, 1.58]);
-  const backdropRotate = useTransform(heroProgress, [0, 0.52, 0.86], [0, -2.2, 8]);
-  const backdropOpacity = useTransform(heroProgress, [0, 0.63, 0.9], [1, 0.9, 0]);
-  const lotusScale = useTransform(heroProgress, [0, 0.18, 0.48, 0.73], [0.7, 0.86, 1.03, 1.38]);
-  const lotusRotate = useTransform(heroProgress, [0, 0.46, 0.76], [-2, 2, -7]);
-  const lotusOpacity = useTransform(heroProgress, [0, 0.69, 0.88], [1, 1, 0]);
-  const lotusBloom = useTransform(heroProgress, [0, 0.14, 0.42, 0.58], [0.12, 0.26, 0.72, 1]);
-  const scatterLeftFar = useTransform(heroProgress, [0.48, 0.82], ["0vw", "-74vw"]);
-  const scatterLeft = useTransform(heroProgress, [0.48, 0.82], ["0vw", "-52vw"]);
-  const scatterRight = useTransform(heroProgress, [0.48, 0.82], ["0vw", "52vw"]);
-  const scatterRightFar = useTransform(heroProgress, [0.48, 0.82], ["0vw", "74vw"]);
-  const scatterUpFar = useTransform(heroProgress, [0.48, 0.82], ["0vh", "-72vh"]);
-  const scatterUp = useTransform(heroProgress, [0.48, 0.82], ["0vh", "-46vh"]);
-  const scatterDown = useTransform(heroProgress, [0.48, 0.82], ["0vh", "44vh"]);
-  const introY = useTransform(heroProgress, [0, 0.3, 0.55], [0, -12, -84]);
-  const introScale = useTransform(heroProgress, [0, 0.36, 0.58], [1, 0.98, 0.86]);
-  const introOpacity = useTransform(heroProgress, [0, 0.34, 0.6], [1, 0.88, 0]);
-  const detailOpacity = useTransform(heroProgress, [0, 0.22, 0.49], [1, 0.82, 0]);
-  const aperture = useTransform(
+  const volumeScale = useTransform(heroProgress, [0, 0.36, 0.7, 1], [0.72, 0.94, 1.34, 2.3]);
+  const volumeRadius = useTransform(
     heroProgress,
-    [0.49, 0.78, 1],
-    ["circle(0% at 50% 54%)", "circle(76% at 50% 54%)", "circle(150% at 50% 54%)"],
+    [0, 0.5, 0.82, 1],
+    ["48%", "42%", "24%", "0%"],
   );
-  const revealScale = useTransform(heroProgress, [0.49, 0.8, 1], [0.86, 0.98, 1]);
-  const revealOpacity = useTransform(heroProgress, [0.5, 0.66, 1], [0, 0.88, 1]);
-  const revealCopyY = useTransform(heroProgress, [0.58, 0.84, 1], [92, 8, 0]);
+  const volumeLight = useTransform(heroProgress, [0, 0.34, 0.7, 1], [0.18, 0.46, 0.82, 0.98]);
+  const volumeDepth = useTransform(heroProgress, [0, 0.46, 0.82], [0.92, 1.08, 1.34]);
+
+  const lotusScale = useTransform(heroProgress, [0, 0.18, 0.48, 0.7, 0.9], [0.58, 0.76, 1.02, 1.18, 1.5]);
+  const lotusY = useTransform(heroProgress, [0, 0.34, 0.7], ["7vh", "1vh", "-3vh"]);
+  const lotusTilt = useTransform(heroProgress, [0, 0.34, 0.64], [67, 51, 24]);
+  const lotusRotate = useTransform(heroProgress, [0, 0.42, 0.72], [-7, -2, 5]);
+  const lotusOpacity = useTransform(heroProgress, [0, 0.1, 0.78, 0.94], [0.35, 1, 1, 0]);
+  const lotusBloom = useTransform(heroProgress, [0, 0.16, 0.46, 0.6], [0.04, 0.18, 0.82, 1]);
+  const coreOpacity = useTransform(heroProgress, [0.5, 0.72, 0.9], [1, 0.72, 0]);
+  const leftFar = useTransform(heroProgress, [0.52, 0.86], ["0vw", "-66vw"]);
+  const left = useTransform(heroProgress, [0.52, 0.86], ["0vw", "-45vw"]);
+  const right = useTransform(heroProgress, [0.52, 0.86], ["0vw", "45vw"]);
+  const rightFar = useTransform(heroProgress, [0.52, 0.86], ["0vw", "66vw"]);
+  const upFar = useTransform(heroProgress, [0.52, 0.86], ["0vh", "-62vh"]);
+  const up = useTransform(heroProgress, [0.52, 0.86], ["0vh", "-38vh"]);
+  const down = useTransform(heroProgress, [0.52, 0.86], ["0vh", "42vh"]);
+
+  const introOpacity = useTransform(heroProgress, [0, 0.24, 0.46], [1, 1, 0]);
+  const introY = useTransform(heroProgress, [0, 0.46], [0, -62]);
+  const introScale = useTransform(heroProgress, [0, 0.46], [1, 0.92]);
+  const actionsOpacity = useTransform(heroProgress, [0, 0.26, 0.48], [1, 0.92, 0]);
+
+  const bridgeClip = useTransform(
+    heroProgress,
+    [0.56, 0.8, 1],
+    ["circle(0% at 50% 50%)", "circle(72% at 50% 50%)", "circle(150% at 50% 50%)"],
+  );
+  const bridgeOpacity = useTransform(heroProgress, [0.55, 0.64, 0.82], [0, 0.42, 1]);
+  const bridgeScale = useTransform(heroProgress, [0.56, 0.82, 1], [0.76, 0.98, 1]);
+  const bridgeCopyY = useTransform(heroProgress, [0.64, 0.9, 1], [70, 4, 0]);
 
   return (
     <main className={styles.page}>
@@ -128,8 +142,8 @@ export function LandingPage() {
         onPointerMove={(event) => {
           if (reduceMotion || event.pointerType !== "mouse") return;
           const rect = event.currentTarget.getBoundingClientRect();
-          pointerX.set(((event.clientX - rect.left) / rect.width - 0.5) * 30);
-          pointerY.set(((event.clientY - rect.top) / rect.height - 0.5) * 24);
+          pointerX.set(((event.clientX - rect.left) / rect.width - 0.5) * 26);
+          pointerY.set(((event.clientY - rect.top) / rect.height - 0.5) * 20);
         }}
         onPointerLeave={() => {
           pointerX.set(0);
@@ -137,57 +151,49 @@ export function LandingPage() {
         }}
       >
         <div className={styles.heroSticky}>
-          <motion.div
-            className={styles.heroScene}
-            style={reduceMotion ? undefined : { scale: sceneScale, borderRadius: sceneRadius }}
-          >
+          <div className={styles.heroStage}>
+            <div className={styles.heroGround} aria-hidden="true" />
             <motion.div
-              className={styles.motionField}
-              style={reduceMotion ? undefined : { x: mediaX, y: mediaY }}
+              className={styles.cherryVolume}
+              style={reduceMotion
+                ? undefined
+                : {
+                    x: volumeX,
+                    y: volumeY,
+                    scale: volumeScale,
+                    borderRadius: volumeRadius,
+                  }}
               aria-hidden="true"
             >
-              <video
-                className={styles.ambientFilm}
-                src="/krasavitsa-beauty-loop-source.mp4"
-                muted
-                autoPlay
-                loop
-                playsInline
-                preload="metadata"
-                tabIndex={-1}
-              />
-              <motion.div
-                className={styles.ribbonField}
-                style={reduceMotion
-                  ? undefined
-                  : { scale: backdropScale, rotate: backdropRotate, opacity: backdropOpacity }}
-              >
-                <HeroRibbonField />
-              </motion.div>
-              <div className={styles.spectralVeil} />
-              <div className={styles.axisGrid} />
+              <motion.span className={styles.volumeDepth} style={reduceMotion ? undefined : { scale: volumeDepth }} />
+              <motion.span className={styles.volumeLight} style={reduceMotion ? undefined : { opacity: volumeLight }} />
+              <span className={styles.volumeRim} />
             </motion.div>
 
             <motion.div
               className={styles.glassLotus}
               style={reduceMotion
-                ? ({ "--lotus-bloom": 1 } as never)
+                ? ({ "--lotus-bloom": 1, "--lotus-core-opacity": 1 } as never)
                 : ({
+                    x: smoothX,
+                    y: lotusY,
                     scale: lotusScale,
-                    rotate: lotusRotate,
+                    rotateX: lotusTilt,
+                    rotateY: lotusRotateY,
+                    rotateZ: lotusRotate,
                     opacity: lotusOpacity,
                     "--lotus-bloom": lotusBloom,
-                    "--scatter-left-far": scatterLeftFar,
-                    "--scatter-left": scatterLeft,
-                    "--scatter-right": scatterRight,
-                    "--scatter-right-far": scatterRightFar,
-                    "--scatter-up-far": scatterUpFar,
-                    "--scatter-up": scatterUp,
-                    "--scatter-down": scatterDown,
+                    "--lotus-core-opacity": coreOpacity,
+                    "--petal-left-far": leftFar,
+                    "--petal-left": left,
+                    "--petal-right": right,
+                    "--petal-right-far": rightFar,
+                    "--petal-up-far": upFar,
+                    "--petal-up": up,
+                    "--petal-down": down,
                   } as never)}
-              aria-hidden="true"
             >
-              <DigitalLotus className={styles.lotusObject} />
+              <HeroGlassLotus className={styles.lotusObject} />
             </motion.div>
 
             <motion.div
@@ -203,86 +209,88 @@ export function LandingPage() {
 
             <motion.div
               className={styles.heroActions}
-              style={reduceMotion ? undefined : { opacity: detailOpacity }}
+              style={reduceMotion ? undefined : { opacity: actionsOpacity }}
             >
               <p>Точный выбор без лишнего шума.</p>
               <LinkButton href="/care" className={styles.primaryAction} data-analytics="hero_search">
                 Начать подбор <ArrowRight aria-hidden="true" />
               </LinkButton>
             </motion.div>
+          </div>
 
+          <motion.div
+            className={styles.heroBridge}
+            style={reduceMotion
+              ? undefined
+              : { clipPath: bridgeClip, opacity: bridgeOpacity, scale: bridgeScale }}
+          >
             <motion.div
-              className={styles.apertureReveal}
-              style={reduceMotion
-                ? undefined
-                : { clipPath: aperture, scale: revealScale, opacity: revealOpacity }}
-              aria-hidden={reduceMotion ? true : undefined}
+              className={styles.heroBridgeCopy}
+              style={reduceMotion ? undefined : { y: bridgeCopyY }}
             >
-              <motion.div
-                className={styles.apertureCopy}
-                style={reduceMotion ? undefined : { y: revealCopyY }}
-              >
-                <span>01 · ЗАПРОС СТАНОВИТСЯ СИСТЕМОЙ</span>
-                <strong>Красота начинается с вопроса.</strong>
-                <p>Три направления. Одна ясная логика выбора.</p>
-              </motion.div>
-              <div className={styles.apertureSignal} aria-hidden="true">
-                <i />
-                <i />
-                <i />
-              </div>
+              <span>Запрос становится системой</span>
+              <h2>Красота начинается с вопроса.</h2>
+              <p>Три направления. Одна ясная логика выбора.</p>
             </motion.div>
+            <span className={styles.bridgePulse} aria-hidden="true" />
           </motion.div>
         </div>
       </section>
 
       <section className={styles.directions} id="directions" aria-labelledby="directions-title">
-        <div className={styles.sectionHeading}>
-          <p>ТРИ РЕЖИМА · ОДНА ЛОГИКА</p>
+        <Reveal className={styles.modeIntro}>
+          <div>
+            <span>Три режима</span>
+            <span>Одна логика</span>
+          </div>
           <h2 id="directions-title">
             Выберите задачу.
             <br />
             <em>Остальное уточним.</em>
           </h2>
-          <span>
+          <p>
             Интерфейс задаст только нужные вопросы и не смешает правила кожи, волос и парфюмерии.
-          </span>
-        </div>
-        <div className={styles.directionGrid}>
-          {directions.map(({ label, number, text, note, Icon }, order) => (
-            <motion.div
-              key={label}
-              initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 36 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-80px" }}
-              transition={{ duration: 0.64, delay: order * 0.08, ease: [0.16, 1, 0.3, 1] }}
-            >
-              <Link href="/care" className={styles.directionCard}>
-                <span className={styles.directionNumber}>{number}</span>
-                <span className={styles.directionIcon}>
-                  <Icon aria-hidden="true" />
-                </span>
-                <strong>{label}</strong>
-                <p>{text}</p>
-                <small>{note}</small>
-                <ArrowUpRight className={styles.cardArrow} aria-hidden="true" />
-              </Link>
-            </motion.div>
-          ))}
+          </p>
+        </Reveal>
+
+        <div className={styles.modeAtlas}>
+          <Reveal className={styles.modeAxis}>
+            <div aria-hidden="true">
+              <span>03</span>
+              <i />
+              <i />
+              <i />
+            </div>
+            <p>Точка входа меняется. Способ думать остаётся ясным.</p>
+          </Reveal>
+
+          <div className={styles.modeLanes}>
+            {directions.map(({ label, number, text, note, Icon }, index) => (
+              <Reveal key={label} className={styles.modeLaneWrap} delay={index * 0.06}>
+                <Link href="/care" className={styles.modeLane}>
+                  <span className={styles.modeNumber}>{number}</span>
+                  <span className={styles.modeIcon}>
+                    <Icon aria-hidden="true" />
+                  </span>
+                  <strong>{label}</strong>
+                  <span className={styles.modeDescription}>
+                    <b>{text}</b>
+                    <small>{note}</small>
+                  </span>
+                  <ArrowUpRight className={styles.modeArrow} aria-hidden="true" />
+                </Link>
+              </Reveal>
+            ))}
+          </div>
         </div>
       </section>
 
       <section className={styles.intelligence} aria-labelledby="intelligence-title">
-        <div className={styles.signalCanvas} aria-label="Схема формирования рекомендации">
-          <motion.div
-            className={styles.queryNode}
-            initial={reduceMotion ? undefined : { opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-120px" }}
-          >
+        <Reveal className={styles.signalCanvas}>
+          <div className={styles.queryNode}>
             <span>Ваш запрос</span>
             <strong>«Нужен мягкий уход без перегруза»</strong>
-          </motion.div>
+          </div>
           <div className={styles.signalRail} aria-hidden="true">
             <i />
             <i />
@@ -290,48 +298,28 @@ export function LandingPage() {
             <i />
           </div>
           <div className={styles.verificationNodes}>
-            <motion.span
-              initial={reduceMotion ? undefined : { scale: 0.7, opacity: 0 }}
-              whileInView={{ scale: 1, opacity: 1 }}
-              viewport={{ once: true }}
-            >
+            <span>
               <Check /> состав
-            </motion.span>
-            <motion.span
-              initial={reduceMotion ? undefined : { scale: 0.7, opacity: 0 }}
-              whileInView={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.1 }}
-              viewport={{ once: true }}
-            >
+            </span>
+            <span>
               <Check /> наличие
-            </motion.span>
-            <motion.span
-              initial={reduceMotion ? undefined : { scale: 0.7, opacity: 0 }}
-              whileInView={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              viewport={{ once: true }}
-            >
+            </span>
+            <span>
               <Check /> роль
-            </motion.span>
+            </span>
           </div>
-          <motion.div
-            className={styles.resultPreview}
-            initial={reduceMotion ? undefined : { opacity: 0, x: 34, rotate: 2 }}
-            whileInView={{ opacity: 1, x: 0, rotate: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 0.72, ease: [0.16, 1, 0.3, 1] }}
-          >
+          <div className={styles.resultPreview}>
             <span>Сценарий готов</span>
             <strong>3 шага · 4 средства</strong>
-            <div>
+            <div aria-hidden="true">
               <i />
               <i />
               <i />
             </div>
-          </motion.div>
-        </div>
+          </div>
+        </Reveal>
 
-        <div className={styles.intelligenceCopy}>
+        <Reveal className={styles.intelligenceCopy} delay={0.08}>
           <p className={styles.eyebrow}>HOW IT THINKS / 03 STEPS</p>
           <h2 id="intelligence-title">
             Из запроса —
@@ -340,30 +328,24 @@ export function LandingPage() {
           </h2>
           <div className={styles.processList}>
             {process.map(({ title, text, metric }, index) => (
-              <motion.article
-                key={title}
-                initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 26 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-64px" }}
-                transition={{ duration: 0.55, delay: index * 0.08 }}
-              >
+              <article key={title}>
                 <span>0{index + 1}</span>
                 <div>
                   <h3>{title}</h3>
                   <p>{text}</p>
                 </div>
                 <small>{metric}</small>
-              </motion.article>
+              </article>
             ))}
           </div>
           <LinkButton href="/care" className={styles.secondaryAction}>
             Попробовать на своём запросе <ArrowRight aria-hidden="true" />
           </LinkButton>
-        </div>
+        </Reveal>
       </section>
 
       <section className={styles.memory} aria-labelledby="memory-title">
-        <div className={styles.memoryCopy}>
+        <Reveal className={styles.memoryCopy}>
           <p className={styles.eyebrow}>YOUR BEAUTY MEMORY</p>
           <h2 id="memory-title">
             Полезное остаётся.
@@ -371,18 +353,19 @@ export function LandingPage() {
             <em>Шум — нет.</em>
           </h2>
           <p>
-            Избранное, история подборов и ваши материалы живут в одном пространстве. Только то,
-            к чему действительно хочется вернуться.
+            Избранное, история подборов и ваши материалы живут в одном пространстве. Только то, к
+            чему действительно хочется вернуться.
           </p>
           <LinkButton href="/profile" className={styles.memoryAction}>
             <UserRound aria-hidden="true" /> Открыть профиль
           </LinkButton>
-        </div>
-        <div className={styles.memoryScene}>
+        </Reveal>
+
+        <Reveal className={styles.memoryScene} delay={0.08}>
           <div className={styles.memoryHalo} aria-hidden="true" />
           <motion.article
             className={styles.memoryCard}
-            whileHover={reduceMotion ? undefined : { y: -8, rotate: -1.6 }}
+            whileHover={reduceMotion ? undefined : { y: -7, rotate: -1.2 }}
           >
             <Heart />
             <span>01</span>
@@ -391,7 +374,7 @@ export function LandingPage() {
           </motion.article>
           <motion.article
             className={styles.memoryCard}
-            whileHover={reduceMotion ? undefined : { y: -8, rotate: 1.2 }}
+            whileHover={reduceMotion ? undefined : { y: -7, rotate: 1 }}
           >
             <History />
             <span>02</span>
@@ -400,23 +383,23 @@ export function LandingPage() {
           </motion.article>
           <motion.article
             className={styles.memoryCard}
-            whileHover={reduceMotion ? undefined : { y: -8, rotate: -0.8 }}
+            whileHover={reduceMotion ? undefined : { y: -7, rotate: -0.7 }}
           >
             <Sparkles />
             <span>03</span>
             <strong>Публикации</strong>
             <p>Собственные статьи и живой опыт сообщества.</p>
           </motion.article>
-        </div>
+        </Reveal>
       </section>
 
       <section className={styles.community} aria-labelledby="community-title">
-        <div>
+        <Reveal>
           <p className={styles.eyebrow}>ГДЕ ВАМ УДОБНО</p>
           <h2 id="community-title">Красавица — рядом.</h2>
           <span>Подбор в боте, новости проекта и визуальные материалы.</span>
-        </div>
-        <div className={styles.communityGrid}>
+        </Reveal>
+        <Reveal className={styles.communityGrid} delay={0.08}>
           <CommunityLink href="https://t.me/krasavitsa_ai_bot" label="Telegram-бот">
             <Bot />
           </CommunityLink>
@@ -432,11 +415,35 @@ export function LandingPage() {
           <CommunityLink href="https://vk.ru/krasavitsa_ai" label="VK">
             <VkIcon />
           </CommunityLink>
-        </div>
+        </Reveal>
       </section>
 
       <SiteFooter />
     </main>
+  );
+}
+
+function Reveal({
+  children,
+  className,
+  delay = 0,
+}: {
+  children: ReactNode;
+  className?: string;
+  delay?: number;
+}) {
+  const reduceMotion = useReducedMotion();
+
+  return (
+    <motion.div
+      className={className}
+      initial={reduceMotion ? false : { opacity: 0.42, y: 28 }}
+      whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-72px 0px" }}
+      transition={{ duration: 0.68, delay, ease: [0.16, 1, 0.3, 1] }}
+    >
+      {children}
+    </motion.div>
   );
 }
 
@@ -447,9 +454,10 @@ function CommunityLink({
 }: {
   href: string;
   label: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   const reduceMotion = useReducedMotion();
+
   return (
     <motion.a
       href={href}
@@ -457,8 +465,7 @@ function CommunityLink({
       rel="noreferrer"
       aria-label={label}
       className={styles.communityLink}
-      whileHover={reduceMotion ? undefined : { y: -6 }}
-      whileTap={reduceMotion ? undefined : { scale: 0.97 }}
+      whileTap={reduceMotion ? undefined : { scale: 0.98 }}
     >
       <span>{children}</span>
       <strong>{label}</strong>

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Camera, Heart, History, LogOut, ShieldCheck, SlidersHorizontal, UserRound } from "lucide-react";
+import { Camera, Heart, History, LogOut, ScanLine, ShieldCheck, SlidersHorizontal, UserRound } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { FormEvent, useEffect, useState } from "react";
 import { trackAnalyticsEvent } from "@/lib/analytics-client";
@@ -12,6 +12,7 @@ type User = { id: string; email: string; nickname: string; avatarUrl?: string; c
 type Library = {
   favorites: Array<{ id: string; name: string; category: string; image?: string }>;
   history: Array<{ id: string; query: string; mode: string; createdAt: string }>;
+  inciAnalyses: Array<{ id: string; label: string; ingredientCount: number; createdAt: string }>;
   consents: { privacy: boolean; terms: boolean; analytics: boolean; updatedAt: string };
 };
 type Mode = "register" | "login";
@@ -177,7 +178,15 @@ export function ProfileDemo() {
 
 function ProfileLibrary({ library, onAnalyticsChange }: { library: Library; onAnalyticsChange: (next: boolean) => Promise<void> }) {
   return (
-    <div className="mt-8 grid gap-3 lg:grid-cols-3">
+    <div className="mt-8 grid gap-3 sm:grid-cols-2">
+      <Link href="/scanner" className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface-muted)] p-4 no-underline transition hover:-translate-y-0.5 hover:border-[var(--color-bordeaux)]">
+        <div className="flex items-center gap-2"><ScanLine className="size-4 text-[var(--color-bordeaux)]" /><p className="text-sm font-black">Разборы составов</p></div>
+        <p className="mt-3 text-xs font-semibold text-[var(--color-text-muted)]">
+          {library.inciAnalyses?.length
+            ? `${library.inciAnalyses.length} сохранено · ${library.inciAnalyses[0].label}`
+            : "Проверьте INCI и сохраните результат в Beauty ID."}
+        </p>
+      </Link>
       <section className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface-muted)] p-4">
         <div className="flex items-center gap-2"><Heart className="size-4 text-[var(--color-bordeaux)]" /><p className="text-sm font-black">Избранное</p></div>
         <p className="mt-3 text-xs font-semibold text-[var(--color-text-muted)]">{library.favorites.length ? library.favorites.map((item) => item.name).slice(0, 2).join(" · ") : "Сохраняйте средства из готовых подборок."}</p>

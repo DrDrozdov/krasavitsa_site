@@ -4,7 +4,7 @@ import { AnalyticsTracker } from "@/components/analytics-tracker";
 import { CookieConsent } from "@/components/cookie-consent";
 import "./globals.css";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://krasavitsa.ai";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://krasavitsa-ai.ru";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

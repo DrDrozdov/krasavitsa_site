@@ -1,6 +1,6 @@
 import { Store } from "lucide-react";
 
-type MarketplaceKind = "goldapple" | "letoile" | "ozon" | "wildberries" | "yandex" | "store";
+type MarketplaceKind = "goldapple" | "letoile" | "ozon" | "wildberries" | "yandex" | "rivegauche" | "tsum" | "store";
 
 function identifyMarketplace(label: string, href: string): MarketplaceKind {
   const source = `${label} ${href}`.toLocaleLowerCase("ru-RU");
@@ -10,6 +10,8 @@ function identifyMarketplace(label: string, href: string): MarketplaceKind {
   if (source.includes("ozon") || source.includes("озон")) return "ozon";
   if (source.includes("wildberries") || source.includes("вайлдберриз") || source.includes("wb.ru")) return "wildberries";
   if (source.includes("market.yandex") || source.includes("маркет") || source.includes("yandex")) return "yandex";
+  if (source.includes("rivegauche") || source.includes("рив гош")) return "rivegauche";
+  if (source.includes("tsum.ru") || source.includes("цум")) return "tsum";
 
   return "store";
 }
@@ -17,16 +19,28 @@ function identifyMarketplace(label: string, href: string): MarketplaceKind {
 function GoldAppleMark() {
   return (
     <svg viewBox="0 0 24 24" role="img" aria-label="Золотое яблоко">
-      <defs>
-        <linearGradient id="gold-apple-mark" x1="4" y1="3" x2="20" y2="21" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#F9DC92" />
-          <stop offset="0.5" stopColor="#B98836" />
-          <stop offset="1" stopColor="#6D4319" />
-        </linearGradient>
-      </defs>
-      <path d="M12.1 7.1c-1.7-2-5.2-1.7-7 .4C2.2 11 5 18.9 8.5 20.3c1.2.5 2.2-.5 3.5-.5s2.3 1 3.5.5C19 18.9 21.8 11 19 7.5c-1.8-2.2-5.3-2.4-6.9-.4Z" fill="url(#gold-apple-mark)" />
-      <path d="M12.3 6.8c.2-2.2 1.7-3.8 4.1-4.1-.1 2.2-1.6 3.8-4.1 4.1Z" fill="#5D782E" />
-      <path d="M9.2 8.5c-1.6.2-2.8 1.4-3.1 3" fill="none" stroke="#FFF7E5" strokeLinecap="round" strokeWidth="1.15" />
+      <rect width="24" height="24" rx="7" fill="#111" />
+      <text x="12" y="10.8" fill="#fff" fontFamily="Arial, sans-serif" fontSize="4.15" fontWeight="800" letterSpacing="-.18" textAnchor="middle">GOLD</text>
+      <text x="12" y="15.8" fill="#fff" fontFamily="Arial, sans-serif" fontSize="4.15" fontWeight="800" letterSpacing="-.18" textAnchor="middle">APPLE</text>
+    </svg>
+  );
+}
+
+function RiveGaucheMark() {
+  return (
+    <svg viewBox="0 0 24 24" role="img" aria-label="Рив Гош">
+      <rect width="24" height="24" rx="7" fill="#F05A24" />
+      <path d="M5 7.1h5.2c2.6 0 4.1 1.2 4.1 3.3 0 1.4-.7 2.4-2 2.9l2.8 3.6h-3l-2.3-3.2H7.6v3.2H5V7.1Zm2.6 2.1v2.5H10c1.1 0 1.7-.4 1.7-1.3s-.6-1.2-1.7-1.2H7.6Z" fill="#fff" />
+      <path d="M15.7 7.1H19v2.3h-3.3V7.1Zm0 3.5H19v6.3h-3.3v-6.3Z" fill="#fff" />
+    </svg>
+  );
+}
+
+function TsumMark() {
+  return (
+    <svg viewBox="0 0 24 24" role="img" aria-label="ЦУМ">
+      <rect width="24" height="24" rx="7" fill="#111" />
+      <text x="12" y="14.8" fill="#fff" fontFamily="Arial, sans-serif" fontSize="7.2" fontWeight="700" letterSpacing=".3" textAnchor="middle">ЦУМ</text>
     </svg>
   );
 }
@@ -84,6 +98,8 @@ export function MarketplaceMark({ label, href, className }: { label: string; hre
       {kind === "ozon" ? <OzonMark /> : null}
       {kind === "wildberries" ? <WildberriesMark /> : null}
       {kind === "yandex" ? <YandexMarketMark /> : null}
+      {kind === "rivegauche" ? <RiveGaucheMark /> : null}
+      {kind === "tsum" ? <TsumMark /> : null}
       {kind === "store" ? <Store /> : null}
     </span>
   );

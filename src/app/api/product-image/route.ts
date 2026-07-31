@@ -21,7 +21,7 @@ const fallback: Record<SearchMode, string> = {
 type Candidate = {
   url: URL;
   context: string;
-  sourceType: "structured-product" | "product-meta" | "social-meta" | "image-search";
+  sourceType: "structured-product" | "product-meta" | "product-image" | "social-meta" | "image-search";
   width?: number;
   height?: number;
 };
@@ -124,7 +124,43 @@ async function imageDiscoveryAgent(source: URL): Promise<Candidate[]> {
       });
     } catch { /* Invalid metadata URL. */ }
   }
-  return candidates.filter((item, index, all) => all.findIndex((candidate) => candidate.url.href === item.url.href) === index).slice(0, 8);
+  // Several large marketplaces render the exact product packshot as a regular
+  // server-side <img> instead of JSON-LD/OG metadata. Keep the surrounding alt
+  // text as identity evidence; the verifier below still rejects banners,
+  // unrelated assets and non-packshot aspect ratios.
+  for (const tag of html.match(/<img\b[^>]+>/gi) ?? []) {
+    const alt = extractAttribute(tag, "alt");
+    const srcset = extractAttribute(tag, "srcset");
+    const srcsetLargest = srcset
+      .split(",")
+      .map((item) => item.trim().split(/\s+/)[0])
+      .filter(Boolean)
+      .at(-1);
+    const raw = srcsetLargest
+      || extractAttribute(tag, "src")
+      || extractAttribute(tag, "data-src")
+      || extractAttribute(tag, "data-original");
+    if (!raw || !/^https?:|^\//i.test(raw)) continue;
+    if (/logo|icon|sprite|avatar|banner|promo|app-store|google-play|qr-code/i.test(`${alt} ${raw}`)) continue;
+    try {
+      candidates.push({
+        url: new URL(raw, response.url),
+        context: `${response.url} ${alt} ${tag.slice(0, 700)}`,
+        sourceType: "product-image",
+      });
+    } catch { /* Invalid image URL. */ }
+  }
+  const sourcePriority: Record<Candidate["sourceType"], number> = {
+    "structured-product": 5,
+    "product-image": 4,
+    "product-meta": 3,
+    "social-meta": 2,
+    "image-search": 1,
+  };
+  return candidates
+    .filter((item, index, all) => all.findIndex((candidate) => candidate.url.href === item.url.href) === index)
+    .sort((left, right) => sourcePriority[right.sourceType] - sourcePriority[left.sourceType])
+    .slice(0, 12);
 }
 
 async function imageSearchAgent(name: string): Promise<Candidate[]> {
@@ -161,6 +197,7 @@ async function imageVerificationAgent(name: string, candidates: Candidate[]) {
     ...candidate,
     score: productTokens.filter((token) => decodeURIComponent(`${candidate.url.pathname} ${candidate.context}`).toLowerCase().includes(token)).length * 5
       + (candidate.sourceType === "structured-product" ? 8 : candidate.sourceType === "product-meta" ? 5 : 0)
+      + (candidate.sourceType === "product-image" ? 7 : 0)
       + (/packshot|product|white background|transparent|official/i.test(candidate.context) ? 3 : 0)
       - (/advert|banner|campaign|editorial|review|lookbook|model|instagram|pinterest|youtube|hero|gift.?set/i.test(candidate.context) ? 14 : 0),
   })).sort((a, b) => b.score - a.score);
@@ -171,7 +208,10 @@ async function imageVerificationAgent(name: string, candidates: Candidate[]) {
       if (declaredRatio > 1.65 || declaredRatio < .5 || (candidate.width && candidate.width < 280) || (candidate.height && candidate.height < 280)) continue;
       const context = decodeURIComponent(`${candidate.url.pathname} ${candidate.context}`).toLowerCase();
       const tokenMatches = productTokens.filter((token) => context.includes(token)).length;
-      if (productTokens.length > 1 && tokenMatches < Math.max(1, Math.ceil(productTokens.length * .34))) continue;
+      const minimumMatches = candidate.sourceType === "product-image" || candidate.sourceType === "structured-product"
+        ? 1
+        : Math.max(1, Math.ceil(productTokens.length * .34));
+      if (productTokens.length > 1 && tokenMatches < minimumMatches) continue;
       const response = await fetchPublicUrl(candidate.url, {
         headers: { "User-Agent": "Mozilla/5.0 KrasavitsaImageVerifier/1.0", Accept: "image/avif,image/webp,image/png,image/jpeg,*/*" },
         cache: "force-cache",

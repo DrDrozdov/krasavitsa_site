@@ -3,6 +3,7 @@ import "server-only";
 import { createHash, randomUUID, scryptSync, timingSafeEqual } from "node:crypto";
 import { mkdir, readFile, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
+import type { InciAnalysis, SavedInciAnalysis } from "@/lib/inci-types";
 
 export type StoredUser = {
   id: string;
@@ -19,6 +20,7 @@ export type StoredUser = {
   emailVerificationExpiresAt?: string;
   favorites?: SavedProduct[];
   recommendationHistory?: RecommendationHistory[];
+  inciAnalyses?: SavedInciAnalysis[];
   consents?: UserConsents;
 };
 
@@ -71,6 +73,7 @@ export async function getUserLibrary(userId: string) {
   return {
     favorites: user.favorites ?? [],
     history: user.recommendationHistory ?? [],
+    inciAnalyses: user.inciAnalyses ?? [],
     consents: user.consents ?? { privacy: true, terms: true, analytics: false, updatedAt: user.createdAt },
   };
 }
@@ -109,6 +112,56 @@ export async function saveRecommendationHistory(userId: string, input: { query?:
     };
     user.recommendationHistory = [entry, ...(user.recommendationHistory ?? [])].slice(0, 20);
     result = user.recommendationHistory;
+    await writeState(state);
+  });
+  writeQueue = task.catch(() => undefined);
+  await task;
+  return result;
+}
+
+export async function saveInciAnalysis(
+  userId: string,
+  analysis: InciAnalysis,
+  input: { label?: string; routineText?: string } = {},
+): Promise<SavedInciAnalysis[] | null> {
+  const createdAt = new Date().toISOString();
+  const fallbackLabel = analysis.actives.length
+    ? analysis.actives.slice(0, 2).map((active) => active.name).join(" + ")
+    : `Разбор от ${new Intl.DateTimeFormat("ru-RU").format(new Date())}`;
+  const label = (input.label?.trim() || fallbackLabel).replace(/\s+/g, " ").slice(0, 100);
+  const entry: SavedInciAnalysis = {
+    id: randomUUID(),
+    label,
+    source: analysis.source === "photo" ? "photo" : "text",
+    headline: analysis.headline.slice(0, 220),
+    extractedText: analysis.extractedText.slice(0, 8_000),
+    routineText: (input.routineText ?? "").replace(/\s+/g, " ").trim().slice(0, 2_400),
+    ingredientCount: Math.max(0, Math.min(120, Math.round(analysis.ingredientCount))),
+    actives: analysis.actives.slice(0, 12).map((active) => ({
+      name: active.name.slice(0, 120),
+      inciName: active.inciName.slice(0, 180),
+      positionHint: active.positionHint,
+      roles: active.roles.slice(0, 6).map((role) => role.slice(0, 80)),
+      note: active.note.slice(0, 500),
+    })),
+    conflicts: analysis.conflicts.slice(0, 5).map((conflict) => ({
+      id: conflict.id.slice(0, 100),
+      level: conflict.level === "attention" ? "attention" : "info",
+      title: conflict.title.slice(0, 180),
+      description: conflict.description.slice(0, 600),
+      suggestion: conflict.suggestion.slice(0, 600),
+      matched: conflict.matched.slice(0, 8).map((item) => item.slice(0, 120)),
+    })),
+    createdAt,
+  };
+
+  let result: SavedInciAnalysis[] | null = null;
+  const task = writeQueue.then(async () => {
+    const state = await readState();
+    const user = state.users.find((item) => item.id === userId);
+    if (!user) return;
+    user.inciAnalyses = [entry, ...(user.inciAnalyses ?? [])].slice(0, 30);
+    result = user.inciAnalyses;
     await writeState(state);
   });
   writeQueue = task.catch(() => undefined);
@@ -172,6 +225,7 @@ export async function createUser(input: { email: string; nickname: string; passw
       emailVerificationExpiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString(),
       favorites: [],
       recommendationHistory: [],
+      inciAnalyses: [],
       consents: { privacy: true, terms: true, analytics: false, updatedAt: now },
     };
     state.users.push(created);

@@ -25,6 +25,7 @@ import { cn } from "@/lib/utils";
 export const navLinks = [
   ["Главная", "/"],
   ["AI-подбор", "/care"],
+  ["Сканер состава", "/scanner"],
   ["Журнал", "/blog"],
   ["О проекте", "/about"],
   ["Профиль", "/profile"],
@@ -58,7 +59,7 @@ export function SiteHeader() {
     hoverCloseTimerRef.current = window.setTimeout(() => {
       openedByPointerRef.current = false;
       setMobileOpen(false);
-    }, 140);
+    }, 84);
   };
 
   useEffect(() => () => cancelHoverClose(), []);
@@ -72,12 +73,24 @@ export function SiteHeader() {
     let frame = 0;
     const update = () => {
       frame = 0;
-      const progress = pathname === "/" ? Math.min(1, Math.max(0, window.scrollY / 240)) : 1;
+      const rawProgress = pathname === "/" ? Math.min(1, Math.max(0, window.scrollY / 360)) : 1;
+      const progress = rawProgress * rawProgress * (3 - 2 * rawProgress);
+      const viewport = Math.max(320, window.innerWidth);
+      const compactWidth = Math.min(1320, viewport - 32);
+      const openWidth = Math.min(1760, viewport - 32);
+      const chromeWidth = openWidth + (compactWidth - openWidth) * progress;
+      const navGap = 34 + (5 - 34) * progress;
       headerRef.current?.style.setProperty("--chrome-progress", progress.toFixed(3));
-      headerRef.current?.style.setProperty("--chrome-alpha", (progress * .23).toFixed(3));
-      headerRef.current?.style.setProperty("--chrome-border-alpha", (progress * .1).toFixed(3));
-      headerRef.current?.style.setProperty("--chrome-shadow-alpha", (progress * .08).toFixed(3));
-      headerRef.current?.style.setProperty("--chrome-blur", `${(progress * 26).toFixed(1)}px`);
+      headerRef.current?.style.setProperty("--chrome-alpha", (progress * .27).toFixed(3));
+      headerRef.current?.style.setProperty("--chrome-border-alpha", (progress * .14).toFixed(3));
+      headerRef.current?.style.setProperty("--chrome-shadow-alpha", (progress * .09).toFixed(3));
+      headerRef.current?.style.setProperty("--chrome-blur", `${(progress * 30).toFixed(1)}px`);
+      headerRef.current?.style.setProperty("--chrome-sheen-alpha", (progress * .19).toFixed(3));
+      headerRef.current?.style.setProperty("--chrome-dark-sheen-alpha", (progress * .065).toFixed(3));
+      headerRef.current?.style.setProperty("--chrome-width", `${chromeWidth.toFixed(1)}px`);
+      headerRef.current?.style.setProperty("--nav-gap", `${navGap.toFixed(1)}px`);
+      headerRef.current?.style.setProperty("--chrome-content-y", `${(-8 * (1 - progress)).toFixed(2)}px`);
+      headerRef.current?.style.setProperty("--chrome-content-scale", (0.96 + progress * 0.04).toFixed(3));
       const next = progress > 0.08;
       setScrolled((current) => current === next ? current : next);
     };
@@ -86,8 +99,10 @@ export function SiteHeader() {
     };
     update();
     window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
     return () => {
       window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
       if (frame) window.cancelAnimationFrame(frame);
     };
   }, [pathname]);
@@ -147,6 +162,12 @@ export function SiteHeader() {
         "--chrome-border-alpha": pathname === "/" ? 0 : .1,
         "--chrome-shadow-alpha": pathname === "/" ? 0 : .08,
         "--chrome-blur": pathname === "/" ? "0px" : "26px",
+        "--chrome-sheen-alpha": pathname === "/" ? 0 : .19,
+        "--chrome-dark-sheen-alpha": pathname === "/" ? 0 : .065,
+        "--chrome-width": pathname === "/" ? "min(1760px, calc(100vw - 32px))" : "min(1320px, calc(100vw - 32px))",
+        "--nav-gap": pathname === "/" ? "34px" : "5px",
+        "--chrome-content-y": pathname === "/" ? "-8px" : "0px",
+        "--chrome-content-scale": pathname === "/" ? .96 : 1,
       } as React.CSSProperties}
       className={cn("site-header", pathname === "/" && "is-home", scrolled && "is-scrolled")}
     >
@@ -246,8 +267,8 @@ export function SiteHeader() {
                 initial={false}
                 animate={mobileOpen
                   ? { clipPath: "inset(0% 0% 0% 0% round 0px)", opacity: 1, scale: 1, filter: "blur(0px)" }
-                  : { clipPath: reduceMotion ? "inset(0% 0% 0% 100% round 24px)" : "inset(0% 0% 0% 100% round 36px)", opacity: 0, scale: .985, filter: reduceMotion ? "blur(0px)" : "blur(12px)" }}
-                transition={{ duration: reduceMotion ? 0 : 0.28, ease: [0.16, 1, 0.3, 1] }}
+                  : { clipPath: reduceMotion ? "inset(0% 0% 0% 100% round 24px)" : "inset(0% 0% 0% 100% round 34px)", opacity: 0, scale: .992, filter: reduceMotion ? "blur(0px)" : "blur(8px)" }}
+                transition={{ duration: reduceMotion ? 0 : 0.38, ease: [0.22, 1, 0.36, 1] }}
                 className="mobile-menu-panel"
                 onPointerEnter={(event) => {
                   if (event.pointerType === "mouse") cancelHoverClose();

@@ -112,6 +112,7 @@ export function BeautyFinder() {
   const [results, setResults] = useState<Product[]>([]);
   const [summary, setSummary] = useState("");
   const [insight, setInsight] = useState("");
+  const [advice, setAdvice] = useState<string[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [searchFactIndices, setSearchFactIndices] = useState([0, 1]);
@@ -280,6 +281,7 @@ export function BeautyFinder() {
     setResults([]);
     setSummary("");
     setInsight("");
+    setAdvice([]);
     setError("");
     setSearchFactStep(0);
     setPlaceholderPage(0);
@@ -295,6 +297,7 @@ export function BeautyFinder() {
     setResults([]);
     setSummary("");
     setInsight("");
+    setAdvice([]);
     setSearchFactStep(0);
     const firstFact = Math.floor(Math.random() * searchFacts[mode].length);
     const secondFact = (firstFact + 1 + Math.floor(Math.random() * (searchFacts[mode].length - 1))) % searchFacts[mode].length;
@@ -310,6 +313,7 @@ export function BeautyFinder() {
         status?: "complete" | "needs_input" | "safety_redirect" | "no_verified_products";
         summary?: string;
         insight?: string;
+        advice?: string[];
         followUpQuestion?: string;
         products?: Product[];
         methodology?: string;
@@ -324,6 +328,7 @@ export function BeautyFinder() {
         const explanation = [data.summary, data.followUpQuestion].filter(Boolean).join("\n\n");
         setSummary(explanation || "Подборка готова.");
         setInsight(data.insight || "");
+        setAdvice(Array.isArray(data.advice) ? data.advice.filter((item): item is string => typeof item === "string" && item.trim().length > 0).slice(0, 4) : []);
         const nextProducts = data.products ?? [];
         setResults(nextProducts);
         if (nextProducts.length) {
@@ -486,20 +491,15 @@ export function BeautyFinder() {
               aria-live="polite"
               className="search-discovery mt-5 overflow-hidden rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-glass)] p-5 text-center shadow-[var(--shadow-soft)] backdrop-blur-2xl md:mt-7 md:rounded-[var(--radius-xxl)] md:p-8"
             >
-              <div className="search-liquid-stage" aria-hidden="true">
-                <span className="search-liquid-aura" />
-                <span className="search-liquid-shadow" />
-                <span className="search-liquid-orbit search-liquid-orbit-back"><i /><i /></span>
-                <span className="search-liquid-pearl">
-                  <i className="search-liquid-refraction" />
-                  <i className="search-liquid-membrane" />
-                  <span className="search-liquid-nucleus"><i /><i /><i /></span>
-                </span>
-                <span className="search-liquid-orbit search-liquid-orbit-front"><i /><i /><i /></span>
-                <span className="search-liquid-satellite search-liquid-satellite-a" />
-                <span className="search-liquid-satellite search-liquid-satellite-b" />
+              <div className={styles.dropletTheatre} aria-hidden="true">
+                <span className={styles.dropletRail} />
+                <span className={`${styles.searchDrop} ${styles.searchDropOne}`} />
+                <span className={`${styles.searchDrop} ${styles.searchDropTwo}`} />
+                <span className={`${styles.searchDrop} ${styles.searchDropThree}`} />
+                <span className={`${styles.searchDrop} ${styles.searchDropFour}`} />
+                <span className={`${styles.searchDrop} ${styles.searchDropFive}`} />
               </div>
-              <p className="mt-5 text-xs font-black uppercase tracking-[0.14em] text-[var(--color-text-soft)]">Подбор уже в процессе</p>
+              <p className="mt-3 text-xs font-black uppercase tracking-[0.14em] text-[var(--color-text-soft)]">Подбор уже в процессе</p>
               <h2 className="mt-2 text-2xl font-black tracking-tight md:text-3xl">Сверяю детали вашего запроса</h2>
               <AnimatePresence mode="wait" initial={false}>
                 <motion.p
@@ -531,6 +531,31 @@ export function BeautyFinder() {
                 <p className="whitespace-pre-line text-xl font-bold leading-8 text-[var(--color-text)]">{summary}</p>
                 {insight ? <p className="mx-auto mt-3 max-w-2xl text-sm font-semibold leading-6 text-[var(--color-text-muted)]"><span className="font-black text-[var(--color-bordeaux)]">Полезно знать:</span> {insight}</p> : null}
               </div>
+              {advice.length ? (
+                <motion.aside
+                  initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 22, scale: .985 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ duration: .52, ease: [0.16, 1, 0.3, 1] }}
+                  className={styles.adviceBlock}
+                  aria-label="Советы по вашему запросу"
+                >
+                  <div className={styles.adviceHeading}>
+                    <Sparkles aria-hidden="true" />
+                    <div>
+                      <p>Перед подборкой</p>
+                      <h3>Что поможет получить спокойный результат</h3>
+                    </div>
+                  </div>
+                  <ol>
+                    {advice.map((item, index) => (
+                      <li key={`${index}-${item}`}>
+                        <span>{String(index + 1).padStart(2, "0")}</span>
+                        <p>{item}</p>
+                      </li>
+                    ))}
+                  </ol>
+                </motion.aside>
+              ) : null}
               <div className="grid gap-3 md:grid-cols-2">
                 {results.map((product, index) => (
                   <motion.article key={product.name} initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 28, scale: .985 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ duration: .58, delay: index * .07, ease: [0.16, 1, 0.3, 1] }} className="product-result-card overflow-hidden border border-[var(--color-border)] bg-[var(--color-surface)]">

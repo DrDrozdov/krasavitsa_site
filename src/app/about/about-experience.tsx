@@ -40,6 +40,15 @@ const boundaries = [
   "Не просим чувствительные данные, которые не нужны для подбора.",
 ];
 
+const systemSignals = [
+  { title: "Контекст", text: "Задача, привычки и бюджет", Icon: Fingerprint },
+  { title: "Проверка", text: "Состав, назначение и источник", Icon: ScanSearch },
+  { title: "Прозрачность", text: "Понятное объяснение выбора", Icon: Eye },
+  { title: "Границы", text: "Без диагнозов и обещаний", Icon: ShieldCheck },
+  { title: "Сценарий", text: "Короткая последовательность шагов", Icon: Sparkles },
+  { title: "Ваш выбор", text: "Решение остаётся за вами", Icon: Check },
+];
+
 export function AboutExperience() {
   const experienceRef = useRef<HTMLDivElement>(null);
 
@@ -127,23 +136,36 @@ export function AboutExperience() {
         </div>
       </section>
 
-      <section className={`${styles.purpose} ${styles.frame}`} data-reveal>
-        <p className={styles.kicker}>Зачем Красавица</p>
-        <div className={styles.purposeGrid}>
-          <h2>
-            Beauty-выбор не должен ощущаться как бесконечный экзамен.
-          </h2>
-          <div>
-            <p>
-              Между советами из ленты, сложными составами и сотнями похожих
-              баночек легко потерять собственную задачу. Мы возвращаем её в
-              центр выбора.
-            </p>
-            <p className={styles.purposeNote}>
-              <Eye aria-hidden="true" />
-              Сначала смысл — затем средство.
-            </p>
+      <section className={`${styles.missionSystem} ${styles.frame}`} data-reveal>
+        <div className={styles.missionCopy}>
+          <p className={styles.kicker}>Система, а не случайный совет</p>
+          <h2>В центре всегда остаётся ваша реальная задача.</h2>
+          <p>
+            Красавица соединяет шесть сигналов в один спокойный маршрут. Каждый
+            сегмент можно проверить — и ни один не подменяет ваше решение.
+          </p>
+        </div>
+        <div className={styles.missionPortal} aria-label="Шесть принципов Красавицы">
+          <div className={styles.portalCore}>
+            <span>Beauty ID</span>
+            <strong>Ваш контекст</strong>
+            <small>в центре системы</small>
           </div>
+          {systemSignals.map(({ title, text, Icon }, index) => (
+            <article
+              key={title}
+              className={styles.portalSegment}
+              data-reveal
+              style={{ "--segment": index, "--delay": `${120 + index * 85}ms` } as React.CSSProperties}
+            >
+              <Icon aria-hidden="true" />
+              <div>
+                <strong>{title}</strong>
+                <span>{text}</span>
+              </div>
+            </article>
+          ))}
+          <span className={styles.portalOrbit} aria-hidden="true" />
         </div>
       </section>
 

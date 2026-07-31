@@ -33,6 +33,7 @@ export type BeautyRecommendation = {
   mode: SearchMode;
   summary: string;
   insight: string;
+  advice: string[];
   followUpQuestion?: string;
   products: BeautyProduct[];
   methodology: "grounded-v4" | "curated-fallback";
@@ -43,6 +44,7 @@ type JsonRecord = Record<string, unknown>;
 type TriageResult = {
   decision: "ready" | "clarify" | "safety" | "decline";
   summary: string;
+  advice: string[];
   question?: string;
   profile: JsonRecord;
   redFlags: string[];
@@ -400,6 +402,7 @@ function parseTriage(raw: JsonRecord): TriageResult {
   return {
     decision,
     summary: asString(raw.summary) || "Запрос принят.",
+    advice: asStringArray(raw.advice, 4, 240),
     question: asString(raw.question, 300) || undefined,
     profile: asRecord(raw.profile) ?? {},
     redFlags: asStringArray(raw.red_flags, 6),
@@ -839,6 +842,37 @@ function resultInsight(mode: SearchMode): string {
   return "Аромат лучше оценивать на коже минимум 20–30 минут: блоттер показывает старт, но не индивидуальное раскрытие и комфорт в течение дня.";
 }
 
+function resultAdvice(mode: SearchMode, query = ""): string[] {
+  const normalized = query.toLocaleLowerCase("ru");
+  if (mode === "skin") {
+    return [
+      /кислот|ретин|актив/u.test(normalized)
+        ? "Не вводите несколько активов одновременно: начните с одного средства и увеличивайте частоту только при хорошей переносимости."
+        : "Сначала соберите устойчивую базу: мягкое очищение, увлажнение и ежедневная защита от солнца.",
+      /чувств|реактив|раздраж|барьер/u.test(normalized)
+        ? "При жжении, стойком покраснении или ухудшении состояния остановите новые средства и вернитесь к нейтральной базовой рутине."
+        : "Проверяйте новое средство на небольшом участке кожи и оценивайте результат не по одному применению.",
+      "Меняйте по одному шагу за раз — так будет понятно, какое средство действительно помогает или вызывает реакцию.",
+    ];
+  }
+  if (mode === "hair") {
+    return [
+      "Оценивайте кожу головы и длину отдельно: им часто нужны разные текстуры и частота ухода.",
+      /окраш|освет|порист|ломк/u.test(normalized)
+        ? "Для повреждённой длины важнее регулярное кондиционирование, снижение трения и термозащита, чем частая смена шампуня."
+        : "Шампунь наносите прежде всего на кожу головы, а кондиционер — на длину, отступая от корней.",
+      "Если зуд, корки, боль или выпадение усиливаются, косметический подбор лучше отложить до очной оценки специалиста.",
+    ];
+  }
+  return [
+    "Начните с пробника или небольшого объёма и оцените аромат на коже, а не только на блоттере.",
+    /офис|работ|каждый день/u.test(normalized)
+      ? "Для закрытых помещений наносите меньше: комфорт окружающих важнее заявленной стойкости и шлейфа."
+      : "Дайте композиции 20–30 минут: стартовые ноты не показывают её характер целиком.",
+    "Температура, влажность и увлажнённость кожи меняют звучание — тестируйте аромат в условиях, где планируете его носить.",
+  ];
+}
+
 function curatedCandidates(mode: SearchMode): Candidate[] {
   return curatedFallback[mode].map((product) => ({
     name: product.name,
@@ -1013,6 +1047,7 @@ export async function recommendBeauty(query: string, mode: SearchMode): Promise<
   let triage: TriageResult = {
     decision: "ready",
     summary: "Я поняла задачу и собрала практичные варианты с учётом бюджета и указанной цели.",
+    advice: resultAdvice(mode, query),
     profile: {},
     redFlags: [],
   };
@@ -1028,7 +1063,7 @@ ${config.specialist}
 
 Сделай три шага внутри одного ответа: аккуратно извлеки профиль, проверь безопасность и предложи 8 реально существующих широко доступных товаров. Для обычного широкого запроса (например, «базовый уход до 3000 ₽», «хочу варианты» или «подарок») decision всегда ready: не заставляй пользователя заполнять анкету и не оставляй его без результата. Если бюджет указан для всей рутины или это следует из формулировки, оценивай бюджет суммарно; если бюджет на одно средство — отдельно. При ограниченном бюджете предпочитай массовые товары, которые обычно представлены одновременно на Яндекс Маркете, Wildberries и Ozon. URL можно оставить пустыми: сервер самостоятельно найдёт и подтвердит карточки.
 
-Верни JSON {"decision":"ready|safety|decline","summary":"дружелюбное краткое резюме запроса на русском","question":"только при safety или decline","profile":{"goal":"","constraints":[],"preferences":[],"budget":"","budget_scope":"routine|item|unknown","context":""},"red_flags":[],"products":[{"name":"точное официальное название","category":"роль в подборе","reason":"почему подходит запросу без рекламных обещаний","match_score":0,"usage":"короткий безопасный способ применения или тестирования","tradeoffs":["честное ограничение"],"retailer_urls":[{"label":"магазин","url":"прямая карточка, только если точно известна"}]}]}.`,
+Верни JSON {"decision":"ready|safety|decline","summary":"дружелюбное краткое резюме запроса на русском","advice":["2–4 коротких практичных совета именно по проблеме пользователя, до карточек товаров"],"question":"только при safety или decline","profile":{"goal":"","constraints":[],"preferences":[],"budget":"","budget_scope":"routine|item|unknown","context":""},"red_flags":[],"products":[{"name":"точное официальное название","category":"роль в подборе","reason":"почему подходит запросу без рекламных обещаний","match_score":0,"usage":"короткий безопасный способ применения или тестирования","tradeoffs":["честное ограничение"],"retailer_urls":[{"label":"магазин","url":"прямая карточка, только если точно известна"}]}]}.`,
         `<user_request>${query}</user_request>`,
         2100,
       );
@@ -1052,6 +1087,7 @@ ${config.specialist}
       mode,
       summary: triage.summary,
       insight: resultInsight(mode),
+      advice: triage.advice.length ? triage.advice : resultAdvice(mode, query),
       followUpQuestion: triage.question || "Уточните цель, ограничения и бюджет.",
       products: [],
       methodology: "grounded-v4",
@@ -1063,6 +1099,7 @@ ${config.specialist}
       mode,
       summary: `${triage.summary} ${config.safety}`,
       insight: resultInsight(mode),
+      advice: triage.advice.length ? triage.advice : resultAdvice(mode, query),
       followUpQuestion: "После очной оценки специалиста можно вернуться за подбором поддерживающего косметического ухода.",
       products: [],
       methodology: "grounded-v4",
@@ -1077,6 +1114,7 @@ ${config.specialist}
       mode,
       summary: `${triage.summary} Сейчас магазины не отдали достаточно подтверждённых карточек с наблюдаемыми ценами. Я сохранила запрос и не подменяю карточки поисковыми ссылками.`,
       insight: resultInsight(mode),
+      advice: triage.advice.length ? triage.advice : resultAdvice(mode, query),
       products: ensureMinimumProducts(mode, query, []),
       methodology: "curated-fallback",
     };
@@ -1103,6 +1141,7 @@ ${config.specialist}
       mode,
       summary: `${summary} После финальной проверки осталось меньше трёх товаров с подтверждёнными прямыми карточками и наблюдаемыми ценами. Уточните бюджет, объём или желаемые бренды — я повторю поиск.`,
       insight: resultInsight(mode),
+      advice: triage.advice.length ? triage.advice : resultAdvice(mode, query),
       products: [],
       methodology: "grounded-v4",
     };
@@ -1112,6 +1151,7 @@ ${config.specialist}
     mode,
     summary,
     insight: resultInsight(mode),
+    advice: triage.advice.length ? triage.advice : resultAdvice(mode, query),
     products: publicProducts,
     methodology: "grounded-v4",
   };
@@ -1130,6 +1170,7 @@ export async function fallbackRecommendation(mode: SearchMode): Promise<BeautyRe
       mode,
       summary: "Экспертный слой временно недоступен, поэтому я собрала спокойные базовые варианты из проверяемого каталога и сверила реальные карточки магазинов.",
       insight: resultInsight(mode),
+      advice: resultAdvice(mode),
       products,
       methodology: "curated-fallback",
     }
@@ -1138,6 +1179,7 @@ export async function fallbackRecommendation(mode: SearchMode): Promise<BeautyRe
       mode,
       summary: "Магазины временно не отдали достаточно данных для честного сравнения цен. Запрос можно безопасно повторить чуть позже.",
       insight: resultInsight(mode),
+      advice: resultAdvice(mode),
       products: [],
       methodology: "curated-fallback",
     };

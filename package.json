@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:backend": "node --test tests/backend/recommendation-policy.test.mjs"
+    "test:backend": "node --test tests/backend/recommendation-policy.test.mjs tests/backend/inci-analyzer.test.mjs"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",
