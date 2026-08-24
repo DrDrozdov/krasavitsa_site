@@ -5,6 +5,23 @@ import { isBeautyRelevantRequest } from "@/lib/beauty-relevance";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
+const RECOMMENDATION_BUDGET_MS = 45_000;
+const FALLBACK_BUDGET_MS = 12_000;
+
+async function withDeadline<T>(task: Promise<T>, budgetMs: number): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      task,
+      new Promise<T>((_, reject) => {
+        timer = setTimeout(() => reject(new Error("RECOMMENDATION_TIMEOUT")), budgetMs);
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json() as { query?: unknown; mode?: unknown };
@@ -22,12 +39,12 @@ export async function POST(request: Request) {
     }
 
     try {
-      return NextResponse.json(await recommendBeauty(query, mode), {
+      return NextResponse.json(await withDeadline(recommendBeauty(query, mode), RECOMMENDATION_BUDGET_MS), {
         headers: { "Cache-Control": "no-store" },
       });
     } catch (error) {
       console.error("Beauty recommendation pipeline failed", error instanceof Error ? error.message : error);
-      return NextResponse.json(await fallbackRecommendation(mode), {
+      return NextResponse.json(await withDeadline(fallbackRecommendation(mode), FALLBACK_BUDGET_MS), {
         headers: { "Cache-Control": "no-store" },
       });
     }
